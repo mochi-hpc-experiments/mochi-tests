@@ -1,0 +1,2 @@
+bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw
+
