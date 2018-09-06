@@ -26,7 +26,7 @@ cp spack-shell.patch  $SANDBOX/
 
 # scratch area for job submission
 mkdir -p $JOBDIR
-cp margo-regression-spack.qsub $JOBDIR
+cp margo-regression.qsub $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/spack/spack.git
@@ -86,7 +86,7 @@ cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 # cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
 # cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
-JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression-spack.qsub`
+JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
 cqwait $JOBID
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
