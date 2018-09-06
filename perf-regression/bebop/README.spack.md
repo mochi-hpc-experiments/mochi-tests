@@ -11,9 +11,6 @@ module load numactl
 ```
 git clone https://github.com/spack/spack.git
 cd spack
-# as of 2018-08-13, need to patch to bump libfabric to 1.6.1 so it will
-# build with Intel compiler
-patch -p0 < spack-libfabric-1.6.1.patch
 . share/spack/setup-env.sh
 # do not bootstrap; we will use existing lmod install on Bebop
 
@@ -29,6 +26,26 @@ packages:
         compiler: [intel, gcc]
         providers:
             mpi: [intel-mpi]
+    m4:
+        paths:
+            m4@1.4.16: /usr
+        buildable: False
+    libtool:
+        paths:
+            libtool@2.4.2: /usr
+        buildable: False
+    pkg-config:
+        paths:
+            pkg-config@0.27.1: /usr
+        buildable: False
+    cmake:
+        modules:
+            cmake@3.9.4: cmake/3.9.4-3tixtqt
+        buildable: False
+    numactl:
+        modules:
+            numactl@2.0.11-tggunqu: numactl/2.0.11-tggunqu
+        buildable: False
     openssl:
         paths:
             openssl@1.0.2k: /usr
@@ -82,8 +99,8 @@ packages:
             ncurses@5.9: /usr
         buildable: False
     intel-mpi:
-        paths:
-            intel-mpi@2017.3: /blues/gpfs/home/software/spack-0.10.1/opt/spack/linux-centos7-x86_64/intel-17.0.4/intel-mpi-2017.3-dfphq6kavje2olnichisvjjndtridrok
+        modules:
+            intel-mpi@2017.3: intel-mpi/2017.3-dfphq6k
         buildable: False
     ssg:
         variants: +mpi
