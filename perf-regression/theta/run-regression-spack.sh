@@ -31,7 +31,7 @@ cp margo-regression-spack.qsub $JOBDIR
 cd $SANDBOX
 git clone https://github.com/spack/spack.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-repo.git
-git clone https://xgitlab.cels.anl.gov/sds/ssg.git
+git clone https://xgitlab.cels.anl.gov/sds/sds-tests.git
 wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.3.2.tar.gz
 tar -xvzf osu-micro-benchmarks-5.3.2.tar.gz
 git clone https://github.com/pdlfs/mercury-runner.git
@@ -59,16 +59,15 @@ spack load -r ssg
 # make -j 3
 # make install
 
-# ssg
-echo "=== BUILDING SSG TEST PROGRAMS ==="
-cd $SANDBOX/ssg
+# sds-tests
+echo "=== BUILDING SDS TEST PROGRAMS ==="
+cd $SANDBOX/sds-tests
 libtoolize
 ./prepare.sh
 mkdir build
 cd build
 ../configure --prefix=$PREFIX CC=cc
 make -j 3
-make tests
 make install
 
 # mercury-runner benchmark
@@ -82,12 +81,12 @@ make install
 
 # set up job to run
 echo "=== SUBMITTING AND WAITING FOR JOB ==="
-cp $SANDBOX/ssg/build/tests/perf-regression/.libs/margo-p2p-latency $JOBDIR
-cp $SANDBOX/ssg/build/tests/perf-regression/.libs/margo-p2p-bw $JOBDIR
+cp $PREFIX/bin/margo-p2p-latency $JOBDIR
+cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 # cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
 # cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
-JOBID=`qsub --env LD_LIBRARY_PATH=$PREFIX/lib --env SANDBOX=$SANDBOX ./margo-regression-spack.qsub`
+JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression-spack.qsub`
 cqwait $JOBID
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="

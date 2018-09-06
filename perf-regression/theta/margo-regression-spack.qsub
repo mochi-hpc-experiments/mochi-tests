@@ -7,13 +7,27 @@
 #COBALT -M carns@mcs.anl.gov
 
 # XXX xalt module currently eating '-M' flag for mercury-runner...disabling for now
-module unload xalt
+# module unload xalt
+
+get_mercury_lib_path() {
+        module show `spack module tcl find mercury` |&grep LIBRARY_PATH | awk '{print $3}'
+}
+
+module swap PrgEnv-intel PrgEnv-gnu
+module load cce
 
 export SPACK_SHELL=bash
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg 
 
 module list
+
+# NOTE: as of Sept 2018, the rpath isn't being set correctly for Mercury libraries in the regression
+#       test programs.  Not sure why.  This hack manually adds the correct path to LD_LIBRARY_PATH.
+LIB_PATH_HACK=$(get_mercury_lib_path)
+export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
+echo LD_LIBRARY_PATH: $LD_LIBRARY_PATH
+ldd ./margo-p2p-latency
 
 # NOTE: needed as of January 2018 to avoid conflicts between MPI and 
 #       libfabric GNI provider
