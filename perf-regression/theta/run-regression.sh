@@ -23,6 +23,7 @@ JOBDIR=~/tmp/mochi-regression-job-$$
 # scratch area to clone and build things
 mkdir -p $SANDBOX
 cp spack-shell.patch  $SANDBOX/
+cp packages.yaml  $SANDBOX/
 
 # scratch area for job submission
 mkdir -p $JOBDIR
@@ -42,6 +43,7 @@ cd $SANDBOX/spack
 patch -p1 < ../spack-shell.patch
 export SPACK_SHELL=bash
 . $SANDBOX/spack/share/spack/setup-env.sh
+cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
 spack repo add $SANDBOX/sds-repo
 spack uninstall -R -y argobots mercury libfabric  | true
 spack install ssg
