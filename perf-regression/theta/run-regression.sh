@@ -16,9 +16,9 @@ module load cce
 export CFLAGS="-O3"
 export CRAYPE_LINK_TYPE=dynamic
 
-SANDBOX=~/tmp/mochi-regression-sandbox-$$
-PREFIX=~/tmp/mochi-regression-install-$$
-JOBDIR=~/tmp/mochi-regression-job-$$
+SANDBOX=./mochi-regression-sandbox-$$
+PREFIX=./mochi-regression-install-$$
+JOBDIR=./mochi-regression-job-$$
 
 # scratch area to clone and build things
 mkdir -p $SANDBOX
