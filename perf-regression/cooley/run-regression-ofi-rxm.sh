@@ -103,6 +103,5 @@ cat $JOBID.* > combined.$JOBID.txt
 mailx -s "margo-regression (cooley, ofi rxm)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
 cd /tmp
-spack repo rm $SANDBOX/sds-repo
 rm -rf $SANDBOX
 rm -rf $PREFIX
