@@ -11,13 +11,14 @@
 # exit on any error
 set -e
 
-SANDBOX=~/tmp/mochi-regression-sandbox-$$
-PREFIX=~/tmp/mochi-regression-install-$$
-JOBDIR=~/tmp/mochi-regression-job-$$
+SANDBOX=$PWD/mochi-regression-sandbox-$$
+PREFIX=$PWD/mochi-regression-install-$$
+JOBDIR=$PWD/mochi-regression-job-$$
 
 # scratch area to clone and build things
 mkdir $SANDBOX
 cp spack-shell.patch  $SANDBOX/
+cp packages.yaml $SANDBOX/
 
 # scratch area for job submission
 mkdir $JOBDIR
@@ -37,8 +38,15 @@ cd $SANDBOX/spack
 patch -p1 < ../spack-shell.patch
 export SPACK_SHELL=bash
 . $SANDBOX/spack/share/spack/setup-env.sh
+# put packages file in place in SPACK_ROOT to set our preferences for building
+# Mochi stack
+cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
+# set up repos file to point to sds-repo; we do this manually because 
+#    "spack repo add" will create files in ~/.spack, which is a bad idea in 
+#    CI environments
+echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
+echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 spack bootstrap
-spack repo add $SANDBOX/sds-repo
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
 spack install --dirty ssg
 # deliberately repeat setup-env step after building modules to ensure
