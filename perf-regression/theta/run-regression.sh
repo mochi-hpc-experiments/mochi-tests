@@ -105,6 +105,5 @@ mailx -r carns@mcs.anl.gov -s "margo-regression (theta dynamic link)" sds-commit
 cat combined.$JOBID.txt
 
 cd /tmp
-spack repo rm $SANDBOX/sds-repo
 rm -rf $SANDBOX
 rm -rf $PREFIX
