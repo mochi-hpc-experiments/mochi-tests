@@ -17,97 +17,13 @@ cd spack
 git clone git@xgitlab.cels.anl.gov:sds/sds-repo
 spack repo add .
 ```
+This directory contains a packages.yaml that should be copied to one of the spack
+configuration locations documented here: https://spack.readthedocs.io/en/stable/configuration.html .  This could be your ~/.spack/linux/ directory, for example.
+The automation scripts in this directory use $SPACK_ROOT/etc/spack to avoid
+perturbing the account on which the regression tests are executed.
 
-# edit .spack/linux/packages.yaml to look like this:
-# The important things are to use the existing Intel compiler and MPI library
-```
-packages:
-    all:
-        compiler: [intel, gcc]
-        providers:
-            mpi: [intel-mpi]
-    m4:
-        paths:
-            m4@1.4.16: /usr
-        buildable: False
-    libtool:
-        paths:
-            libtool@2.4.2: /usr
-        buildable: False
-    pkg-config:
-        paths:
-            pkg-config@0.27.1: /usr
-        buildable: False
-    cmake:
-        modules:
-            cmake@3.9.4: cmake/3.9.4-3tixtqt
-        buildable: False
-    numactl:
-        modules:
-            numactl@2.0.11-tggunqu: numactl/2.0.11-tggunqu
-        buildable: False
-    openssl:
-        paths:
-            openssl@1.0.2k: /usr
-        buildable: False
-    bzip2:
-        paths:
-            bzip2@1.0.6: /
-        buildable: False
-    bison:
-        paths:
-            bison@3.0.4: /
-        buildable: False
-    flex:
-        paths:
-            flex@2.5.37: /
-        buildable: False
-    coreutils:
-        paths:
-            coreutils@8.22: /usr
-        buildable: False
-    zlib:
-        paths:
-            zlib@1.2.7: /usr
-        buildable: False
-    tar:
-        paths:
-            tar@1.26: /
-        buildable: False
-    gettext:
-        paths:
-            gettext@0.19: /usr
-        buildable: False
-    tcl:
-        paths:
-            tcl@8.5.13: /usr
-        buildable: False
-    perl:
-        paths:
-            perl@5.16.3: /usr
-        buildable: False
-    autoconf:
-        paths:
-            autoconf@2.69: /usr
-        buildable: False
-    automake:
-        paths:
-            automake@1.13.4: /usr
-        buildable: False
-    ncurses:
-        paths:
-            ncurses@5.9: /usr
-        buildable: False
-    intel-mpi:
-        modules:
-            intel-mpi@2017.3: intel-mpi/2017.3-dfphq6k
-        buildable: False
-    ssg:
-        variants: +mpi
-    libfabric:
-        variants: fabrics=psm2
 ```
 # compile everything and load module for ssg
 spack install ssg
 spack load -r ssg
-
+```

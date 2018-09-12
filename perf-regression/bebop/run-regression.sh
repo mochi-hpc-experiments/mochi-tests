@@ -10,14 +10,13 @@
 # exit on any error
 set -e
 
-module load numactl boost cmake
-
-SANDBOX=~/tmp/mochi-regression-sandbox-$$
-PREFIX=~/tmp/mochi-regression-install-$$
-JOBDIR=~/tmp/mochi-regression-job-$$
+SANDBOX=$PWD/mochi-regression-sandbox-$$
+PREFIX=$PWD/mochi-regression-install-$$
+JOBDIR=$PWD/mochi-regression-job-$$
 
 # scratch area to clone and build things
 mkdir -p $SANDBOX
+cp packages.yaml $SANDBOX/
 
 # scratch area for job submission
 mkdir -p $JOBDIR
@@ -35,7 +34,14 @@ git clone https://github.com/pdlfs/mercury-runner.git
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
 . $SANDBOX/spack/share/spack/setup-env.sh
-spack repo add $SANDBOX/sds-repo
+# put packages file in place in SPACK_ROOT to set our preferences for building
+# Mochi stack
+cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
+# set up repos file to point to sds-repo; we do this manually because 
+#    "spack repo add" will create files in ~/.spack, which is a bad idea in 
+#    CI environments
+echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
+echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 spack uninstall -R -y argobots mercury opa-psm2 || true
 spack install --dirty ssg
 # deliberately repeat setup-env step after building modules to ensure
@@ -90,6 +96,5 @@ cat *.out > combined.$JOBID.txt
 mailx -s "margo-regression (bebop)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
 cd /tmp
-spack repo rm $SANDBOX/sds-repo
 rm -rf $SANDBOX
 rm -rf $PREFIX
