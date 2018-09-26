@@ -4,7 +4,6 @@
 #COBALT --mode script
 #COBALT -A ecp-testbed-01
 #COBALT -q debug-cache-quad
-#COBALT -M carns@mcs.anl.gov
 
 # XXX xalt module currently eating '-M' flag for mercury-runner...disabling for now
 # module unload xalt
