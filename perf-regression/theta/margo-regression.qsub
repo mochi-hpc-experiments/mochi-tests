@@ -27,7 +27,8 @@ module list
 LIB_PATH_HACK=$(get_mercury_lib_path)
 export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
 echo LD_LIBRARY_PATH: $LD_LIBRARY_PATH
-ldd ./margo-p2p-latency
+
+#ldd ./margo-p2p-latency
 
 # NOTE: needed as of January 2018 to avoid conflicts between MPI and 
 #       libfabric GNI provider
