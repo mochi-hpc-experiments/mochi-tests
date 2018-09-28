@@ -509,12 +509,13 @@ static void bw_ult(hg_handle_t handle)
     margo_destroy(handle);
 
     free(tid_array);
-    free(arg_array);
 
     ABT_mutex_free(&cur_off_mutex);
     
     if(arg_array[0].op == HG_BULK_PUSH)
         ABT_eventual_set(g_bw_done_eventual, NULL, 0);
+
+    free(arg_array);
 
     return;
 }
