@@ -16,7 +16,6 @@ JOBDIR=$PWD/mochi-regression-job-$$
 
 # scratch area to clone and build things
 mkdir -p $SANDBOX
-cp spack-mercury-exp.patch  $SANDBOX/
 cp packages.yaml $SANDBOX/
 
 # scratch area for job submission
@@ -33,8 +32,6 @@ git clone https://github.com/pdlfs/mercury-runner.git
 
 # set up most of the libraries in spack
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
-cd $SANDBOX/sds-repo
-patch -p1 < ../spack-mercury-exp.patch
 cd $SANDBOX/spack
 . $SANDBOX/spack/share/spack/setup-env.sh
 # put packages file in place in SPACK_ROOT to set our preferences for building
