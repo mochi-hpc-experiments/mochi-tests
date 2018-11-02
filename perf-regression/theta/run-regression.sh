@@ -22,7 +22,6 @@ JOBDIR=$PWD/mochi-regression-job-$$
 
 # scratch area to clone and build things
 mkdir -p $SANDBOX
-cp spack-shell.patch  $SANDBOX/
 cp packages.yaml  $SANDBOX/
 
 # scratch area for job submission
@@ -30,7 +29,7 @@ mkdir -p $JOBDIR
 cp margo-regression.qsub $JOBDIR
 
 cd $SANDBOX
-git clone https://github.com/spack/spack.git
+git clone https://github.com/carns/spack.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-repo.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-tests.git
 wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.3.2.tar.gz
@@ -40,8 +39,7 @@ git clone https://github.com/pdlfs/mercury-runner.git
 # set up most of the libraries in spack
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
-patch -p1 < ../spack-shell.patch
-export SPACK_SHELL=bash
+git checkout carns/dev-shell-detection
 . $SANDBOX/spack/share/spack/setup-env.sh
 # put packages file in place in SPACK_ROOT to set our preferences for building
 # Mochi stack

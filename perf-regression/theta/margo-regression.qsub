@@ -15,7 +15,6 @@ get_mercury_lib_path() {
 module swap PrgEnv-intel PrgEnv-gnu
 module load cce
 
-export SPACK_SHELL=bash
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg 
 
