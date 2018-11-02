@@ -7,7 +7,6 @@
 
 export FI_FORK_UNSAFE=1
 
-export SPACK_SHELL=bash
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg 
 
