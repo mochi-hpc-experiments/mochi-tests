@@ -46,7 +46,8 @@ echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
 echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 spack bootstrap
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
-spack install --dirty ssg
+# 2018-11-5 using @develop for mercury and libfabric to test wait_fd
+spack install --dirty ssg ^mercury@develop ^libfabric@develop
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
