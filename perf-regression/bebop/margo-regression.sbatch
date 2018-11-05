@@ -11,7 +11,6 @@ export LMOD_PAGER=none
 
 module load numactl boost cmake
 
-export SPACK_SHELL=bash
 . $SANDBOX/spack/share/spack/setup-env.sh
 
 spack load -r ssg
