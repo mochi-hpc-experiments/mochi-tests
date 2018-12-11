@@ -41,7 +41,7 @@ struct options
 
 #define BW_TOTAL_MEM_SIZE 2147483648UL
 
-static void parse_args(int argc, char **argv, struct options *opts);
+static int parse_args(int argc, char **argv, struct options *opts);
 static void usage(void);
 
 MERCURY_GEN_PROC(bw_rpc_in_t,
@@ -122,7 +122,13 @@ int main(int argc, char **argv)
     printf("Process %d of %d is on %s\n",
 	rank, nranks, processor_name);
 
-    parse_args(argc, argv, &g_opts);
+    ret = parse_args(argc, argv, &g_opts);
+    if(ret < 0)
+    {
+        if(rank == 0)
+            usage();
+        exit(EXIT_FAILURE);
+    }
 
     /* allocate one big buffer for rdma transfers */
     g_buffer = calloc(g_buffer_size, 1);
@@ -318,7 +324,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-static void parse_args(int argc, char **argv, struct options *opts)
+static int parse_args(int argc, char **argv, struct options *opts)
 {
     int opt;
     int ret;
@@ -340,70 +346,53 @@ static void parse_args(int argc, char **argv, struct options *opts)
                 if(!opts->diag_file_name)
                 {
                     perror("strdup");
-                    exit(EXIT_FAILURE);
+                    return(-1);
                 }
                 break;
             case 'x':
                 ret = sscanf(optarg, "%d", &opts->xfer_size);
                 if(ret != 1)
-                {
-                    usage();
-                    exit(EXIT_FAILURE);
-                }
+                    return(-1);
                 break;
             case 'c':
                 ret = sscanf(optarg, "%d", &opts->concurrency);
                 if(ret != 1)
-                {
-                    usage();
-                    exit(EXIT_FAILURE);
-                }
+                    return(-1);
                 break;
             case 'T':
                 ret = sscanf(optarg, "%d", &opts->threads);
                 if(ret != 1)
-                {
-                    usage();
-                    exit(EXIT_FAILURE);
-                }
+                    return(-1);
                 break;
             case 'D':
                 ret = sscanf(optarg, "%d", &opts->duration_seconds);
                 if(ret != 1)
-                {
-                    usage();
-                    exit(EXIT_FAILURE);
-                }
+                    return(-1);
                 break;
             case 't':
                 ret = sscanf(optarg, "%u,%u", &opts->mercury_timeout_client, &opts->mercury_timeout_server);
                 if(ret != 2)
-                {
-                    usage();
-                    exit(EXIT_FAILURE);
-                }
+                    return(-1);
                 break;
             case 'n':
                 opts->na_transport = strdup(optarg);
                 if(!opts->na_transport)
                 {
                     perror("strdup");
-                    exit(EXIT_FAILURE);
+                    return(-1);
                 }
                 break;
             default:
-                usage();
-                exit(EXIT_FAILURE);
+                return(-1);
         }
     }
 
     if(opts->xfer_size < 1 || opts->concurrency < 1 || opts->duration_seconds < 1 || !opts->na_transport)
     {
-        usage();
-        exit(EXIT_FAILURE);
+        return(-1);
     }
 
-    return;
+    return(0);
 }
 
 static void usage(void)
