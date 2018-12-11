@@ -405,7 +405,8 @@ static void usage(void)
         "\t-n <na> - na transport\n"
         "\t[-c concurrency] - number of concurrent operations to issue with ULTs\n"
         "\t[-T <os threads] - number of dedicated operating system threads to run ULTs on\n"
-        "\t[-d filename] - enable diagnostics output \n"
+        "\t[-d filename] - enable diagnostics output\n"
+        "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
         "\t\texample: mpiexec -n 2 ./margo-p2p-bw -x 4096 -D 30 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
     

@@ -293,7 +293,8 @@ static void usage(void)
         "margo-p2p-latency -i <iterations> -n <na>\n"
         "\t-i <iterations> - number of RPC iterations\n"
         "\t-n <na> - na transport\n"
-        "\t[-d filename] - enable diagnostics output \n"
+        "\t[-d filename] - enable diagnostics output\n"
+        "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
         "\t\texample: mpiexec -n 2 ./margo-p2p-latency -i 10000 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
     
