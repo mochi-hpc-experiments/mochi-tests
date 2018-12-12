@@ -80,11 +80,6 @@ int main(int argc, char **argv)
 {
     margo_instance_id mid;
     int nranks;
-    hg_context_t *hg_context;
-    hg_class_t *hg_class;
-    ABT_xstream xstream;
-    ABT_sched sched;
-    ABT_pool pool;
     int ret;
     ssg_group_id_t gid;
     ssg_member_id_t self;
@@ -94,20 +89,8 @@ int main(int argc, char **argv)
     int i;
     ABT_xstream *bw_worker_xstreams = NULL;
     ABT_sched *bw_worker_scheds = NULL;
+    struct hg_init_info hii;
 
-    /* NOTE: Margo is very likely to create a single producer (the
-     * progress function), multiple consumer usage pattern that
-     * causes excess memory consumption in some versions of
-     * Argobots.  See
-     * https://xgitlab.cels.anl.gov/sds/margo/issues/40 for details.
-     * We therefore manually set the ABT_MEM_MAX_NUM_STACKS parameter 
-     * for Argobots to a low value so that RPC handler threads do not
-     * queue large numbers of stacks for reuse in per-ES data 
-     * structures.
-     */
-    putenv("ABT_MEM_MAX_NUM_STACKS=8");
-
-    ABT_init(argc, argv);
     MPI_Init(&argc, &argv);
 
     /* 2 process one-way bandwidth measurement only */
@@ -139,44 +122,10 @@ int main(int argc, char **argv)
         return(-1);
     }
 
-    /* boilerplate ABT initialization steps */
-    /****************************************/
-
-    /* get main pool for running mercury progress and RPC handlers */
-    /* NOTE: we use the ABT scheduler that idles while not busy */
-    ret = ABT_sched_create_basic(ABT_SCHED_BASIC_WAIT, 0, NULL,
-        ABT_SCHED_CONFIG_NULL, &sched);
-    if(ret != 0)
-    {
-        fprintf(stderr, "Error: ABT_sched_create_basic()\n");
-        return(-1);
-    }
-    ret = ABT_xstream_self(&xstream);
-    if(ret != 0)
-    {
-        fprintf(stderr, "Error: ABT_xstream_self()\n");
-        return(-1);
-    }
-    ret = ABT_xstream_set_main_sched(xstream, sched);
-    if(ret != 0)
-    {
-        fprintf(stderr, "Error: ABT_xstream_set_main_sched()\n");
-        return(-1);
-    }
-    ret = ABT_xstream_get_main_pools(xstream, 1, &pool);
-    if(ret != 0)
-    {
-        fprintf(stderr, "Error: ABT_xstream_get_main_pools()\n");
-        return(-1);
-    }
-
-    /* boilerplate HG initialization steps */
-    /***************************************/
-
+    memset(&hii, 0, sizeof(hii));
     if((rank == 0 && g_opts.mercury_timeout_client == 0) ||
        (rank == 1 && g_opts.mercury_timeout_server == 0))
     {
-        struct hg_init_info hii;
         
         /* If mercury timeout of zero is requested, then set
          * init option to NO_BLOCK.  This allows some transports to go
@@ -184,29 +133,11 @@ int main(int argc, char **argv)
          * structures necessary for signaling completion on blocked
          * operations.
          */
-        memset(&hii, 0, sizeof(hii));
         hii.na_init_info.progress_mode = NA_NO_BLOCK;
-        hg_class = HG_Init_opt(g_opts.na_transport, HG_TRUE, &hii);
-    }
-    else
-    {
-        hg_class = HG_Init(g_opts.na_transport, HG_TRUE);
-    }
-    if(!hg_class)
-    {
-        fprintf(stderr, "Error: HG_Init()\n");
-        return(-1);
-    }
-    hg_context = HG_Context_create(hg_class);
-    if(!hg_context)
-    {
-        fprintf(stderr, "Error: HG_Context_create()\n");
-        HG_Finalize(hg_class);
-        return(-1);
     }
 
     /* actually start margo */
-    mid = margo_init_pool(pool, pool, hg_context);
+    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 0, -1);
     assert(mid);
 
     if(g_opts.diag_file_name)
@@ -249,7 +180,17 @@ int main(int argc, char **argv)
         /* set up abt pool */
         if(g_opts.threads == 0)
         {
+            ABT_pool pool;
+            ABT_xstream xstream;
+            
             /* run bulk transfers from primary pool on server */
+
+            ret = ABT_xstream_self(&xstream);
+            assert(ret == 0);
+
+            ret = ABT_xstream_get_main_pools(xstream, 1, &pool);
+            assert(ret == 0);
+
             g_transfer_pool = pool;
         }
         else
@@ -316,10 +257,7 @@ int main(int argc, char **argv)
     free(g_buffer);
 
     margo_finalize(mid);
-    HG_Context_destroy(hg_context);
-    HG_Finalize(hg_class);
     MPI_Finalize();
-    ABT_finalize();
 
     return 0;
 }
