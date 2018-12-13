@@ -99,7 +99,7 @@ echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
 cat $JOBID.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
-mailx -r carns@mcs.anl.gov -s "margo-regression (theta dynamic link)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
+mailx -r carns@mcs.anl.gov -s "margo-regression (theta)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
 
 cd /tmp
