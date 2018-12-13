@@ -12,7 +12,9 @@
  * it assumes that it should set a fill pattern after the first RPC and shut
  * down after the second RPC.  It assumes it can read all params from argv.
  */
-
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
 
 #include <unistd.h>
 #include <stdio.h>
@@ -33,6 +35,7 @@ struct options
     int duration_seconds;
     int concurrency;
     int threads;
+    char* mmap_filename;
     unsigned int mercury_timeout_client;
     unsigned int mercury_timeout_server;
     char* diag_file_name;
@@ -40,6 +43,9 @@ struct options
 };
 
 #define BW_TOTAL_MEM_SIZE 2147483648UL
+
+static void* custom_mmap_alloc(const char* filename, size_t size);
+static void  custom_mmap_free(const char* filename, void* addr, size_t size);
 
 static int parse_args(int argc, char **argv, struct options *opts);
 static void usage(void);
@@ -114,10 +120,14 @@ int main(int argc, char **argv)
     }
 
     /* allocate one big buffer for rdma transfers */
-    g_buffer = calloc(g_buffer_size, 1);
+    if(g_opts.mmap_filename == NULL) {
+        g_buffer = calloc(g_buffer_size, 1);
+    } else {
+        g_buffer = custom_mmap_alloc(g_opts.mmap_filename, g_buffer_size);
+    }
+
     if(!g_buffer)
     {
-        perror("calloc");
         fprintf(stderr, "Error: unable to allocate %lu byte buffer.\n", g_buffer_size);
         return(-1);
     }
@@ -254,7 +264,11 @@ int main(int argc, char **argv)
     if(g_opts.diag_file_name)
         margo_diag_dump(mid, g_opts.diag_file_name, 1);
 
-    free(g_buffer);
+    if(g_opts.mmap_filename == NULL) {
+        free(g_buffer);
+    } else {
+        custom_mmap_free(g_opts.mmap_filename, g_buffer, g_buffer_size);
+    }
 
     margo_finalize(mid);
     MPI_Finalize();
@@ -275,7 +289,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->mercury_timeout_client = UINT_MAX;
     opts->mercury_timeout_server = UINT_MAX; 
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:f:")) != -1)
     {
         switch(opt)
         {
@@ -320,6 +334,13 @@ static int parse_args(int argc, char **argv, struct options *opts)
                     return(-1);
                 }
                 break;
+            case 'm':
+                opts->mmap_filename = strdup(optarg);
+                if(!opts->mmap_filename) {
+                    perror("strdup");
+                    return -1;
+                }
+                break;
             default:
                 return(-1);
         }
@@ -345,6 +366,7 @@ static void usage(void)
         "\t[-T <os threads] - number of dedicated operating system threads to run ULTs on\n"
         "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
+        "\t[-m filename] - use memory-mapped file as buffers instead of malloc\n"
         "\t\texample: mpiexec -n 2 ./margo-p2p-bw -x 4096 -D 30 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
     
@@ -567,4 +589,35 @@ static void bw_worker(void *_arg)
 
     // printf("# DBG: worker stopped.\n");
     return;
+}
+
+static void* custom_mmap_alloc(const char* filename, size_t size)
+{
+        FILE *fptr;
+        fptr = fopen(filename, "w");
+        assert(fptr);
+        char data[1024];
+        memset(data, 0, 1024);
+        size_t remaining = size;
+        while(remaining) {
+            if(remaining > 1024) {
+                fwrite(data, 1, 1024, fptr);
+                remaining -= 1024;
+            } else {
+                fwrite(data, 1, remaining, fptr);
+                remaining = 0;
+            }
+        }
+        fclose(fptr);
+        int fd = open(filename, O_RDWR);
+        assert(fd);
+        void* addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_POPULATE, fd, 0);
+        close(fd);
+        return addr;
+}
+
+static void  custom_mmap_free(const char* filename, void* addr, size_t size)
+{
+    munmap(addr, size);
+    remove(filename);
 }
