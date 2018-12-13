@@ -18,24 +18,40 @@ export LD_LIBRARY_PATH="/soft/compilers/gcc/7.1.0/lib64:$LD_LIBRARY_PATH"
 # echo "## MPI (one way, double the latency for round trip):"
 # mpirun -f $COBALT_NODEFILE -n 2 ./osu_latency
 
-sleep 1 
-
-echo "## Margo OFI/VERBS (round trip, Hg busy spin):"
-mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-latency -i 100000 -n "ofi+verbs;ofi_rxm://mlx5_0:3339" -t 0,0
-echo "## Margo OFI/VERBS (bw, Hg busy spin):"
-mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1048576 -n "ofi+verbs;ofi_rxm://mlx5_0:3339" -c 1 -D 20 -t 0,0
-echo "## Margo OFI/VERBS (bw, 8x concurrency, Hg busy spin):"
-mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1048576 -n "ofi+verbs;ofi_rxm://mlx5_0:3339" -c 8 -D 20 -t 0,0
-
-
 sleep 1
 
 echo "## Margo OFI/VERBS (round trip):"
 mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-latency -i 100000 -n "ofi+verbs;ofi_rxm://"
-echo "## Margo OFI/VERBS (bw):"
+echo "## Margo OFI/VERBS (bw, 1MiB):"
 mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1048576 -n "ofi+verbs;ofi_rxm://" -c 1 -D 20
-echo "## Margo OFI/VERBS (bw, 8x concurrency):"
+echo "## Margo OFI/VERBS (bw, 1MiB, 8x concurrency):"
 mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1048576 -n "ofi+verbs;ofi_rxm://" -c 8 -D 20
+echo "## Margo OFI/VERBS (bw, 8MiB):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 8388608 -n "ofi+verbs;ofi_rxm://" -c 1 -D 20
+echo "## Margo OFI/VERBS (bw, 8MiB, 8x concurrency):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 8388608 -n "ofi+verbs;ofi_rxm://" -c 8 -D 20
+echo "## Margo OFI/VERBS (bw, 1MB unaligned):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1000000 -n "ofi+verbs;ofi_rxm://" -c 1 -D 20
+echo "## Margo OFI/VERBS (bw, 1MB unaligned, 8x concurrency):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1000000 -n "ofi+verbs;ofi_rxm://" -c 8 -D 20
+
+sleep 1 
+
+echo "## Margo OFI/VERBS (round trip, Hg busy spin):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-latency -i 100000 -n "ofi+verbs;ofi_rxm://mlx5_0:3339" -t 0,0
+echo "## Margo OFI/VERBS (bw, 1MiB, Hg busy spin):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1048576 -n "ofi+verbs;ofi_rxm://mlx5_0:3339" -c 1 -D 20 -t 0,0
+echo "## Margo OFI/VERBS (bw, 1MiB, 8x concurrency, Hg busy spin):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1048576 -n "ofi+verbs;ofi_rxm://mlx5_0:3339" -c 8 -D 20 -t 0,0
+echo "## Margo OFI/VERBS (bw, 8MiB, Hg busy spin):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 8388608 -n "ofi+verbs;ofi_rxm://" -c 1 -D 20 -t 0,0
+echo "## Margo OFI/VERBS (bw, 8MiB, 8x concurrency, Hg busy spin):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 8388608 -n "ofi+verbs;ofi_rxm://" -c 8 -D 20 -t 0,0
+echo "## Margo OFI/VERBS (bw, 1MB unaligned, Hg busy spin):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1000000 -n "ofi+verbs;ofi_rxm://" -c 1 -D 20 -t 0,0
+echo "## Margo OFI/VERBS (bw, 1MB unaligned, 8x concurrency, Hg busy spin):"
+mpirun -f $COBALT_NODEFILE -n 2 ./margo-p2p-bw -x 1000000 -n "ofi+verbs;ofi_rxm://" -c 8 -D 20 -t 0,0
+
 
 
 # echo "## Mercury-runner CCI/VERBS (round trip):"
