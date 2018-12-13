@@ -611,7 +611,7 @@ static void* custom_mmap_alloc(const char* filename, size_t size)
         fclose(fptr);
         int fd = open(filename, O_RDWR);
         assert(fd);
-        void* addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_POPULATE, fd, 0);
+        void* addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, fd, 0);
         close(fd);
         return addr;
 }
