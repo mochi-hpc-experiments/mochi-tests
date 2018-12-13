@@ -25,16 +25,32 @@ export I_MPI_FABRICS=shm:ofa
 
 echo "## Margo OFI/PSM2 (round trip, bdw):"
 mpirun ./margo-p2p-latency -i 100000 -n psm2://enp6s0f0:5000
-echo "## Margo OFI/PSM2 (bw, bdw):"
+echo "## Margo OFI/PSM2 (bw, 1MiB, bdw):"
 mpirun ./margo-p2p-bw -x 1048576 -n psm2://enp6s0f0:5000 -c 1 -D 20
-echo "## Margo OFI/PSM2 (bw, 8x concurrency, bdw):"
+echo "## Margo OFI/PSM2 (bw, 1MiB, 8x concurrency, bdw):"
 mpirun ./margo-p2p-bw -x 1048576 -n psm2://enp6s0f0:5000 -c 8 -D 20
+echo "## Margo OFI/PSM2 (bw, 8MiB, bdw):"
+mpirun ./margo-p2p-bw -x 8388608 -n psm2://enp6s0f0:5000 -c 1 -D 20
+echo "## Margo OFI/PSM2 (bw, 8MiB, 8x concurrency, bdw):"
+mpirun ./margo-p2p-bw -x 8388608 -n psm2://enp6s0f0:5000 -c 8 -D 20
+echo "## Margo OFI/PSM2 (bw, 1MB unaligned, bdw):"
+mpirun ./margo-p2p-bw -x 1000000 -n psm2://enp6s0f0:5000 -c 1 -D 20
+echo "## Margo OFI/PSM2 (bw, 1MB unaligned, 8x concurrency, bdw):"
+mpirun ./margo-p2p-bw -x 1000000 -n psm2://enp6s0f0:5000 -c 8 -D 20
 
 echo "## Margo OFI/PSM2 (round trip, bdw, Hg busy spin):"
 mpirun ./margo-p2p-latency -i 100000 -n psm2://enp6s0f0:5000 -t 0,0
-echo "## Margo OFI/PSM2 (bw, bdw, Hg busy spin):"
+echo "## Margo OFI/PSM2 (bw, 1MiB, bdw, Hg busy spin):"
 mpirun ./margo-p2p-bw -x 1048576 -n psm2://enp6s0f0:5000 -c 1 -D 20 -t 0,0
-echo "## Margo OFI/PSM2 (bw, 8x concurrency, bdw, Hg busy spin):"
+echo "## Margo OFI/PSM2 (bw, 1MiB, 8x concurrency, bdw, Hg busy spin):"
 mpirun ./margo-p2p-bw -x 1048576 -n psm2://enp6s0f0:5000 -c 8 -D 20 -t 0,0
+echo "## Margo OFI/PSM2 (bw, 8MiB, bdw, Hg busy spin):"
+mpirun ./margo-p2p-bw -x 8388608 -n psm2://enp6s0f0:5000 -c 1 -D 20 -t 0,0
+echo "## Margo OFI/PSM2 (bw, 8MiB, 8x concurrency, bdw, Hg busy spin):"
+mpirun ./margo-p2p-bw -x 8388608 -n psm2://enp6s0f0:5000 -c 8 -D 20 -t 0,0
+echo "## Margo OFI/PSM2 (bw, 1MB unaligned, bdw, Hg busy spin):"
+mpirun ./margo-p2p-bw -x 1000000 -n psm2://enp6s0f0:5000 -c 1 -D 20 -t 0,0
+echo "## Margo OFI/PSM2 (bw, 1MB unaligned, 8x concurrency, bdw, Hg busy spin):"
+mpirun ./margo-p2p-bw -x 1000000 -n psm2://enp6s0f0:5000 -c 8 -D 20 -t 0,0
 
  

@@ -87,6 +87,7 @@ cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
 # cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
+export SANDBOX
 sbatch --wait --export=ALL ./margo-regression.sbatch
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
