@@ -44,8 +44,8 @@ struct options
 
 #define BW_TOTAL_MEM_SIZE 2147483648UL
 
-static void* custom_mmap_alloc(const char* filename, size_t size);
-static void  custom_mmap_free(const char* filename, void* addr, size_t size);
+static void* custom_mmap_alloc(const char* filename, size_t size, int rank);
+static void  custom_mmap_free(const char* filename, void* addr, size_t size, int rank);
 
 static int parse_args(int argc, char **argv, struct options *opts);
 static void usage(void);
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
     if(g_opts.mmap_filename == NULL) {
         g_buffer = calloc(g_buffer_size, 1);
     } else {
-        g_buffer = custom_mmap_alloc(g_opts.mmap_filename, g_buffer_size);
+        g_buffer = custom_mmap_alloc(g_opts.mmap_filename, g_buffer_size, rank);
     }
 
     if(!g_buffer)
@@ -267,7 +267,7 @@ int main(int argc, char **argv)
     if(g_opts.mmap_filename == NULL) {
         free(g_buffer);
     } else {
-        custom_mmap_free(g_opts.mmap_filename, g_buffer, g_buffer_size);
+        custom_mmap_free(g_opts.mmap_filename, g_buffer, g_buffer_size, rank);
     }
 
     margo_finalize(mid);
@@ -591,33 +591,49 @@ static void bw_worker(void *_arg)
     return;
 }
 
-static void* custom_mmap_alloc(const char* filename, size_t size)
+static void* custom_mmap_alloc(const char* filename, size_t size, int rank)
 {
-        FILE *fptr;
-        fptr = fopen(filename, "w");
-        assert(fptr);
-        char data[1024];
-        memset(data, 0, 1024);
-        size_t remaining = size;
-        while(remaining) {
-            if(remaining > 1024) {
-                fwrite(data, 1, 1024, fptr);
-                remaining -= 1024;
-            } else {
-                fwrite(data, 1, remaining, fptr);
-                remaining = 0;
-            }
-        }
-        fclose(fptr);
-        int fd = open(filename, O_RDWR);
-        assert(fd);
-        void* addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, fd, 0);
-        close(fd);
-        return addr;
+    int fd;
+    int ret;
+    void *addr;
+    char local_filename[256] = {0};
+
+    /* make filename unique per rank in case two procs are on the same node */
+    sprintf(local_filename, "%s.%d", filename, rank);
+
+    fd = open(local_filename, O_CREAT|O_EXCL|O_RDWR, S_IRUSR|S_IWUSR);
+    if(!fd)
+    {
+        perror("creat");
+        return(NULL);
+    }
+
+    ret = posix_fallocate(fd, 0, size);
+    if(ret != 0)
+    {
+        perror("posix_fallocate");
+        return(NULL);
+    }
+
+    addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, fd, 0);
+    if(addr == MAP_FAILED)
+    {
+        perror("mmap");
+        return(NULL);
+    }
+
+    close(fd);
+
+    return addr;
 }
 
-static void  custom_mmap_free(const char* filename, void* addr, size_t size)
+static void  custom_mmap_free(const char* filename, void* addr, size_t size, int rank)
 {
+    char local_filename[256] = {0};
+
+    /* make filename unique per rank in case two procs are on the same node */
+    sprintf(local_filename, "%s.%d", filename, rank);
+
     munmap(addr, size);
-    remove(filename);
+    remove(local_filename);
 }
