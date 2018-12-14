@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 
 #include <mpi.h>
 
@@ -611,6 +612,7 @@ static void* custom_mmap_alloc(const char* filename, size_t size, int rank)
     ret = posix_fallocate(fd, 0, size);
     if(ret != 0)
     {
+        errno = ret;
         perror("posix_fallocate");
         return(NULL);
     }
