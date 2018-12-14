@@ -121,11 +121,12 @@ int main(int argc, char **argv)
     }
 
     /* allocate one big buffer for rdma transfers */
-    if(g_opts.mmap_filename == NULL) {
-        g_buffer = calloc(g_buffer_size, 1);
-    } else {
+    /* On server side, optionally use an mmap'd buffer.  Always calloc on
+     * client. */
+    if(rank == 1 && g_opts.mmap_filename)
         g_buffer = custom_mmap_alloc(g_opts.mmap_filename, g_buffer_size, rank);
-    }
+    else
+        g_buffer = calloc(g_buffer_size, 1);
 
     if(!g_buffer)
     {
