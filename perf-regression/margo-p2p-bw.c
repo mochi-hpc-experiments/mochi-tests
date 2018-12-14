@@ -289,7 +289,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->mercury_timeout_client = UINT_MAX;
     opts->mercury_timeout_server = UINT_MAX; 
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:f:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:m:")) != -1)
     {
         switch(opt)
         {
