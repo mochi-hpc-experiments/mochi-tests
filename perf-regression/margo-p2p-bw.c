@@ -603,7 +603,7 @@ static void* custom_mmap_alloc(const char* filename, size_t size, int rank)
     sprintf(local_filename, "%s.%d", filename, rank);
 
     fd = open(local_filename, O_CREAT|O_EXCL|O_RDWR, S_IRUSR|S_IWUSR);
-    if(!fd)
+    if(fd<0)
     {
         perror("creat");
         return(NULL);
