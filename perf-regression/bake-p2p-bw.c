@@ -25,6 +25,7 @@
 #include <ssg.h>
 #include <ssg-mpi.h>
 #include <bake-server.h>
+#include <bake-client.h>
 
 struct options
 {
@@ -176,20 +177,34 @@ int main(int argc, char **argv)
         /* ssg id 0 (client) initiates benchmark */
         hg_handle_t handle;
         hg_addr_t target_addr;
+        bake_client_t bcl;
+        bake_provider_handle_t bph;
+        bake_target_id_t bti;
+        uint64_t num_targets = 0;
+
+        target_addr = ssg_get_addr(gid, 1);
+        assert(target_addr != HG_ADDR_NULL);
+
+        ret = bake_client_init(mid, &bcl);
+        assert(ret == 0);
+
+        ret = bake_provider_handle_create(bcl, target_addr, 1, &bph);
+        assert(ret == 0);
+
+        ret = bake_probe(bph, 1, &bti, &num_targets);
+        assert(ret == 0 && num_targets == 1);
 
         /* TODO: implement benchmark */
         sleep(3);
 
+        bake_provider_handle_release(bph);
+        bake_client_finalize(bcl);
+
         /* tell the server we are done */
-        target_addr = ssg_get_addr(gid, 1);
-        assert(target_addr != HG_ADDR_NULL);
-        
         ret = margo_create(mid, target_addr, bench_stop_id, &handle);
         assert(ret == 0);
-
         ret = margo_forward(handle, NULL);
         assert(ret == 0);
-
         margo_destroy(handle);
     }
     else
