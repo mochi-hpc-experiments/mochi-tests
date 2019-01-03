@@ -24,6 +24,7 @@
 #include <abt.h>
 #include <ssg.h>
 #include <ssg-mpi.h>
+#include <bake-server.h>
 
 struct options
 {
@@ -31,11 +32,11 @@ struct options
     int duration_seconds;
     int concurrency;
     int threads;
-    char* mmap_filename;
     unsigned int mercury_timeout_client;
     unsigned int mercury_timeout_server;
     char* diag_file_name;
     char* na_transport;
+    char* bake_pool;
 };
 
 /* defealt to 512 MiB total xfer unless specified otherwise */
@@ -67,6 +68,7 @@ int main(int argc, char **argv)
 
     MPI_Init(&argc, &argv);
 
+    /* TODO: relax this, maybe 1 server N clients? */
     /* 2 processes only */
     MPI_Comm_size(MPI_COMM_WORLD, &nranks);
     if(nranks != 2)
@@ -137,7 +139,20 @@ int main(int argc, char **argv)
 
     if(self == 1)
     {
+        bake_provider_t provider;
+        bake_target_id_t tid;
+
         /* server side */
+
+        ret = bake_provider_register(mid, 1, BAKE_ABT_POOL_DEFAULT, &provider);
+        assert(ret == 0);
+
+        ret = bake_provider_add_storage_target(provider, g_opts.bake_pool, &tid);
+        if(ret != 0)
+        {
+            fprintf(stderr, "Error: failed to add bake pool %s\n", g_opts.bake_pool);
+            abort();
+        }
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -179,10 +194,18 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->mercury_timeout_client = UINT_MAX;
     opts->mercury_timeout_server = UINT_MAX; 
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:T:d:t:p:")) != -1)
     {
         switch(opt)
         {
+            case 'p':
+                opts->bake_pool = strdup(optarg);
+                if(!opts->bake_pool)
+                {
+                    perror("strdup");
+                    return(-1);
+                }
+                break;
             case 'd':
                 opts->diag_file_name = strdup(optarg);
                 if(!opts->diag_file_name)
@@ -224,7 +247,8 @@ static int parse_args(int argc, char **argv, struct options *opts)
         }
     }
 
-    if(opts->xfer_size < 1 || opts->concurrency < 1 || !opts->na_transport)
+    if(opts->xfer_size < 1 || opts->concurrency < 1 || !opts->na_transport 
+     || !opts->bake_pool)
     {
         return(-1);
     }
@@ -239,6 +263,7 @@ static void usage(void)
         "bake-p2p-bw -x <xfer_size> -n <na>\n"
         "\t-x <xfer_size> - size of each bulk tranfer in bytes\n"
         "\t-n <na> - na transport\n"
+        "\t-p <bake pool> - existing pool created with bake-mkpool\n"
         "\t[-c concurrency] - number of concurrent operations to issue with ULTs\n"
         "\t[-T <os threads] - number of dedicated operating system threads to run ULTs on\n"
         "\t[-d filename] - enable diagnostics output\n"
