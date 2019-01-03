@@ -51,6 +51,10 @@ static struct options g_opts;
 static char *g_buffer = NULL;
 static hg_size_t g_buffer_size = DEF_BW_TOTAL_MEM_SIZE;
 
+DECLARE_MARGO_RPC_HANDLER(bench_stop_ult);
+static hg_id_t bench_stop_id;
+static ABT_eventual bench_stop_eventual;
+
 int main(int argc, char **argv) 
 {
     margo_instance_id mid;
@@ -127,6 +131,13 @@ int main(int argc, char **argv)
     if(rank == 1 && g_opts.mercury_timeout_server != UINT_MAX)
         margo_set_param(mid, MARGO_PARAM_PROGRESS_TIMEOUT_UB, &g_opts.mercury_timeout_server);
 
+    bench_stop_id = MARGO_REGISTER(
+        mid, 
+        "bench_stop_rpc", 
+        void,
+        void,
+        bench_stop_ult);
+
     /* set up group */
     ret = ssg_init(mid);
     assert(ret == 0);
@@ -153,6 +164,9 @@ int main(int argc, char **argv)
             fprintf(stderr, "Error: failed to add bake pool %s\n", g_opts.bake_pool);
             abort();
         }
+
+        ret = ABT_eventual_create(0, &bench_stop_eventual);
+        assert(ret == 0);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -160,10 +174,29 @@ int main(int argc, char **argv)
     if(self == 0)
     {
         /* ssg id 0 (client) initiates benchmark */
+        hg_handle_t handle;
+        hg_addr_t target_addr;
+
+        /* TODO: implement benchmark */
+        sleep(3);
+
+        /* tell the server we are done */
+        target_addr = ssg_get_addr(gid, 1);
+        assert(target_addr != HG_ADDR_NULL);
+        
+        ret = margo_create(mid, target_addr, bench_stop_id, &handle);
+        assert(ret == 0);
+
+        ret = margo_forward(handle, NULL);
+        assert(ret == 0);
+
+        margo_destroy(handle);
     }
     else
     {
-        /* ssg id 1 (server) services requests */
+        /* ssg id 1 (server) services requests until told to stop */
+        ABT_eventual_wait(bench_stop_eventual, NULL);
+        sleep(3);
     }
 
     ssg_group_destroy(gid);
@@ -273,4 +306,17 @@ static void usage(void)
     
     return;
 }
+
+/* tell server process that the benchmark is done */
+static void bench_stop_ult(hg_handle_t handle)
+{
+    margo_respond(handle, NULL);
+    margo_destroy(handle);
+
+    ABT_eventual_set(bench_stop_eventual, NULL, 0);
+
+    return;
+}
+DEFINE_MARGO_RPC_HANDLER(bench_stop_ult)
+
 
