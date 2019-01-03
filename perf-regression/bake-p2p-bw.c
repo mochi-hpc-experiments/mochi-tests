@@ -40,6 +40,12 @@ struct options
     char* bake_pool;
 };
 
+struct bench_worker_arg
+{
+    bake_provider_handle_t bph;
+    bake_target_id_t bti;
+};
+
 /* defealt to 512 MiB total xfer unless specified otherwise */
 #define DEF_BW_TOTAL_MEM_SIZE 524288000UL
 /* defealt to 1 MiB xfer sizes unless specified otherwise */
@@ -55,7 +61,8 @@ static hg_size_t g_buffer_size = DEF_BW_TOTAL_MEM_SIZE;
 DECLARE_MARGO_RPC_HANDLER(bench_stop_ult);
 static hg_id_t bench_stop_id;
 static ABT_eventual bench_stop_eventual;
-static int run_benchmark(struct options *opts);
+static int run_benchmark(struct options *opts, bake_provider_handle_t bph, 
+    bake_target_id_t bti);
 static void bench_worker(void *_arg);
 
 int main(int argc, char **argv) 
@@ -193,7 +200,7 @@ int main(int argc, char **argv)
         ret = bake_probe(bph, 1, &bti, &num_targets);
         assert(ret == 0 && num_targets == 1);
 
-        ret = run_benchmark(&g_opts);
+        ret = run_benchmark(&g_opts, bph, bti);
         assert(ret == 0);
 
         bake_provider_handle_release(bph);
@@ -334,16 +341,20 @@ static void bench_stop_ult(hg_handle_t handle)
 DEFINE_MARGO_RPC_HANDLER(bench_stop_ult)
 
 
-static int run_benchmark(struct options *opts)
+static int run_benchmark(struct options *opts, bake_provider_handle_t bph, 
+    bake_target_id_t bti)
 {
     ABT_pool pool;
     ABT_xstream xstream;
     int ret;
     int i;
     ABT_thread *tid_array;
+    struct bench_worker_arg *arg_array;
 
     tid_array = malloc(g_opts.concurrency * sizeof(*tid_array));
     assert(tid_array);
+    arg_array = malloc(g_opts.concurrency * sizeof(*arg_array));
+    assert(arg_array);
 
     ret = ABT_xstream_self(&xstream);
     assert(ret == 0);
@@ -353,8 +364,10 @@ static int run_benchmark(struct options *opts)
 
     for(i=0; i<g_opts.concurrency; i++)
     {
+        arg_array[i].bph = bph;
+        arg_array[i].bti = bti;
         ret = ABT_thread_create(pool, bench_worker, 
-            NULL, ABT_THREAD_ATTR_NULL, &tid_array[i]);
+            &arg_array[i], ABT_THREAD_ATTR_NULL, &tid_array[i]);
         assert(ret == 0);
     }
 
@@ -371,5 +384,17 @@ static int run_benchmark(struct options *opts)
 
 static void bench_worker(void *_arg)
 {
+    struct bench_worker_arg* arg = _arg;
+    bake_region_id_t rid;
+    int ret;
+
+    /* TODO: iterate through g_buffer to end and stop, transfering xfer_size
+     * at a time, coordinating with other workers on offset.  Stop benchmark
+     * when the end is reached and do not reuse memory buffers.
+     */
+    ret = bake_create_write_persist(arg->bph, arg->bti, g_buffer, 
+        g_opts.xfer_size, &rid);
+    assert(ret == 0);
+
     return;
 }
