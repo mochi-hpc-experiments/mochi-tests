@@ -55,6 +55,8 @@ static hg_size_t g_buffer_size = DEF_BW_TOTAL_MEM_SIZE;
 DECLARE_MARGO_RPC_HANDLER(bench_stop_ult);
 static hg_id_t bench_stop_id;
 static ABT_eventual bench_stop_eventual;
+static int run_benchmark(struct options *opts);
+static void bench_worker(void *_arg);
 
 int main(int argc, char **argv) 
 {
@@ -66,9 +68,6 @@ int main(int argc, char **argv)
     int rank;
     int namelen;
     char processor_name[MPI_MAX_PROCESSOR_NAME];
-    int i;
-    ABT_xstream *bw_worker_xstreams = NULL;
-    ABT_sched *bw_worker_scheds = NULL;
     struct hg_init_info hii;
 
     MPI_Init(&argc, &argv);
@@ -194,8 +193,8 @@ int main(int argc, char **argv)
         ret = bake_probe(bph, 1, &bti, &num_targets);
         assert(ret == 0 && num_targets == 1);
 
-        /* TODO: implement benchmark */
-        sleep(3);
+        ret = run_benchmark(&g_opts);
+        assert(ret == 0);
 
         bake_provider_handle_release(bph);
         bake_client_finalize(bcl);
@@ -335,3 +334,42 @@ static void bench_stop_ult(hg_handle_t handle)
 DEFINE_MARGO_RPC_HANDLER(bench_stop_ult)
 
 
+static int run_benchmark(struct options *opts)
+{
+    ABT_pool pool;
+    ABT_xstream xstream;
+    int ret;
+    int i;
+    ABT_thread *tid_array;
+
+    tid_array = malloc(g_opts.concurrency * sizeof(*tid_array));
+    assert(tid_array);
+
+    ret = ABT_xstream_self(&xstream);
+    assert(ret == 0);
+
+    ret = ABT_xstream_get_main_pools(xstream, 1, &pool);
+    assert(ret == 0);
+
+    for(i=0; i<g_opts.concurrency; i++)
+    {
+        ret = ABT_thread_create(pool, bench_worker, 
+            NULL, ABT_THREAD_ATTR_NULL, &tid_array[i]);
+        assert(ret == 0);
+    }
+
+    for(i=0; i<g_opts.concurrency; i++)
+    {
+        ABT_thread_join(tid_array[i]);
+        ABT_thread_free(&tid_array[i]);
+    }
+
+    free(tid_array);
+
+    return(0);
+}
+
+static void bench_worker(void *_arg)
+{
+    return;
+}
