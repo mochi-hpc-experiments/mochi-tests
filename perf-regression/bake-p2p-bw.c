@@ -29,7 +29,8 @@
 
 struct options
 {
-    int xfer_size;
+    unsigned long xfer_size;
+    unsigned long total_mem_size;
     int duration_seconds;
     int concurrency;
     int threads;
@@ -56,7 +57,6 @@ static void usage(void);
 
 static struct options g_opts;
 static char *g_buffer = NULL;
-static hg_size_t g_buffer_size = DEF_BW_TOTAL_MEM_SIZE;
 
 DECLARE_MARGO_RPC_HANDLER(bench_stop_ult);
 static hg_id_t bench_stop_id;
@@ -103,10 +103,10 @@ int main(int argc, char **argv)
     /* allocate one big buffer for writes on client */
     if(rank == 0)
     {
-        g_buffer = calloc(g_buffer_size, 1);
+        g_buffer = calloc(g_opts.total_mem_size, 1);
         if(!g_buffer)
         {
-            fprintf(stderr, "Error: unable to allocate %lu byte buffer.\n", g_buffer_size);
+            fprintf(stderr, "Error: unable to allocate %lu byte buffer.\n", g_opts.total_mem_size);
             return(-1);
         }
     }
@@ -243,12 +243,14 @@ static int parse_args(int argc, char **argv, struct options *opts)
     memset(opts, 0, sizeof(*opts));
 
     opts->concurrency = 1;
+    opts->total_mem_size = DEF_BW_TOTAL_MEM_SIZE;
+    opts->xfer_size = DEF_BW_XFER_SIZE;
 
     /* default to using whatever the standard timeout is in margo */
     opts->mercury_timeout_client = UINT_MAX;
     opts->mercury_timeout_server = UINT_MAX; 
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:p:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:T:d:t:p:m:")) != -1)
     {
         switch(opt)
         {
@@ -269,7 +271,12 @@ static int parse_args(int argc, char **argv, struct options *opts)
                 }
                 break;
             case 'x':
-                ret = sscanf(optarg, "%d", &opts->xfer_size);
+                ret = sscanf(optarg, "%lu", &opts->xfer_size);
+                if(ret != 1)
+                    return(-1);
+                break;
+            case 'm':
+                ret = sscanf(optarg, "%lu", &opts->total_mem_size);
                 if(ret != 1)
                     return(-1);
                 break;
@@ -301,7 +308,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
         }
     }
 
-    if(opts->xfer_size < 1 || opts->concurrency < 1 || !opts->na_transport 
+    if(opts->concurrency < 1 || !opts->na_transport 
      || !opts->bake_pool)
     {
         return(-1);
@@ -314,8 +321,9 @@ static void usage(void)
 {
     fprintf(stderr,
         "Usage: "
-        "bake-p2p-bw -x <xfer_size> -n <na>\n"
+        "bake-p2p-bw -x <xfer_size> -m <total_mem_size> -n <na>\n"
         "\t-x <xfer_size> - size of each bulk tranfer in bytes\n"
+        "\t-m <total_mem_size> - total amount of data to write from each client process\n"
         "\t-n <na> - na transport\n"
         "\t-p <bake pool> - existing pool created with bake-mkpool\n"
         "\t[-c concurrency] - number of concurrent operations to issue with ULTs\n"
