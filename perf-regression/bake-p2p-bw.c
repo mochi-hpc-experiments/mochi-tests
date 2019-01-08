@@ -33,7 +33,6 @@ struct options
     unsigned long total_mem_size;
     int duration_seconds;
     int concurrency;
-    int threads;
     unsigned int mercury_timeout_client;
     unsigned int mercury_timeout_server;
     char* diag_file_name;
@@ -252,7 +251,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->mercury_timeout_client = UINT_MAX;
     opts->mercury_timeout_server = UINT_MAX; 
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:p:m:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:d:t:p:m:")) != -1)
     {
         switch(opt)
         {
@@ -284,11 +283,6 @@ static int parse_args(int argc, char **argv, struct options *opts)
                 break;
             case 'c':
                 ret = sscanf(optarg, "%d", &opts->concurrency);
-                if(ret != 1)
-                    return(-1);
-                break;
-            case 'T':
-                ret = sscanf(optarg, "%d", &opts->threads);
                 if(ret != 1)
                     return(-1);
                 break;
@@ -329,7 +323,6 @@ static void usage(void)
         "\t-n <na> - na transport\n"
         "\t-p <bake pool> - existing pool created with bake-mkpool\n"
         "\t[-c concurrency] - number of concurrent operations to issue with ULTs\n"
-        "\t[-T <os threads] - number of dedicated operating system threads to run ULTs on\n"
         "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
         "\t\texample: mpiexec -n 2 ./bake-p2p-bw -x 4096 -n verbs://\n"
@@ -362,6 +355,7 @@ static int run_benchmark(struct options *opts, bake_provider_handle_t bph,
     struct bench_worker_arg *arg_array;
     ABT_mutex cur_off_mutex;
     unsigned long cur_off = 0;
+    double start_tm, end_tm;
 
     tid_array = malloc(g_opts.concurrency * sizeof(*tid_array));
     assert(tid_array);
@@ -376,6 +370,7 @@ static int run_benchmark(struct options *opts, bake_provider_handle_t bph,
     ret = ABT_xstream_get_main_pools(xstream, 1, &pool);
     assert(ret == 0);
 
+    start_tm = ABT_get_wtime();
     for(i=0; i<g_opts.concurrency; i++)
     {
         arg_array[i].bph = bph;
@@ -392,6 +387,15 @@ static int run_benchmark(struct options *opts, bake_provider_handle_t bph,
         ABT_thread_join(tid_array[i]);
         ABT_thread_free(&tid_array[i]);
     }
+    end_tm = ABT_get_wtime();
+
+    printf("<op>\t<concurrency>\t<xfer_size>\t<total_bytes>\t<seconds>\t<MiB/s>\n");
+    printf("create_write_persist\t%d\t%lu\t%lu\t%f\t%f\n",
+        g_opts.concurrency,
+        g_opts.xfer_size,
+        g_opts.total_mem_size,
+        (end_tm-start_tm),
+        ((double)g_opts.total_mem_size/(end_tm-start_tm))/(1024.0*1024.0));
 
     free(tid_array);
     ABT_mutex_free(&cur_off_mutex);
