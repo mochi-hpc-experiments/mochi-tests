@@ -43,12 +43,14 @@ cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
 #    CI environments
 echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
 echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
-spack uninstall -R -y argobots mercury opa-psm2 || true
+spack uninstall -R -y argobots mercury opa-psm2 bake || true
 spack install --dirty ssg ^mercury@develop
+spack install --dirty bake ^mercury@develop
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg
+spack load -r bake
 
 export CFLAGS="-O3"
 
