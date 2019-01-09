@@ -21,6 +21,7 @@ cp packages.yaml $SANDBOX/
 # scratch area for job submission
 mkdir -p $JOBDIR
 cp margo-regression.sbatch $JOBDIR
+cp bake-regression.sbatch $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/spack/spack.git
@@ -89,6 +90,7 @@ cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
 cd $JOBDIR
 export SANDBOX
 sbatch --wait --export=ALL ./margo-regression.sbatch
+sbatch --wait --export=ALL ./bake-regression.sbatch
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
