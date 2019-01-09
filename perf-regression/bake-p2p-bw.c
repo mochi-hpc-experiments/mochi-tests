@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     }
 
     /* allocate one big buffer for writes on client */
-    if(rank == 0)
+    if(rank > 0)
     {
         g_buffer = calloc(g_opts.total_mem_size, 1);
         if(!g_buffer)
@@ -113,8 +113,8 @@ int main(int argc, char **argv)
     }
 
     memset(&hii, 0, sizeof(hii));
-    if((rank == 0 && g_opts.mercury_timeout_client == 0) ||
-       (rank == 1 && g_opts.mercury_timeout_server == 0))
+    if((rank > 0 && g_opts.mercury_timeout_client == 0) ||
+       (rank == 0 && g_opts.mercury_timeout_server == 0))
     {
         
         /* If mercury timeout of zero is requested, then set
@@ -134,9 +134,9 @@ int main(int argc, char **argv)
         margo_diag_start(mid);
 
     /* adjust mercury timeout in Margo if requested */
-    if(rank == 0 && g_opts.mercury_timeout_client != UINT_MAX)
+    if(rank > 0 && g_opts.mercury_timeout_client != UINT_MAX)
         margo_set_param(mid, MARGO_PARAM_PROGRESS_TIMEOUT_UB, &g_opts.mercury_timeout_client);
-    if(rank == 1 && g_opts.mercury_timeout_server != UINT_MAX)
+    if(rank == 0 && g_opts.mercury_timeout_server != UINT_MAX)
         margo_set_param(mid, MARGO_PARAM_PROGRESS_TIMEOUT_UB, &g_opts.mercury_timeout_server);
 
     bench_stop_id = MARGO_REGISTER(
@@ -149,14 +149,14 @@ int main(int argc, char **argv)
     /* set up group */
     ret = ssg_init(mid);
     assert(ret == 0);
-    gid = ssg_group_create_mpi("margo-p2p-latency", MPI_COMM_WORLD, NULL, NULL);
+    gid = ssg_group_create_mpi("bake-bench", MPI_COMM_WORLD, NULL, NULL);
     assert(gid != SSG_GROUP_ID_NULL);
 
     assert(ssg_get_group_size(gid) == 2);
 
     self = ssg_get_group_self_id(gid);
 
-    if(self == 1)
+    if(self == 0)
     {
         bake_provider_t provider;
         bake_target_id_t tid;
@@ -179,9 +179,9 @@ int main(int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if(self == 0)
+    if(self > 0)
     {
-        /* ssg id 0 (client) initiates benchmark */
+        /* ssg id 1 (client) initiates benchmark */
         hg_handle_t handle;
         hg_addr_t target_addr;
         bake_client_t bcl;
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
         bake_target_id_t bti;
         uint64_t num_targets = 0;
 
-        target_addr = ssg_get_addr(gid, 1);
+        target_addr = ssg_get_addr(gid, 0);
         assert(target_addr != HG_ADDR_NULL);
 
         ret = bake_client_init(mid, &bcl);
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        /* ssg id 1 (server) services requests until told to stop */
+        /* ssg id 0 (server) services requests until told to stop */
         ABT_eventual_wait(bench_stop_eventual, NULL);
         sleep(3);
     }
