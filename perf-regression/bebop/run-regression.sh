@@ -21,6 +21,7 @@ cp packages.yaml $SANDBOX/
 # scratch area for job submission
 mkdir -p $JOBDIR
 cp margo-regression.sbatch $JOBDIR
+cp bake-regression.sbatch $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/spack/spack.git
@@ -42,12 +43,14 @@ cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
 #    CI environments
 echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
 echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
-spack uninstall -R -y argobots mercury opa-psm2 || true
+spack uninstall -R -y argobots mercury opa-psm2 bake || true
 spack install --dirty ssg ^mercury@develop
+spack install --dirty bake ^mercury@develop
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg
+spack load -r bake
 
 export CFLAGS="-O3"
 
@@ -89,6 +92,7 @@ cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
 cd $JOBDIR
 export SANDBOX
 sbatch --wait --export=ALL ./margo-regression.sbatch
+sbatch --wait --export=ALL ./bake-regression.sbatch
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail

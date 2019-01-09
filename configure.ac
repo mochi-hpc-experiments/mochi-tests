@@ -53,6 +53,18 @@ AC_CHECK_HEADERS(ssg-mpi.h,[],
   [AC_MSG_ERROR([Could not find ssg-mpi.h for MPI support in
   SSG])])
 
+PKG_CHECK_MODULES([BAKESERVER],[bake-server],[],
+        AC_MSG_ERROR([Could not find working BAKE server installation!]) )
+LIBS="$BAKESERVER_LIBS $LIBS"
+CPPFLAGS="$BAKESERVER_CFLAGS $CPPFLAGS"
+CFLAGS="$BAKESERVER_CFLAGS $CFLAGS"
+
+PKG_CHECK_MODULES([BAKECLIENT],[bake-client],[],
+        AC_MSG_ERROR([Could not find working BAKE client installation!]) )
+LIBS="$BAKECLIENT_LIBS $LIBS"
+CPPFLAGS="$BAKECLIENT_CFLAGS $CPPFLAGS"
+CFLAGS="$BAKECLIENT_CFLAGS $CFLAGS"
+
 AC_MSG_CHECKING([If MPI programs can be compiled])
 AC_LINK_IFELSE(
     [AC_LANG_PROGRAM([[#include<mpi.h>]], [[MPI_Init(0,0);]])],
