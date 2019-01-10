@@ -22,6 +22,7 @@ cp packages.yaml $SANDBOX/
 # scratch area for job submission
 mkdir $JOBDIR
 cp margo-regression-ofi-rxm.qsub $JOBDIR
+cp bake-regression.qsub $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/carns/spack.git
@@ -48,10 +49,12 @@ spack bootstrap
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
 # 2018-11-5 using @develop for mercury and libfabric to test wait_fd
 spack install --dirty ssg ^mercury@develop ^libfabric@develop
+spack install --dirty bake ^mercury@develop ^libfabric@develop
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg
+spack load -r bake
 
 # less ancient gcc
 export CFLAGS="-O3"
@@ -89,15 +92,18 @@ make install
 echo "=== SUBMITTING AND WAITING FOR JOB ==="
 cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
+cp $PREFIX/bin/bake-p2p-bw $JOBDIR
 cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
 cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
 JOBID=`qsub --env LD_LIBRARY_PATH=$PREFIX/lib --env SANDBOX=$SANDBOX ./margo-regression-ofi-rxm.qsub`
 cqwait $JOBID
+JOBID2=`qsub --env LD_LIBRARY_PATH=$PREFIX/lib --env SANDBOX=$SANDBOX ./bake-regression.qsub`
+cqwait $JOBID2
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
 mailx -s "margo-regression (cooley)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 

@@ -1,0 +1,38 @@
+#!/bin/bash
+#COBALT -n 2
+#COBALT -t 20
+#COBALT --mode script
+#COBALT -A radix-io
+#COBALT -q ibleaf3-debug
+
+export FI_FORK_UNSAFE=1
+
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack load -r ssg 
+spack load -r bake
+
+module list
+
+# TODO: why is this necessary?  We should be able to find gcc libraries...
+export LD_LIBRARY_PATH="/soft/compilers/gcc/7.1.0/lib64:$LD_LIBRARY_PATH"
+
+echo "## Bake OFI/VERBS:"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun -f $COBALT_NODEFILE -n 2 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /dev/shm/foo.dat -c 1 
+
+echo "## Bake OFI/VERBS (8x concurrency):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun -f $COBALT_NODEFILE -n 2 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /dev/shm/foo.dat -c 8 
+
+echo "## Bake OFI/VERBS (Hg busy spin):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun -f $COBALT_NODEFILE -n 2 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /dev/shm/foo.dat -c 1 -t 0,0
+
+echo "## Bake OFI/VERBS (8x concurrency, Hg busy spin):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun -f $COBALT_NODEFILE -n 2 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /dev/shm/foo.dat -c 8 -t 0,0
+
