@@ -5,6 +5,10 @@
 #COBALT -A radix-io
 #COBALT -q ibleaf3-debug
 
+get_pmdk_lib_path() {
+        module show `spack module tcl find pmem` |&grep LIBRARY_PATH | awk '{print $3}'
+}
+
 export FI_FORK_UNSAFE=1
 
 . $SANDBOX/spack/share/spack/setup-env.sh
@@ -14,6 +18,10 @@ module list
 
 # TODO: why is this necessary?  We should be able to find gcc libraries...
 export LD_LIBRARY_PATH="/soft/compilers/gcc/7.1.0/lib64:$LD_LIBRARY_PATH"
+
+# note, pmdk library not setting rpath correctly
+LIB_PATH_HACK=$(get_pmdk_lib_path)
+export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
 
 # echo "## MPI (one way, double the latency for round trip):"
 # mpirun -f $COBALT_NODEFILE -n 2 ./osu_latency
