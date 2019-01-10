@@ -21,6 +21,7 @@ module load cce
 
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg 
+spack load -r bake
 
 module list
 
