@@ -27,20 +27,20 @@ export I_MPI_FABRICS=shm:ofa
 echo "## Bake OFI/PSM2 (bdw):"
 rm -f /dev/shm/foo.dat
 bake-mkpool -s 60G /dev/shm/foo.dat
-mpirun /home/carns/working/install-bebop/bin/bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 1 
+mpirun ./bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 1 
 
 echo "## Bake OFI/PSM2 (8x concurrency, bdw):"
 rm -f /dev/shm/foo.dat
 bake-mkpool -s 60G /dev/shm/foo.dat
-mpirun /home/carns/working/install-bebop/bin/bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 8
+mpirun ./bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 8
 
 echo "## Bake OFI/PSM2 (bdw, Hg busy spin):"
 rm -f /dev/shm/foo.dat
 bake-mkpool -s 60G /dev/shm/foo.dat
-mpirun /home/carns/working/install-bebop/bin/bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 1 -t 0,0
+mpirun ./bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 1 -t 0,0
 
 echo "## Bake OFI/PSM2 (8x concurrency, bdw, Hg busy spin):"
 rm -f /dev/shm/foo.dat
 bake-mkpool -s 60G /dev/shm/foo.dat
-mpirun /home/carns/working/install-bebop/bin/bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 8 -t 0,0
+mpirun ./bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 8 -t 0,0
 
