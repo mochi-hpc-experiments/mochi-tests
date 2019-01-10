@@ -17,6 +17,7 @@ module load cce
 
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg 
+spack load -r bake
 
 module list
 
@@ -26,75 +27,23 @@ LIB_PATH_HACK=$(get_mercury_lib_path)
 export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
 echo LD_LIBRARY_PATH: $LD_LIBRARY_PATH
 
-#ldd ./margo-p2p-latency
+echo "## Margo OFI/GNI:"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+aprun -n 2 -N 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+gni://ipogif0:5000" -p /dev/shm/foo.dat -c 1 
 
-# NOTE: needed as of January 2018 to avoid conflicts between MPI and 
-#       libfabric GNI provider
-# NOTE: doing this with -e option to aprun
-# NOTE: update as as of September 2018, this is no longer required now that 
-#       mercury has switched back to alternative registration method for GNI
-# export MPICH_GNI_NDREG_ENTRIES=2000
+echo "## Margo OFI/GNI (8x concurrency):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+aprun -n 2 -N 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+gni://ipogif0:5000" -p /dev/shm/foo.dat -c 8 
 
-# echo "## MPI (one way, double the latency for round trip):"
-# aprun -n 2 -N 1 ./osu_latency
+echo "## Margo OFI/GNI (Hg busy spin):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+aprun -n 2 -N 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+gni://ipogif0:5000" -p /dev/shm/foo.dat -c 1 -t 0,0
 
-echo "## Margo OFI/GNI (round trip):"
-aprun -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+gni://ipogif0:5000
-echo "## Margo OFI/GNI (bw, 1MiB):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 1 -D 20
-echo "## Margo OFI/GNI (bw, 1MiB, 8x concurrency):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 8 -D 20
-echo "## Margo OFI/GNI (bw, 8MiB):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 1 -D 20
-echo "## Margo OFI/GNI (bw, 8MiB, 8x concurrency):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 8 -D 20
-echo "## Margo OFI/GNI (bw, 1MB unaligned):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 1 -D 20
-echo "## Margo OFI/GNI (bw, 1MB unaligned, 8x concurrency):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 8 -D 20
+echo "## Margo OFI/GNI (8x concurrency, Hg busy spin):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+aprun -n 2 -N 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+gni://ipogif0:5000" -p /dev/shm/foo.dat -c 8 -t 0,0
 
-
-echo "## Margo OFI/GNI (round trip, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+gni://ipogif0:5000 -t 0,0
-echo "## Margo OFI/GNI (bw, 1MiB, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 1 -D 20 -t 0,0
-echo "## Margo OFI/GNI (bw, 1MiB, 8x concurrency, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 8 -D 20 -t 0,0
-echo "## Margo OFI/GNI (bw, 8MiB, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 1 -D 20 -t 0,0
-echo "## Margo OFI/GNI (bw, 8MiB, 8x concurrency, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 8 -D 20-t 0,0
-echo "## Margo OFI/GNI (bw, 1MB unaligned, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 1 -D 20-t 0,0
-echo "## Margo OFI/GNI (bw, 1MB unaligned, 8x concurrency, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 8 -D 20 -t 0,0
-
-# echo "## Margo BMI/TCP (round trip):"
-# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./margo-p2p-latency -i 100000 -n bmi+tcp://
-# echo "## Margo BMI/TCP (bw):"
-# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 1 -D 20
-# echo "## Margo BMI/TCP (bw, 8x concurrency):"
-# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 8 -D 20
-
-# echo "## WARNING: Margo OFI/TCP (disabled because it hangs as of 8/10/2017)"
-# aprun -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+tcp://ipogif0:5000
-
-
-# figure out nodes and hostnames for use with fi_
-# declare -a nodes=($(python /home/carns/bin/run_on_all_nids.py));
-# server_hostname=$(printf "nid%05d\n" ${nodes[0]})
-
-# echo "## fi_pingpong OFI/GNI (one way, double the usec/xfer for round trip):"
-# aprun -n 1 -N 1 -L ${nodes[0]} -b -p carns-test ./fi_pingpong -p gni -S 1 -I 10000 > $COBALT_JOBID.fi_pingpong_server.log &
-# sleep 5
-# aprun -n 1 -N 1 -L ${nodes[1]} -b -p carns-test ./fi_pingpong -p gni -S 1 -I 10000 $server_hostname > $COBALT_JOBID.fi_pingpong_client.log &
-
-# wait
-# cat $COBALT_JOBID.fi_pingpong_client.log
-
-# one more margo run, this time with diagnostics enabled
-# echo "## Margo OFI/GNI (round trip) with diagnostics:"
-# aprun -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+gni://ipogif0:5000 -d $COBALT_JOBID.diag
-
-# echo "## Mercury-runner OFI/GNI (round trip):"
-# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./mercury-runner -q -c 100000 -l 1 -m c -M -d `pwd` 1 h0=ofi+gni://ipogif0:5000 h1

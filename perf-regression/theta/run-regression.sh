@@ -27,6 +27,7 @@ cp packages.yaml  $SANDBOX/
 # scratch area for job submission
 mkdir -p $JOBDIR
 cp margo-regression.qsub $JOBDIR
+cp bake-regression.qsub $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/carns/spack.git
@@ -49,12 +50,14 @@ cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
 #    CI environments
 echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
 echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
-spack uninstall -R -y argobots mercury libfabric  | true
+spack uninstall -R -y argobots mercury libfabric | true
 spack install ssg
+spack install bake
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg
+spack load -r bake
 
 # OSU MPI benchmarks
 # echo "=== BUILDING OSU MICRO BENCHMARKS ==="
@@ -89,15 +92,18 @@ make install
 echo "=== SUBMITTING AND WAITING FOR JOB ==="
 cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
+cp $PREFIX/bin/bake-p2p-bw $JOBDIR
 # cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
 # cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
 JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
 cqwait $JOBID
+JOBID2=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
+cqwait $JOBID2
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
 mailx -r carns@mcs.anl.gov -s "margo-regression (theta)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
