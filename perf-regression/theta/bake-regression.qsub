@@ -16,6 +16,11 @@ get_pmdk_lib_path() {
         module show `spack module tcl find pmem` |&grep LIBRARY_PATH | awk '{print $3}'
 }
 
+get_remi_lib_path() {
+        module show `spack module tcl find remi` |&grep LIBRARY_PATH | awk '{print $3}'
+}
+
+
 module swap PrgEnv-intel PrgEnv-gnu
 module load cce
 
@@ -29,8 +34,10 @@ module list
 #       test programs.  Not sure why.  This hack manually adds the correct path to LD_LIBRARY_PATH.
 LIB_PATH_HACK=$(get_mercury_lib_path)
 export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
-# ditto for pmdk apparently
+# ditto for pmdk and apparently?
 LIB_PATH_HACK=$(get_pmdk_lib_path)
+export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
+LIB_PATH_HACK=$(get_remi_lib_path)
 export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
 echo LD_LIBRARY_PATH: $LD_LIBRARY_PATH
 
