@@ -98,7 +98,7 @@ cp $PREFIX/bin/bake-p2p-bw $JOBDIR
 cd $JOBDIR
 JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
 cqwait $JOBID
-JOBID2=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
+JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`
 cqwait $JOBID2
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
