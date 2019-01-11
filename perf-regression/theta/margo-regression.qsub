@@ -20,6 +20,9 @@ get_remi_lib_path() {
         module show `spack module tcl find remi` |&grep LIBRARY_PATH | awk '{print $3}'
 }
 
+get_thallium_lib_path() {
+        module show `spack module tcl find thallium` |&grep LIBRARY_PATH | awk '{print $3}'
+}
 
 module swap PrgEnv-intel PrgEnv-gnu
 module load cce
@@ -38,6 +41,9 @@ export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
 LIB_PATH_HACK=$(get_pmdk_lib_path)
 export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
 LIB_PATH_HACK=$(get_remi_lib_path)
+export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
+echo LD_LIBRARY_PATH: $LD_LIBRARY_PATH
+LIB_PATH_HACK=$(get_thallium_lib_path)
 export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
 echo LD_LIBRARY_PATH: $LD_LIBRARY_PATH
 
