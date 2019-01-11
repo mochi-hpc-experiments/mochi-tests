@@ -31,6 +31,10 @@ packages:
         paths:
             cmake@3.5.2: /usr
         buildable: False
+    libuuid:
+        paths:
+            libuuid@2.2.9.2: /usr
+        buildable: False
     ssg:
         variants: +mpi
     libfabric:
