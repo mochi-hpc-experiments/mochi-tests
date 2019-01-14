@@ -38,6 +38,7 @@ struct options
     char* diag_file_name;
     char* na_transport;
     char* bake_pool;
+    int rpc_xstreams;
 };
 
 struct bench_worker_arg
@@ -127,7 +128,7 @@ int main(int argc, char **argv)
     }
 
     /* actually start margo */
-    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 0, -1);
+    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 0, g_opts.rpc_xstreams);
     assert(mid);
 
     if(g_opts.diag_file_name)
@@ -246,12 +247,13 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->concurrency = 1;
     opts->total_mem_size = DEF_BW_TOTAL_MEM_SIZE;
     opts->xfer_size = DEF_BW_XFER_SIZE;
+    opts->rpc_xstreams = -1;
 
     /* default to using whatever the standard timeout is in margo */
     opts->mercury_timeout_client = UINT_MAX;
     opts->mercury_timeout_server = UINT_MAX; 
 
-    while((opt = getopt(argc, argv, "n:x:c:d:t:p:m:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:d:t:p:m:r:")) != -1)
     {
         switch(opt)
         {
@@ -278,6 +280,11 @@ static int parse_args(int argc, char **argv, struct options *opts)
                 break;
             case 'm':
                 ret = sscanf(optarg, "%lu", &opts->total_mem_size);
+                if(ret != 1)
+                    return(-1);
+                break;
+            case 'r':
+                ret = sscanf(optarg, "%d", &opts->rpc_xstreams);
                 if(ret != 1)
                     return(-1);
                 break;
@@ -325,6 +332,7 @@ static void usage(void)
         "\t[-c concurrency] - number of concurrent operations to issue with ULTs\n"
         "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
+        "\t[-r rpc_execution_streams] - number of ESs Margo should use for RPC handling\n"
         "\t\texample: mpiexec -n 2 ./bake-p2p-bw -x 4096 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
     
