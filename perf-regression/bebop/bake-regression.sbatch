@@ -44,3 +44,24 @@ rm -f /dev/shm/foo.dat
 bake-mkpool -s 60G /dev/shm/foo.dat
 mpirun ./bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 8 -t 0,0
 
+
+echo "## Bake OFI/PSM2 (bdw, 8 rpc es):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun ./bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 1 -r 8
+
+echo "## Bake OFI/PSM2 (8x concurrency, bdw, 8 rpc es):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun ./bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 8 -r 8
+
+echo "## Bake OFI/PSM2 (bdw, Hg busy spin, 8 rpc es):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun ./bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 1 -t 0,0 -r 8
+
+echo "## Bake OFI/PSM2 (8x concurrency, bdw, Hg busy spin, 8 rpc es):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun ./bake-p2p-bw -x 16777216 -m 34359738368 -n psm2://enp6s0f0:5000 -p /dev/shm/foo.dat -c 8 -t 0,0 -r 8
+
