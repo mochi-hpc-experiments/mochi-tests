@@ -44,3 +44,23 @@ rm -f /dev/shm/foo.dat
 bake-mkpool -s 60G /dev/shm/foo.dat
 mpirun -f $COBALT_NODEFILE -n 2 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /dev/shm/foo.dat -c 8 -t 0,0
 
+echo "## Bake OFI/VERBS (8 rpc es):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun -f $COBALT_NODEFILE -n 2 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /dev/shm/foo.dat -c 1 -r 8
+
+echo "## Bake OFI/VERBS (8x concurrency, 8 rpc es):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun -f $COBALT_NODEFILE -n 2 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /dev/shm/foo.dat -c 8 -r 8
+
+echo "## Bake OFI/VERBS (Hg busy spin, 8 rpc es):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun -f $COBALT_NODEFILE -n 2 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /dev/shm/foo.dat -c 1 -t 0,0 -r 8
+
+echo "## Bake OFI/VERBS (8x concurrency, Hg busy spin, 8 rpc es):"
+rm -f /dev/shm/foo.dat
+bake-mkpool -s 60G /dev/shm/foo.dat
+mpirun -f $COBALT_NODEFILE -n 2 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /dev/shm/foo.dat -c 8 -t 0,0 -r 8
+
