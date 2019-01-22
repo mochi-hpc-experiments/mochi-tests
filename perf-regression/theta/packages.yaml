@@ -35,6 +35,18 @@ packages:
         paths:
             libuuid@2.2.9.2: /usr
         buildable: False
+    zlib:
+        paths:
+            zlib@1.2.8: /usr
+        buildable: False
+    ncurses:
+        paths:
+            ncurses@5.9: /usr
+        buildable: False
+    openssl:
+        paths:
+            openssl@1.0.2: /usr
+        buildable: False
     ssg:
         variants: +mpi
     libfabric:
