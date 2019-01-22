@@ -23,6 +23,8 @@ JOBDIR=$PWD/mochi-regression-job-$$
 # scratch area to clone and build things
 mkdir -p $SANDBOX
 cp packages.yaml  $SANDBOX/
+cp spack-libfabric-1.7.0.patch $SANDBOX/
+cp spack-mercury-udreg-variant.patch $SANDBOX/
 
 # scratch area for job submission
 mkdir -p $JOBDIR
@@ -41,6 +43,8 @@ git clone https://github.com/pdlfs/mercury-runner.git
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
 git checkout carns/dev-shell-detection
+patch -p1 < $SANDBOX/spack-libfabric-1.7.0.patch
+patch -p1 < $SANDBOX/spack-mercury-udreg-variant.patch
 . $SANDBOX/spack/share/spack/setup-env.sh
 # put packages file in place in SPACK_ROOT to set our preferences for building
 # Mochi stack

@@ -51,6 +51,8 @@ packages:
         variants: +mpi
     libfabric:
         variants: fabrics=gni
+    mercury:
+        variants: +udreg
     all:
         providers:
             mpi: [mpich]
