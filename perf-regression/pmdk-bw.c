@@ -35,6 +35,7 @@ struct bench_worker_arg
 {
     ABT_mutex *cur_off_mutex;
     unsigned long *cur_off;
+    PMEMobjpool *pmem_pool;
 };
 
 /* defealt to 512 MiB total xfer unless specified otherwise */
@@ -49,7 +50,7 @@ static struct options g_opts;
 static char *g_buffer = NULL;
 static ABT_pool g_transfer_pool;
 
-static int run_benchmark(struct options *opts);
+static int run_benchmark(struct options *opts, PMEMobjpool *pmem_pool);
 static void bench_worker(void *_arg);
 
 int main(int argc, char **argv) 
@@ -60,6 +61,7 @@ int main(int argc, char **argv)
     ABT_sched self_sched;
     ABT_xstream self_xstream;
     int i;
+    PMEMobjpool *pmem_pool;
 
     ret = parse_args(argc, argv, &g_opts);
     if(ret < 0)
@@ -79,6 +81,13 @@ int main(int argc, char **argv)
     assert(ret == 0);
     ret = ABT_xstream_set_main_sched(self_xstream, self_sched);
     assert(ret == 0);
+
+    pmem_pool = pmemobj_open(argv[1], NULL);
+    if(!pmem_pool)
+    {
+        fprintf(stderr, "pmemobj_open: %s\n", pmemobj_errormsg());
+        return(-1);
+    }
 
     /* allocate one big buffer for writes */
     g_buffer = calloc(g_opts.xfer_size, 1);
@@ -125,13 +134,15 @@ int main(int argc, char **argv)
         }
     }
 
-    run_benchmark(&g_opts);
+    run_benchmark(&g_opts, pmem_pool);
 
     for(i=0; i<g_opts.xstreams; i++)
     {
         ABT_xstream_join(bw_worker_xstreams[i]);
         ABT_xstream_free(&bw_worker_xstreams[i]);
     }
+
+    pmemobj_close(pmem_pool);
 
     free(g_buffer);
 
@@ -212,7 +223,7 @@ static void usage(void)
     return;
 }
 
-static int run_benchmark(struct options *opts)
+static int run_benchmark(struct options *opts, PMEMobjpool *pmem_pool)
 {
     ABT_pool pool;
     ABT_xstream xstream;
@@ -242,6 +253,7 @@ static int run_benchmark(struct options *opts)
     {
         arg_array[i].cur_off_mutex = &cur_off_mutex;
         arg_array[i].cur_off = &cur_off;
+        arg_array[i].pmem_pool = pmem_pool;
         ret = ABT_thread_create(pool, bench_worker, 
             &arg_array[i], ABT_THREAD_ATTR_NULL, &tid_array[i]);
         assert(ret == 0);
@@ -271,6 +283,10 @@ static int run_benchmark(struct options *opts)
 static void bench_worker(void *_arg)
 {
     struct bench_worker_arg* arg = _arg;
+    PMEMoid oid;
+    uint64_t *buffer;
+    uint64_t val;
+    int ret;
 
     ABT_mutex_spinlock(*arg->cur_off_mutex);
     while(*arg->cur_off < g_opts.total_mem_size)
@@ -278,7 +294,22 @@ static void bench_worker(void *_arg)
         (*arg->cur_off) += g_opts.xfer_size;
         ABT_mutex_unlock(*arg->cur_off_mutex);
 
-        /* TODO: do work here */
+        /* create an object */
+        /* NOTE: for now we don't try to keep up with oid */
+        ret = pmemobj_alloc(arg->pmem_pool, &oid, g_opts.xfer_size, 0, NULL, NULL);
+        if(ret != 0)
+        {
+            fprintf(stderr, "pmemobj_create: %s\n", pmemobj_errormsg());
+            assert(0);
+        }
+
+        /* fill in values */
+        buffer = pmemobj_direct(oid);
+        for(val = 0; val < g_opts.xfer_size/sizeof(val); val++)
+            buffer[val] = val;
+
+        /* persist */
+        pmemobj_persist(arg->pmem_pool, buffer, g_opts.xfer_size);
 
         ABT_mutex_spinlock(*arg->cur_off_mutex);
     }
