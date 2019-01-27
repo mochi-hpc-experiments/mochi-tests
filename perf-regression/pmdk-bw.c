@@ -89,7 +89,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->xfer_size = DEF_BW_XFER_SIZE;
     opts->xstreams = -1;
 
-    while((opt = getopt(argc, argv, "x:c:p:m:r:")) != -1)
+    while((opt = getopt(argc, argv, "x:c:p:m:T:")) != -1)
     {
         switch(opt)
         {
@@ -111,7 +111,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
                 if(ret != 1)
                     return(-1);
                 break;
-            case 'r':
+            case 'T':
                 ret = sscanf(optarg, "%d", &opts->xstreams);
                 if(ret != 1)
                     return(-1);
@@ -143,7 +143,7 @@ static void usage(void)
         "\t-m <total_mem_size> - total amount of data to write from each client process\n"
         "\t-p <pmdk pool> - existing pool created with pmempool create obj\n"
         "\t[-c concurrency] - number of concurrent operations to issue with ULTs\n"
-        "\t[-r execution_streams] - number of ESs to use\n"
+        "\t[-T <os threads] - number of dedicated operating system threads to run ULTs on\n"
         "\t\texample: ./pmdk-bw -x 4096 -p /dev/shm/test.dat\n");
     
     return;
