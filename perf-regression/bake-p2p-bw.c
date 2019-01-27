@@ -31,7 +31,6 @@ struct options
 {
     unsigned long xfer_size;
     unsigned long total_mem_size;
-    int duration_seconds;
     int concurrency;
     unsigned int mercury_timeout_client;
     unsigned int mercury_timeout_server;
