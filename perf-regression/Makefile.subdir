@@ -1,2 +1,2 @@
-bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/bake-p2p-bw
+bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/bake-p2p-bw perf-regression/pmdk-bw
 
