@@ -17,9 +17,9 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include <mpi.h>
-
 #include <abt.h>
+#include <libpmemobj.h>
+
 
 struct options
 {
@@ -47,6 +47,7 @@ static void usage(void);
 
 static struct options g_opts;
 static char *g_buffer = NULL;
+static ABT_pool g_transfer_pool;
 
 static int run_benchmark(struct options *opts);
 static void bench_worker(void *_arg);
@@ -54,6 +55,11 @@ static void bench_worker(void *_arg);
 int main(int argc, char **argv) 
 {
     int ret;
+    ABT_xstream *bw_worker_xstreams = NULL;
+    ABT_sched *bw_worker_scheds = NULL;
+    ABT_sched self_sched;
+    ABT_xstream self_xstream;
+    int i;
 
     ret = parse_args(argc, argv, &g_opts);
     if(ret < 0)
@@ -61,6 +67,18 @@ int main(int argc, char **argv)
         usage();
         exit(EXIT_FAILURE);
     }
+
+    ret = ABT_init(argc, argv);
+    assert(ret == 0);
+
+    /* set primary ES to idle without polling */
+    ret = ABT_sched_create_basic(ABT_SCHED_BASIC_WAIT, 0, NULL,
+        ABT_SCHED_CONFIG_NULL, &self_sched);
+    assert(ret == 0);
+    ret = ABT_xstream_self(&self_xstream);
+    assert(ret == 0);
+    ret = ABT_xstream_set_main_sched(self_xstream, self_sched);
+    assert(ret == 0);
 
     /* allocate one big buffer for writes */
     g_buffer = calloc(g_opts.total_mem_size, 1);
@@ -70,9 +88,54 @@ int main(int argc, char **argv)
         return(-1);
     }
 
+    /* set up abt pool */
+    if(g_opts.xstreams == 0)
+    {
+        ABT_pool pool;
+        ABT_xstream xstream;
+        
+        /* run bulk transfers from primary pool */
+        ret = ABT_xstream_self(&xstream);
+        assert(ret == 0);
+
+        ret = ABT_xstream_get_main_pools(xstream, 1, &pool);
+        assert(ret == 0);
+
+        g_transfer_pool = pool;
+    }
+    else
+    {
+        /* run bulk transfers from a dedicated pool */
+        bw_worker_xstreams = malloc(
+                g_opts.xstreams * sizeof(*bw_worker_xstreams));
+        bw_worker_scheds = malloc(
+                g_opts.xstreams * sizeof(*bw_worker_scheds));
+        assert(bw_worker_xstreams && bw_worker_scheds);
+
+        ret = ABT_pool_create_basic(ABT_POOL_FIFO_WAIT, ABT_POOL_ACCESS_MPMC,
+                ABT_TRUE, &g_transfer_pool);
+        assert(ret == ABT_SUCCESS);
+        for(i = 0; i < g_opts.xstreams; i++)
+        {
+            ret = ABT_sched_create_basic(ABT_SCHED_BASIC_WAIT, 1, &g_transfer_pool,
+                    ABT_SCHED_CONFIG_NULL, &bw_worker_scheds[i]);
+            assert(ret == ABT_SUCCESS);
+            ret = ABT_xstream_create(bw_worker_scheds[i], &bw_worker_xstreams[i]);
+            assert(ret == ABT_SUCCESS);
+        }
+    }
+
     run_benchmark(&g_opts);
 
+    for(i=0; i<g_opts.xstreams; i++)
+    {
+        ABT_xstream_join(bw_worker_xstreams[i]);
+        ABT_xstream_free(&bw_worker_xstreams[i]);
+    }
+
     free(g_buffer);
+
+    ABT_finalize();
 
     return 0;
 }
