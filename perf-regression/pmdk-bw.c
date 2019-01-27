@@ -81,10 +81,10 @@ int main(int argc, char **argv)
     assert(ret == 0);
 
     /* allocate one big buffer for writes */
-    g_buffer = calloc(g_opts.total_mem_size, 1);
+    g_buffer = calloc(g_opts.xfer_size, 1);
     if(!g_buffer)
     {
-        fprintf(stderr, "Error: unable to allocate %lu byte buffer.\n", g_opts.total_mem_size);
+        fprintf(stderr, "Error: unable to allocate %lu byte buffer.\n", g_opts.xfer_size);
         return(-1);
     }
 
@@ -271,12 +271,10 @@ static int run_benchmark(struct options *opts)
 static void bench_worker(void *_arg)
 {
     struct bench_worker_arg* arg = _arg;
-    char* this_buffer;
 
     ABT_mutex_spinlock(*arg->cur_off_mutex);
     while(*arg->cur_off < g_opts.total_mem_size)
     {
-        this_buffer  = (char*)((unsigned long)g_buffer + *arg->cur_off);
         (*arg->cur_off) += g_opts.xfer_size;
         ABT_mutex_unlock(*arg->cur_off_mutex);
 
