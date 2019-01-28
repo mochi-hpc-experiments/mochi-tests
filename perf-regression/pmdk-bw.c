@@ -26,7 +26,6 @@ struct options
     unsigned long xfer_size;
     unsigned long total_mem_size;
     int concurrency;
-    char* diag_file_name;
     char* pmdk_pool;
     int xstreams;
 };
@@ -82,7 +81,7 @@ int main(int argc, char **argv)
     ret = ABT_xstream_set_main_sched(self_xstream, self_sched);
     assert(ret == 0);
 
-    pmem_pool = pmemobj_open(argv[1], NULL);
+    pmem_pool = pmemobj_open(g_opts.pmdk_pool, NULL);
     if(!pmem_pool)
     {
         fprintf(stderr, "pmemobj_open: %s\n", pmemobj_errormsg());
@@ -98,7 +97,7 @@ int main(int argc, char **argv)
     }
 
     /* set up abt pool */
-    if(g_opts.xstreams == 0)
+    if(g_opts.xstreams <= 0)
     {
         ABT_pool pool;
         ABT_xstream xstream;
