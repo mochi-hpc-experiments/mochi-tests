@@ -21,8 +21,9 @@ cp packages.yaml $SANDBOX/
 
 # scratch area for job submission
 mkdir $JOBDIR
-cp margo-regression-ofi-rxm.qsub $JOBDIR
+cp margo-regression.qsub $JOBDIR
 cp bake-regression.qsub $JOBDIR
+cp pmdk-regression.qsub $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/carns/spack.git
@@ -93,20 +94,23 @@ echo "=== SUBMITTING AND WAITING FOR JOB ==="
 cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 cp $PREFIX/bin/bake-p2p-bw $JOBDIR
+cp $PREFIX/bin/pmdk-bw $JOBDIR
 cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
 cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
-JOBID=`qsub --env LD_LIBRARY_PATH=$PREFIX/lib --env SANDBOX=$SANDBOX ./margo-regression-ofi-rxm.qsub`
+JOBID=`qsub --env LD_LIBRARY_PATH=$PREFIX/lib --env SANDBOX=$SANDBOX ./margo-regression.qsub`
 cqwait $JOBID
 JOBID2=`qsub --env LD_LIBRARY_PATH=$PREFIX/lib --env SANDBOX=$SANDBOX ./bake-regression.qsub`
 cqwait $JOBID2
+JOBID3=`qsub --env LD_LIBRARY_PATH=$PREFIX/lib --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
+cqwait $JOBID3
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* $JOBID3.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
-mailx -s "margo-regression (cooley)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
+mailx -s "mochi-regression (cooley)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
 cd /tmp
-rm -rf $SANDBOX
-rm -rf $PREFIX
+# rm -rf $SANDBOX
+# rm -rf $PREFIX

@@ -1,0 +1,38 @@
+#!/bin/bash
+#COBALT -n 1
+#COBALT -t 20
+#COBALT --mode script
+#COBALT -A radix-io
+#COBALT -q ibleaf3-debug
+
+get_pmdk_lib_path() {
+        module show `spack module tcl find pmdk` |&grep LIBRARY_PATH | awk '{print $3}'
+}
+
+export FI_FORK_UNSAFE=1
+
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack load -r ssg 
+spack load -r bake
+
+module list
+
+# TODO: why is this necessary?  We should be able to find gcc libraries...
+export LD_LIBRARY_PATH="/soft/compilers/gcc/7.1.0/lib64:$LD_LIBRARY_PATH"
+
+# note, pmdk library not setting rpath correctly
+LIB_PATH_HACK=$(get_pmdk_lib_path)
+export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
+
+echo "## PMDK (8x concurrency):"
+rm -f /dev/shm/foo.dat
+truncate -s 60G /dev/shm/foo.dat
+pmempool create obj /dev/shm/foo.dat
+./pmdk-bw -x -x 16777216 -m 34359738368 -c 8
+
+echo "## PMDK (8x concurrency, 8 es):"
+rm -f /dev/shm/foo.dat
+truncate -s 60G /dev/shm/foo.dat
+pmempool create obj /dev/shm/foo.dat
+./pmdk-bw -x -x 16777216 -m 34359738368 -c 8 -T 8
+

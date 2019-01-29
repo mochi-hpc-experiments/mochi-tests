@@ -6,7 +6,7 @@
 #COBALT -q ibleaf3-debug
 
 get_pmdk_lib_path() {
-        module show `spack module tcl find pmem` |&grep LIBRARY_PATH | awk '{print $3}'
+        module show `spack module tcl find pmdk` |&grep LIBRARY_PATH | awk '{print $3}'
 }
 
 export FI_FORK_UNSAFE=1
