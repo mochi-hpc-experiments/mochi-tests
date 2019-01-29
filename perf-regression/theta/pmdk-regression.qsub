@@ -35,7 +35,7 @@ aprun -n 1 -N 1 -L ${nodes[0]} rm -f /dev/shm/foo.dat
 aprun -n 1 -N 1 -L ${nodes[0]} truncate -s 60G /dev/shm/foo.dat
 aprun -n 1 -N 1 -L ${nodes[0]} pmempool create obj /dev/shm/foo.dat
 aprun -n 1 -N 1 -L ${nodes[0]} ls -alh /dev/shm/foo.dat
-aprun -n 1 -N 1 -L ${nodes[0]} ./pmdk-bw -x 16777216 -m 34359738368 -c 8 
+aprun -n 1 -N 1 -L ${nodes[0]} ./pmdk-bw -x 16777216 -m 34359738368 -p /dev/shm/foo.dat -c 8 
 
 echo "## PMDK (8x concurrency, 8 es):"
 aprun -n 1 -N 1 -L ${nodes[0]} hostname
@@ -43,5 +43,5 @@ aprun -n 1 -N 1 -L ${nodes[0]} rm -f /dev/shm/foo.dat
 aprun -n 1 -N 1 -L ${nodes[0]} truncate -s 60G /dev/shm/foo.dat
 aprun -n 1 -N 1 -L ${nodes[0]} pmempool create obj /dev/shm/foo.dat
 aprun -n 1 -N 1 -L ${nodes[0]} ls -alh /dev/shm/foo.dat
-aprun -n 1 -N 1 -L ${nodes[0]} ./pmdk-bw -x 16777216 -m 34359738368 -c 8 -T 8
+aprun -n 1 -N 1 -L ${nodes[0]} ./pmdk-bw -x 16777216 -m 34359738368 -p /dev/shm/foo.dat -c 8 -T 8
 
