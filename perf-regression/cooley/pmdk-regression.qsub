@@ -28,11 +28,11 @@ echo "## PMDK (8x concurrency):"
 rm -f /dev/shm/foo.dat
 truncate -s 60G /dev/shm/foo.dat
 pmempool create obj /dev/shm/foo.dat
-./pmdk-bw -x -x 16777216 -m 34359738368 -c 8
+./pmdk-bw -x -x 16777216 -m 34359738368 -p /dev/shm/foo.dat -c 8
 
 echo "## PMDK (8x concurrency, 8 es):"
 rm -f /dev/shm/foo.dat
 truncate -s 60G /dev/shm/foo.dat
 pmempool create obj /dev/shm/foo.dat
-./pmdk-bw -x -x 16777216 -m 34359738368 -c 8 -T 8
+./pmdk-bw -x -x 16777216 -m 34359738368 -p /dev/shm/foo.dat -c 8 -T 8
 
