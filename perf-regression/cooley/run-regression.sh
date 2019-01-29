@@ -112,5 +112,5 @@ cat $JOBID.* $JOBID2.* $JOBID3.* > combined.$JOBID.txt
 mailx -s "mochi-regression (cooley)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
 cd /tmp
-# rm -rf $SANDBOX
-# rm -rf $PREFIX
+rm -rf $SANDBOX
+rm -rf $PREFIX
