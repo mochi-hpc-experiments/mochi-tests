@@ -1,0 +1,47 @@
+#!/bin/bash
+#COBALT -n 1
+#COBALT -t 20
+#COBALT --mode script
+#COBALT -A radix-io
+#COBALT -q debug-cache-quad
+
+# XXX xalt module currently eating '-M' flag for mercury-runner...disabling for now
+# module unload xalt
+
+# necessary when using the udreg option in Mercury
+export MPICH_GNI_NDREG_ENTRIES=1024
+
+module swap PrgEnv-intel PrgEnv-gnu
+module load cce
+
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack load -r ssg 
+spack load -r bake
+
+module list
+
+# NOTE: rpath doesn't seem to be set correctly, and the paths we need are 
+#  in LIBRARY_PATH instead of LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$LIBRARY_PATH
+
+# find nodes in job.  We have to do this so that we can manually specify 
+# in each aprun so that server ranks consitently run on node where we
+# set up storage space
+declare -a nodes=($(python /home/carns/bin/run_on_all_nids.py));
+
+echo "## PMDK (8x concurrency):"
+aprun -n 1 -N 1 -L ${nodes[0]} hostname
+aprun -n 1 -N 1 -L ${nodes[0]} rm -f /dev/shm/foo.dat
+aprun -n 1 -N 1 -L ${nodes[0]} truncate -s 60G /dev/shm/foo.dat
+aprun -n 1 -N 1 -L ${nodes[0]} pmempool create obj /dev/shm/foo.dat
+aprun -n 1 -N 1 -L ${nodes[0]} ls -alh /dev/shm/foo.dat
+aprun -n 1 -N 1 -L ${nodes[0]} ./pmdk-bw -x 16777216 -m 34359738368 -c 8 
+
+echo "## PMDK (8x concurrency, 8 es):"
+aprun -n 1 -N 1 -L ${nodes[0]} hostname
+aprun -n 1 -N 1 -L ${nodes[0]} rm -f /dev/shm/foo.dat
+aprun -n 1 -N 1 -L ${nodes[0]} truncate -s 60G /dev/shm/foo.dat
+aprun -n 1 -N 1 -L ${nodes[0]} pmempool create obj /dev/shm/foo.dat
+aprun -n 1 -N 1 -L ${nodes[0]} ls -alh /dev/shm/foo.dat
+aprun -n 1 -N 1 -L ${nodes[0]} ./pmdk-bw -x 16777216 -m 34359738368 -c 8 -T 8
+
