@@ -22,6 +22,7 @@ cp packages.yaml $SANDBOX/
 mkdir -p $JOBDIR
 cp margo-regression.sbatch $JOBDIR
 cp bake-regression.sbatch $JOBDIR
+cp pmdk-regression.sbatch $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/spack/spack.git
@@ -88,18 +89,20 @@ echo "=== SUBMITTING AND WAITING FOR JOB ==="
 cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 cp $PREFIX/bin/bake-p2p-bw $JOBDIR
+cp $PREFIX/bin/pmdk-bw $JOBDIR
 cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
 # cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
 export SANDBOX
 sbatch --wait --export=ALL ./margo-regression.sbatch
 sbatch --wait --export=ALL ./bake-regression.sbatch
+sbatch --wait --export=ALL ./pmdk-regression.sbatch
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
 cat *.out > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
-mailx -s "margo-regression (bebop)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
+mailx -s "mochi-regression (bebop)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
 cd /tmp
 rm -rf $SANDBOX
