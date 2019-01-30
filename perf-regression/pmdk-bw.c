@@ -224,8 +224,6 @@ static void usage(void)
 
 static int run_benchmark(struct options *opts, PMEMobjpool *pmem_pool)
 {
-    ABT_pool pool;
-    ABT_xstream xstream;
     int ret;
     int i;
     ABT_thread *tid_array;
@@ -241,19 +239,13 @@ static int run_benchmark(struct options *opts, PMEMobjpool *pmem_pool)
 
     ABT_mutex_create(&cur_off_mutex);
 
-    ret = ABT_xstream_self(&xstream);
-    assert(ret == 0);
-
-    ret = ABT_xstream_get_main_pools(xstream, 1, &pool);
-    assert(ret == 0);
-
     start_tm = ABT_get_wtime();
     for(i=0; i<g_opts.concurrency; i++)
     {
         arg_array[i].cur_off_mutex = &cur_off_mutex;
         arg_array[i].cur_off = &cur_off;
         arg_array[i].pmem_pool = pmem_pool;
-        ret = ABT_thread_create(pool, bench_worker, 
+        ret = ABT_thread_create(g_transfer_pool, bench_worker, 
             &arg_array[i], ABT_THREAD_ATTR_NULL, &tid_array[i]);
         assert(ret == 0);
     }
@@ -308,7 +300,7 @@ static void bench_worker(void *_arg)
             buffer[val] = val;
 
         /* persist */
-        pmemobj_persist(arg->pmem_pool, buffer, g_opts.xfer_size);
+        // pmemobj_persist(arg->pmem_pool, buffer, g_opts.xfer_size);
 
         ABT_mutex_spinlock(*arg->cur_off_mutex);
     }
