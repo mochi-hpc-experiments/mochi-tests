@@ -36,3 +36,15 @@ truncate -s 60G /dev/shm/foo.dat
 pmempool create obj /dev/shm/foo.dat
 ./pmdk-bw -x 16777216 -m 34359738368 -p /dev/shm/foo.dat -c 8 -T 8
 
+echo "## PMDK (8x concurrency, preallocate pool):"
+rm -f /dev/shm/foo.dat
+dd if=/dev/zero of=/dev/shm/foo.dat bs=1M count=61440
+pmempool create obj /dev/shm/foo.dat
+./pmdk-bw -x 16777216 -m 34359738368 -p /dev/shm/foo.dat -c 8
+
+echo "## PMDK (8x concurrency, 8 es, preallocate pool):"
+rm -f /dev/shm/foo.dat
+dd if=/dev/zero of=/dev/shm/foo.dat bs=1M count=61440
+pmempool create obj /dev/shm/foo.dat
+./pmdk-bw -x 16777216 -m 34359738368 -p /dev/shm/foo.dat -c 8 -T 8
+
