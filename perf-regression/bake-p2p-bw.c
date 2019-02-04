@@ -38,6 +38,10 @@ struct options
     char* na_transport;
     char* bake_pool;
     int rpc_xstreams;
+    /* if intermediate buffer pipeline is used */
+    unsigned long intermediate_xfer_size;
+    unsigned long intermediate_xfer_count;
+    int intermediate_xfer_concurrency;
 };
 
 struct bench_worker_arg
@@ -173,6 +177,13 @@ int main(int argc, char **argv)
             abort();
         }
 
+        if(g_opts.intermediate_xfer_size || g_opts.intermediate_xfer_count ||           g_opts.intermediate_xfer_concurrency)
+        {
+            bake_provider_set_target_xfer_buffer(provider, tid, g_opts.intermediate_xfer_count, g_opts.intermediate_xfer_size);
+            bake_provider_set_target_xfer_concurrency(provider, tid, g_opts.intermediate_xfer_concurrency);
+
+        }
+
         ret = ABT_eventual_create(0, &bench_stop_eventual);
         assert(ret == 0);
     }
@@ -252,7 +263,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->mercury_timeout_client = UINT_MAX;
     opts->mercury_timeout_server = UINT_MAX; 
 
-    while((opt = getopt(argc, argv, "n:x:c:d:t:p:m:r:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:d:t:p:m:r:i:")) != -1)
     {
         switch(opt)
         {
@@ -297,6 +308,11 @@ static int parse_args(int argc, char **argv, struct options *opts)
                 if(ret != 2)
                     return(-1);
                 break;
+            case 'i':
+                ret = sscanf(optarg, "%lu,%lu,%d", &opts->intermediate_xfer_size, &opts->intermediate_xfer_count, &opts->intermediate_xfer_concurrency);
+                if(ret != 3)
+                    return(-1);
+                break;
             case 'n':
                 opts->na_transport = strdup(optarg);
                 if(!opts->na_transport)
@@ -332,6 +348,7 @@ static void usage(void)
         "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
         "\t[-r rpc_execution_streams] - number of ESs Margo should use for RPC handling\n"
+        "\t[-i buffer_size,buffer_count,concurrency] - enable intermediate buffering pipeline with specified buffer size, count, and transfer concurrency\n"
         "\t\texample: mpiexec -n 2 ./bake-p2p-bw -x 4096 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
     
