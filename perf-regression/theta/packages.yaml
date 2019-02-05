@@ -1,7 +1,7 @@
 packages:
     mpich:
         modules: 
-            mpich@7.7.2 arch=cray-cnl6-mic_knl: cray-mpich/7.7.2
+            mpich@7.7.3 arch=cray-cnl6-mic_knl: cray-mpich/7.7.3
         buildable: False
     autoconf:
         paths:
