@@ -36,6 +36,8 @@ git clone https://github.com/pdlfs/mercury-runner.git
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
 . $SANDBOX/spack/share/spack/setup-env.sh
+spack compiler find
+spack compilers
 # put packages file in place in SPACK_ROOT to set our preferences for building
 # Mochi stack
 cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
