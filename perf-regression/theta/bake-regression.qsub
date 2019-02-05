@@ -2,7 +2,7 @@
 #COBALT -n 2
 #COBALT -t 20
 #COBALT --mode script
-#COBALT -A radix-io
+#COBALT -A CSC250STDM12
 #COBALT -q debug-cache-quad
 
 # XXX xalt module currently eating '-M' flag for mercury-runner...disabling for now
