@@ -47,6 +47,8 @@ git checkout carns/dev-shell-detection
 patch -p1 < $SANDBOX/spack-libfabric-1.7.0.patch
 patch -p1 < $SANDBOX/spack-mercury-udreg-variant.patch
 . $SANDBOX/spack/share/spack/setup-env.sh
+spack find compilers
+spack compilers
 # put packages file in place in SPACK_ROOT to set our preferences for building
 # Mochi stack
 cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
