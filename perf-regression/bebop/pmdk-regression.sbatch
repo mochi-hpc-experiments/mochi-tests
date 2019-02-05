@@ -11,7 +11,7 @@ export LMOD_PAGER=none
 
 module load numactl boost cmake
 
-. /home/carns/working/src/spack/share/spack/setup-env.sh
+. $SANDBOX/spack/share/spack/setup-env.sh
 
 spack load -r ssg
 spack load -r bake
