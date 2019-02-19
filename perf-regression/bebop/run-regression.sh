@@ -47,9 +47,8 @@ cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
 echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
 echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 spack uninstall -R -y argobots mercury opa-psm2 bake || true
-# build problem with recent opa-psm2
-spack install --dirty ssg ^mercury@develop ^opa-psm2@10.3-17
-spack install --dirty bake ^mercury@develop ^opa-psm2@10.3-17
+# nightly tests should test nightly software!
+spack install ior@mobject +mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
