@@ -11,17 +11,15 @@ packages:
         paths:
             libtool@2.4.2: /usr
         buildable: False
-    pkg-config:
-        paths:
-            pkg-config@0.27.1: /usr
-        buildable: False
+    # spack should build pkg-config, or else spack's use of CPATH
+    # confuses pkg-config (requires use of 'PKG_CONFIG_ALLOW_SYSTEM_*' env vars
     cmake:
         modules:
-            cmake@3.9.4: cmake/3.9.4-3tixtqt
+            cmake@3.12.2: cmake/3.12.2-4qajrwt
         buildable: False
     numactl:
         modules:
-            numactl@2.0.11-tggunqu: numactl/2.0.11-tggunqu
+            numactl@2.0.12: numactl-2.0.12-gcc-7.1.0-irpuvoh
         buildable: False
     openssl:
         paths:
@@ -77,9 +75,9 @@ packages:
         buildable: False
     intel-mpi:
         modules:
-            intel-mpi@2017.3: intel-mpi/2017.3-dfphq6k
+            intel-mpi@2017.3%gcc@7.1.0: intel-mpi/2017.3-ut5hl6b
         buildable: False
     ssg:
         variants: +mpi
     libfabric:
-        variants: fabrics=psm2
+        variants: fabrics=psm2,sockets
