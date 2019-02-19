@@ -23,6 +23,7 @@ mkdir -p $JOBDIR
 cp margo-regression.sbatch $JOBDIR
 cp bake-regression.sbatch $JOBDIR
 cp pmdk-regression.sbatch $JOBDIR
+cp mobject-regression.sbatch $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/spack/spack.git
@@ -46,6 +47,8 @@ cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
 #    CI environments
 echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
 echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
+
+
 spack uninstall -R -y argobots mercury opa-psm2 bake || true
 # nightly tests should test nightly software!
 spack install ior@mobject +mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
@@ -55,6 +58,7 @@ spack install ior@mobject +mobject ^margo@develop ^mercury@develop ^mobject@deve
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg
 spack load -r bake
+spack load -r mobject
 
 export CFLAGS="-O3"
 
@@ -100,6 +104,7 @@ export SANDBOX
 sbatch --wait --export=ALL ./margo-regression.sbatch
 sbatch --wait --export=ALL ./bake-regression.sbatch
 sbatch --wait --export=ALL ./pmdk-regression.sbatch
+sbatch --wait --export=ALL ./mobject-regression.sbatch
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
