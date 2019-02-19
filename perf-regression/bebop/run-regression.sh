@@ -33,6 +33,8 @@ wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.3
 tar -xvzf osu-micro-benchmarks-5.3.2.tar.gz
 git clone https://github.com/pdlfs/mercury-runner.git
 
+export SPACK_ROOT=${SANDBOX}/spack
+
 # set up most of the libraries in spack
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
@@ -41,6 +43,7 @@ spack compiler find
 spack compilers
 # put packages file in place in SPACK_ROOT to set our preferences for building
 # Mochi stack
+mkdir -p $SPACK_ROOT/etc/spack
 cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
 # set up repos file to point to sds-repo; we do this manually because 
 #    "spack repo add" will create files in ~/.spack, which is a bad idea in 
