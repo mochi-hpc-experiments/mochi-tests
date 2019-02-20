@@ -29,3 +29,14 @@ Status (margo-p2p-bw):
 [summitdev-r0c0n09:04448] [ 1] [0x0]
 [summitdev-r0c0n09:04448] [ 2] /autofs/nccs-svm1_home1/carns/working/src/spack/opt/spack/linux-rhel7-ppc64le/gcc-6.4.0/argobots-develop-4l7rzjstalkuojewr6ruxbyrcxfw7t7i/lib/libabt.so.0(+0x9de4)[0x1000003f9de4]
 
+Both of the above produce core files.  It looks like the problem is in a subroutine within ABT_finalize:
+
+#0  0x000010000040d990 in ABTI_mem_finalize_local ()
+   from /autofs/nccs-svm1_home1/carns/working/src/spack/opt/spack/linux-rhel7-ppc64le/gcc-6.4.0/argobots-develop-4l7rzjstalkuojewr6ruxbyrcxfw7t7i/lib/libabt.so.0
+#1  0x00001000003f9de4 in ABTI_local_finalize ()
+   from /autofs/nccs-svm1_home1/carns/working/src/spack/opt/spack/linux-rhel7-ppc64le/gcc-6.4.0/argobots-develop-4l7rzjstalkuojewr6ruxbyrcxfw7t7i/lib/libabt.so.0
+#2  0x00001000003f87c0 in ABT_finalize ()
+   from /autofs/nccs-svm1_home1/carns/working/src/spack/opt/spack/linux-rhel7-ppc64le/gcc-6.4.0/argobots-develop-4l7rzjstalkuojewr6ruxbyrcxfw7t7i/lib/libabt.so.0
+#3  0x00001000002b46d4 in margo_cleanup (mid=0x1003b49f490) at src/margo.c:422
+#4  0x0000000010001f90 in main ()
+
