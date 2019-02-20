@@ -1,2 +1,11 @@
-bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/bake-p2p-bw perf-regression/pmdk-bw
+if HAVE_MARGO
+bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw
+endif
 
+if HAVE_BAKE
+bin_PROGRAMS += perf-regression/bake-p2p-bw
+endif
+
+if HAVE_PMDK
+bin_PROGRAMS += perf-regression/pmdk-bw
+endif
