@@ -1,0 +1,49 @@
+packages:
+    all:
+        compiler: [gcc@6.4.0, xl]
+        providers:
+            mpi: [spectrum-mpi]
+    spectrum-mpi:
+        modules:
+            spectrum-mpi@10.2.0.7: spectrum-mpi/10.2.0.7-20180830
+        buildable: False
+    cmake:
+        modules:
+            cmake@3.11.3: cmake/3.11.3
+        buildable: False
+    openssl:
+        paths:
+            openssl@1.0.2k: /usr
+        buildable: False
+    bison:
+        paths:
+            bison@3.0.4: /usr
+        buildable: False
+    flex:
+        paths:
+            flex@2.5.37: /usr
+        buildable: False
+    autoconf:
+        paths:
+            autoconf@2.69: /usr
+        buildable: False
+    automake:
+        paths:
+            automake@1.13.4: /usr
+        buildable: False
+    libtool:
+        paths:
+            libtool@2.4.2: /usr
+        buildable: False
+    libnl:
+        paths:
+            libnl@3.2.28: /usr
+        buildable: False
+    rdma-core:
+        paths:
+            rdma-core@20: /usr
+        buildable: False
+    ssg:
+        variants: +mpi
+    libfabric:
+        variants: fabrics=verbs,rxm
