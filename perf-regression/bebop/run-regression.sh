@@ -27,6 +27,8 @@ cp mobject-regression.sbatch $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/spack/spack.git
+# back out prolematic opa-psm2 change
+(cd spack && git revert --no-edit d4fbaa054f8d718eaffecb53b1d37ad93ceeca05)
 git clone https://xgitlab.cels.anl.gov/sds/sds-repo.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-tests.git
 wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.3.2.tar.gz
@@ -39,6 +41,8 @@ export SPACK_ROOT=${SANDBOX}/spack
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
 . $SANDBOX/spack/share/spack/setup-env.sh
+
+module load gcc/7.1.0-4bgguyp
 spack compiler find
 spack compilers
 # put packages file in place in SPACK_ROOT to set our preferences for building
