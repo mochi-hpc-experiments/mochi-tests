@@ -43,6 +43,8 @@ cd $SANDBOX/spack
 . $SANDBOX/spack/share/spack/setup-env.sh
 
 module load gcc/7.1.0-4bgguyp
+module load intel-mpi/2017.3-ut5hl6b
+
 spack compiler find
 spack compilers
 # put packages file in place in SPACK_ROOT to set our preferences for building
