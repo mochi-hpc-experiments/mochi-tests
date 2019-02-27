@@ -26,7 +26,7 @@ cp bake-regression.qsub $JOBDIR
 cp pmdk-regression.qsub $JOBDIR
 
 cd $SANDBOX
-git clone https://github.com/carns/spack.git
+git clone https://github.com/spack/spack.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-repo.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-tests.git
 wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.3.2.tar.gz
@@ -36,7 +36,6 @@ git clone https://github.com/pdlfs/mercury-runner.git
 # set up most of the libraries in spack
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
-git checkout carns/dev-shell-detection
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack compiler find
 spack compilers
@@ -50,9 +49,8 @@ echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
 echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 spack bootstrap
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
-# 2018-11-5 using @develop for mercury and libfabric to test wait_fd
-spack install --dirty ssg ^mercury@develop ^libfabric@develop
-spack install --dirty bake ^mercury@develop ^libfabric@develop
+spack install --dirty ssg
+spack install --dirty bake
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
