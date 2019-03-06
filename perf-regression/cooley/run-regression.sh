@@ -35,8 +35,9 @@ git clone https://github.com/pdlfs/mercury-runner.git
 
 # set up most of the libraries in spack
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
+export SPACK_ROOT=${SANDBOX}/spack
 cd $SANDBOX/spack
-. $SANDBOX/spack/share/spack/setup-env.sh
+. ${SPACK_ROOT}/share/spack/setup-env.sh
 spack compiler find
 spack compilers
 # put packages file in place in SPACK_ROOT to set our preferences for building
@@ -49,8 +50,7 @@ echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
 echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 spack bootstrap
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
-spack install ssg
-spack install bake
+spack install ior@mobject +mobject
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
