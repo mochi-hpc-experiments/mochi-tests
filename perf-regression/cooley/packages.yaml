@@ -79,7 +79,8 @@ packages:
         variants: +mpi
     libfabric:
         variants: fabrics=verbs,rxm
+    mvapich2:
+        variants: fabrics=mrail
     all:
         providers:
-            # prefer MPICH by default
-            mpi: [mpich,openmpi]
+            mpi: [mvapich2,mpich,openmpi]

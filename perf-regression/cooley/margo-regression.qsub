@@ -17,9 +17,6 @@ spack load -r bake
 
 module list
 
-# TODO: why is this necessary?  We should be able to find gcc libraries...
-export LD_LIBRARY_PATH="/soft/compilers/gcc/7.1.0/lib64:$LD_LIBRARY_PATH"
-
 # note, pmdk library not setting rpath correctly
 LIB_PATH_HACK=$(get_pmdk_lib_path)
 export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"

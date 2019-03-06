@@ -11,6 +11,9 @@
 # exit on any error
 set -e
 
+# make sure we have a new-ish gcc
+soft add +gcc-8.2.0
+
 SANDBOX=$PWD/mochi-regression-sandbox-$$
 PREFIX=$PWD/mochi-regression-install-$$
 JOBDIR=$PWD/mochi-regression-job-$$
@@ -49,8 +52,8 @@ echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
 echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 spack bootstrap
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
-spack install --dirty ssg
-spack install --dirty bake
+spack install ssg
+spack install bake
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
