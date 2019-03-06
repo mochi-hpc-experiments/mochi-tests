@@ -11,9 +11,6 @@
 # exit on any error
 set -e
 
-# make sure we have a new-ish gcc
-soft add +gcc-8.2.0
-
 SANDBOX=$PWD/mochi-regression-sandbox-$$
 PREFIX=$PWD/mochi-regression-install-$$
 JOBDIR=$PWD/mochi-regression-job-$$
