@@ -78,9 +78,13 @@ packages:
     ssg:
         variants: +mpi
     libfabric:
-        variants: fabrics=verbs,rxm
+        variants: fabrics=verbs,rxm,sockets
     mvapich2:
         variants: fabrics=mrail
+    libxml2:
+        paths:
+            libxml2@2.9.1: /usr/
+        buildable: False
     all:
         providers:
             mpi: [mvapich2,mpich,openmpi]
