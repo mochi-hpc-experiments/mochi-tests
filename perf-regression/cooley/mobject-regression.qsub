@@ -1,0 +1,36 @@
+#!/bin/bash
+#COBALT -n 2
+#COBALT -t 5
+#COBALT --mode script
+#COBALT -A radix-io
+#COBALT -q ibleaf3-debug
+
+get_pmdk_lib_path() {
+        module show `spack module tcl find pmdk` |&grep LIBRARY_PATH | awk '{print $3}'
+}
+
+export FI_FORK_UNSAFE=1
+
+export PATH=${SPACK_ROOT}/bin:${PATH}
+. ${SPACK_ROOT}/share/spack/setup-env.sh
+spack load -r ior@mobject +mobject
+
+module list
+
+## note, pmdk library not setting rpath correctly
+#LIB_PATH_HACK=$(get_pmdk_lib_path)
+#export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
+
+# make half the nodes servers, half clients
+nnodes=$(wc -l <$COBALT_NODEFILE)
+head -n $((nnodes/2)) $COBALT_NODEFILE > server_nodes
+tail -n $((nnodes/2)) $COBALT_NODEFILE > client_nodes
+
+echo " ==== running server "
+export MOBJECT_CLUSTER_FILE=mobject-cluster.gid
+mpirun -f $COBALT_NODEFILE -n 2 mobject-server-daemon verbs:// $MOBJECT_CLUSTER_FILE &
+# give the mobject-server nodes a chance to set up
+sleep 5
+
+echo " ==== running benchmark "
+mpirun -f $COBALT_NODEFILE -n 2 ior -g -a RADOS -t 64k -b 128k --rados.user=foo --rados.pool=bar --rados.conf $MOBJECT_CLUSTER_FILE
