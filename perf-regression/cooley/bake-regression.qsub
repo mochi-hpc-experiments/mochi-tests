@@ -14,6 +14,7 @@ export FI_FORK_UNSAFE=1
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg 
 spack load -r bake
+spack load -r mvapich2
 
 module list
 

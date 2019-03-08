@@ -222,7 +222,7 @@ int main(int argc, char **argv)
     {
         /* ssg id 0 (server) services requests until told to stop */
         ABT_eventual_wait(bench_stop_eventual, NULL);
-        sleep(3);
+        margo_thread_sleep(mid, 2000);
     }
 
     ssg_group_destroy(gid);
