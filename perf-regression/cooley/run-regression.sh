@@ -24,6 +24,7 @@ mkdir $JOBDIR
 cp margo-regression.qsub $JOBDIR
 cp bake-regression.qsub $JOBDIR
 cp pmdk-regression.qsub $JOBDIR
+cp mobject-regression.qsub $JOBDIR
 
 cd $SANDBOX
 git clone https://github.com/spack/spack.git
