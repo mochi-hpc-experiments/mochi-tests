@@ -42,8 +42,7 @@ echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
 . $SANDBOX/spack/share/spack/setup-env.sh
 
-module load gcc/7.1.0-4bgguyp
-module load intel-mpi/2017.3-ut5hl6b
+module load gcc_new/7.3.0
 
 spack compiler find
 spack compilers
