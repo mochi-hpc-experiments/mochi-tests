@@ -75,7 +75,7 @@ packages:
         buildable: False
     intel-mpi:
         modules:
-            intel-mpi@2017.3%gcc@7.1.0: intel-mpi/2017.3-ut5hl6b
+            intel-mpi@2017.3%gcc@7.3.0: intel-mpi/2017.3-dfphq6k
         buildable: False
     ssg:
         variants: +mpi
