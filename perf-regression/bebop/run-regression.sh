@@ -10,6 +10,9 @@
 # exit on any error
 set -e
 
+# load newer gcc up front
+module load gcc_new/7.3.0
+
 SANDBOX=$PWD/mochi-regression-sandbox-$$
 PREFIX=$PWD/mochi-regression-install-$$
 JOBDIR=$PWD/mochi-regression-job-$$
@@ -42,8 +45,6 @@ echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
 . $SANDBOX/spack/share/spack/setup-env.sh
 
-module load gcc_new/7.3.0
-
 spack compiler find
 spack compilers
 # put packages file in place in SPACK_ROOT to set our preferences for building
@@ -59,7 +60,7 @@ echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 
 spack uninstall -R -y argobots mercury opa-psm2 bake || true
 # nightly tests should test nightly software!
-spack install ior@mobject +mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
+spack install ior@mobject+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
