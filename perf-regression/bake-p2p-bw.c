@@ -231,7 +231,7 @@ int main(int argc, char **argv)
     if(g_opts.diag_file_name)
         margo_diag_dump(mid, g_opts.diag_file_name, 1);
 
-    if(rank == 0)
+    if(rank > 0)
         free(g_buffer);
 
     margo_finalize(mid);
