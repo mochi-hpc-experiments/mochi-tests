@@ -13,7 +13,7 @@ export FI_FORK_UNSAFE=1
 
 export PATH=${SPACK_ROOT}/bin:${PATH}
 . ${SPACK_ROOT}/share/spack/setup-env.sh
-spack load -r ior@mobject +mobject
+spack load -r ior@develop +mobject
 
 module list
 

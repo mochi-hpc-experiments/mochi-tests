@@ -60,7 +60,7 @@ echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 
 spack uninstall -R -y argobots mercury opa-psm2 bake || true
 # nightly tests should test nightly software!
-spack install ior@mobject+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
+spack install ior@develop+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
