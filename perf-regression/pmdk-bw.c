@@ -300,7 +300,7 @@ static void bench_worker(void *_arg)
             buffer[val] = val;
 
         /* persist */
-        // pmemobj_persist(arg->pmem_pool, buffer, g_opts.xfer_size);
+        pmemobj_persist(arg->pmem_pool, buffer, g_opts.xfer_size);
 
         ABT_mutex_spinlock(*arg->cur_off_mutex);
     }
