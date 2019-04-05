@@ -299,7 +299,7 @@ static int run_benchmark(struct options *opts, PMEMobjpool **pmem_pools, int pme
     printf("create_write_persist\t%d\t%lu\t%lu\t%f\t%f\n",
         g_opts.concurrency,
         g_opts.xfer_size,
-        g_opts.total_mem_size,
+        g_opts.total_mem_size * pmem_pools_count,
         (end_tm-start_tm),
         ((double)g_opts.total_mem_size/(end_tm-start_tm))/(1024.0*1024.0));
 
