@@ -20,6 +20,23 @@
 #include <abt.h>
 #include <libpmemobj.h>
 
+struct drainer
+{
+    int started;
+    int waited;
+    int done;
+    int draining;
+};
+
+struct drainer *g_drainer;
+/* TODO: this is crude.  Technically will be more efficient if each drainer
+ * has its own mutex and cond, but then you need an atomic way to swap
+ * drainers too (e.g. another mutex) and the code gets more perilous because
+ * of lock ordering and race condition protection.  This is simpler but will
+ * cause superfluous wake-ups and lock contention.
+ */
+ABT_mutex g_drainer_mutex = ABT_MUTEX_NULL;
+ABT_mutex g_drainer_cond = ABT_COND_NULL;
 
 struct options
 {
@@ -28,6 +45,7 @@ struct options
     int concurrency;
     char* pmdk_pool;
     int xstreams;
+    int highwater; /* highwater mark if drain coalescing */
 };
 
 struct bench_worker_arg
@@ -81,6 +99,17 @@ int main(int argc, char **argv)
     assert(ret == 0);
     ret = ABT_xstream_set_main_sched(self_xstream, self_sched);
     assert(ret == 0);
+
+    if(g_opts.highwater)
+    {
+        /* initialize tracking data structure for drain coalescing */
+        g_drainer = calloc(1, sizeof(*g_drainer));
+        assert(g_drainer);
+        ret = ABT_mutex_create(&g_drainer_mutex);
+        assert(ret == 0);
+        ret = ABT_cond_create(&g_drainer_cond);
+        assert(ret == 0);
+    }
 
     /* count number of commas in pmdk_pool argument to see how many pools we
      * have
@@ -159,6 +188,13 @@ int main(int argc, char **argv)
         ABT_xstream_free(&bw_worker_xstreams[i]);
     }
 
+    if(g_opts.highwater)
+    {
+        fprintf(stderr, "FOO: freeing\n");
+        ABT_mutex_free(&g_drainer_mutex);
+        ABT_cond_free(&g_drainer_cond);
+    }
+
     for(i=0; i<pmem_pools_count; i++)
         pmemobj_close(pmem_pools[i]);
 
@@ -179,7 +215,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->xfer_size = DEF_BW_XFER_SIZE;
     opts->xstreams = -1;
 
-    while((opt = getopt(argc, argv, "x:c:p:m:T:")) != -1)
+    while((opt = getopt(argc, argv, "x:c:p:m:T:h:")) != -1)
     {
         switch(opt)
         {
@@ -211,6 +247,11 @@ static int parse_args(int argc, char **argv, struct options *opts)
                 if(ret != 1)
                     return(-1);
                 break;
+            case 'h':
+                ret = sscanf(optarg, "%d", &opts->highwater);
+                if(ret != 1)
+                    return(-1);
+                break;
             default:
                 return(-1);
         }
@@ -236,6 +277,7 @@ static void usage(void)
         "\t\t      pools will be round-robin distributed across ULTs.\n"
         "\t[-c concurrency] - number of concurrent operations to issue with ULTs\n"
         "\t[-T <os threads] - number of dedicated operating system threads to run ULTs on\n"
+        "\t[-h <highwater>] - enable drain coalescing with this highwater mark\n"
         "\t\texample: ./pmdk-bw -x 4096 -p /dev/shm/test.dat\n");
     
     return;
@@ -320,12 +362,23 @@ static void bench_worker(void *_arg)
     uint64_t *buffer;
     uint64_t val;
     int ret;
+    struct drainer *my_drainer;
+    int turn_off_the_lights = 0;
 
     ABT_mutex_spinlock(*arg->cur_off_mutex);
     while(*arg->cur_off < g_opts.total_mem_size)
     {
         (*arg->cur_off) += g_opts.xfer_size;
         ABT_mutex_unlock(*arg->cur_off_mutex);
+
+        if(g_opts.highwater)
+        {
+            /* get drain coalescing data structure */
+            ABT_mutex_lock(g_drainer_mutex);
+                my_drainer = g_drainer;
+                my_drainer->started++;
+            ABT_mutex_unlock(g_drainer_mutex);
+        }
 
         /* create an object */
         /* NOTE: for now we don't try to keep up with oid */
@@ -338,15 +391,66 @@ static void bench_worker(void *_arg)
 
         /* TODO: the offset tracking stuff is superfluous if we are just
          * setting values.  Need to think about what we want to measure
-         * here.
+         * here.  A memcpy from a buffer local to this ULT might be a better
+         * measure?
          */
         /* fill in values */
         buffer = pmemobj_direct(oid);
         for(val = 0; val < g_opts.xfer_size/sizeof(val); val++)
             buffer[val] = val;
 
-        /* persist */
-        pmemobj_persist(arg->pmem_pool, buffer, g_opts.xfer_size);
+        if(g_opts.highwater)
+        {
+            /* first half of persist; the drain will be done by coalescer */
+            pmemobj_flush(arg->pmem_pool, buffer, g_opts.xfer_size);
+
+            /* do drain coalescing check */
+            turn_off_the_lights = 0;
+            ABT_mutex_lock(g_drainer_mutex);
+            my_drainer->waited++;
+
+            if(my_drainer->waited >= g_opts.highwater || my_drainer->waited == my_drainer->started)
+            {
+                fprintf(stderr, "FOO: draining.\n");
+                /* we need to trigger a drain; either because we hit
+                 * highwater or because there are no more concurrent ops to
+                 * combine
+                 */
+                my_drainer->draining = 1;
+                ABT_cond_broadcast(g_drainer_cond);
+                /* put a new drainer struct in place for the next batch while we
+                 * hold lock.  People using old drainer should have a ref to it
+                 * in a local var. */
+                g_drainer = calloc(1, sizeof(*g_drainer));
+                assert(g_drainer);
+
+                /* drop lock while draining */
+                ABT_mutex_unlock(g_drainer_mutex);
+                pmemobj_drain(arg->pmem_pool);
+                ABT_mutex_lock(g_drainer_mutex);
+            }
+            else
+            {
+                fprintf(stderr, "FOO: waiting.\n");
+                while(!my_drainer->draining)
+                    ABT_cond_wait(g_drainer_cond, g_drainer_mutex);
+            }
+
+            /* everyone: check to see if you are the last one done; if so you
+             * must clean up.  Mutex is held here.
+             */
+            my_drainer->done++;
+            if(my_drainer->done == my_drainer->waited)
+            {
+                turn_off_the_lights = 1;
+            }
+            ABT_mutex_unlock(g_drainer_mutex);
+            if(turn_off_the_lights) free(my_drainer);
+        }
+        else
+        {
+            pmemobj_persist(arg->pmem_pool, buffer, g_opts.xfer_size);
+        }
 
         ABT_mutex_spinlock(*arg->cur_off_mutex);
     }
