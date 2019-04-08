@@ -81,6 +81,12 @@ int main(int argc, char **argv)
     int pmem_pools_count = 0;
     char *tmp_pool_name;
 
+    /* set up argobots tunables that would normally be handled by margo */
+    if(!getenv("ABT_THREAD_STACKSIZE"))
+        putenv("ABT_THREAD_STACKSIZE=2097152");
+    if(!getenv("ABT_MEM_MAX_NUM_STACKS"))
+        putenv("ABT_MEM_MAX_NUM_STACKS=8");
+
     ret = parse_args(argc, argv, &g_opts);
     if(ret < 0)
     {
@@ -422,7 +428,7 @@ static void bench_worker(void *_arg)
                 /* trigger a drain; everyone who started on this drainer is
                  * now waiting on drain
                  */
-                fprintf(stderr, "FOO: draining.\n");
+                fprintf(stderr, "FOO: draining %d.\n", my_drainer->waited);
                 my_drainer->draining = 1;
                 ABT_cond_broadcast(g_drainer_cond);
                 if(my_drainer == g_drainer)
