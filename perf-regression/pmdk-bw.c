@@ -417,13 +417,12 @@ static void bench_worker(void *_arg)
             ABT_mutex_lock(g_drainer_mutex);
             my_drainer->waited++;
 
-            if(my_drainer->waited >= g_opts.highwater || my_drainer->waited == my_drainer->started)
+            if(my_drainer->waited == my_drainer->started)
             {
-                fprintf(stderr, "FOO: draining.\n");
-                /* we need to trigger a drain; either because we hit
-                 * highwater or because there are no more concurrent ops to
-                 * combine
+                /* trigger a drain; everyone who started on this drainer is
+                 * now waiting on drain
                  */
+                fprintf(stderr, "FOO: draining.\n");
                 my_drainer->draining = 1;
                 ABT_cond_broadcast(g_drainer_cond);
                 if(my_drainer == g_drainer)
