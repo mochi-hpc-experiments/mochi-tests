@@ -377,6 +377,14 @@ static void bench_worker(void *_arg)
             ABT_mutex_lock(g_drainer_mutex);
                 my_drainer = g_drainer;
                 my_drainer->started++;
+                if(my_drainer->started == g_opts.highwater)
+                {
+                    /* this drainer is full; create a new one for the next
+                     * writer to coalesce on
+                     */
+                    g_drainer = calloc(1, sizeof(*g_drainer));
+                    assert(g_drainer);
+                }
             ABT_mutex_unlock(g_drainer_mutex);
         }
 
@@ -418,11 +426,14 @@ static void bench_worker(void *_arg)
                  */
                 my_drainer->draining = 1;
                 ABT_cond_broadcast(g_drainer_cond);
-                /* put a new drainer struct in place for the next batch while we
-                 * hold lock.  People using old drainer should have a ref to it
-                 * in a local var. */
-                g_drainer = calloc(1, sizeof(*g_drainer));
-                assert(g_drainer);
+                if(my_drainer == g_drainer)
+                {
+                    /* put a new drainer struct in place for the next batch while we
+                     * hold lock.  People using old drainer should have a ref to it
+                     * in a local var. */
+                    g_drainer = calloc(1, sizeof(*g_drainer));
+                    assert(g_drainer);
+                }
 
                 /* drop lock while draining */
                 ABT_mutex_unlock(g_drainer_mutex);
