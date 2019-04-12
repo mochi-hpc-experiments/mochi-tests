@@ -33,7 +33,7 @@ cp bake-regression.qsub $JOBDIR
 cp pmdk-regression.qsub $JOBDIR
 
 cd $SANDBOX
-git clone https://github.com/carns/spack.git
+git clone https://github.com/spack/spack.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-repo.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-tests.git
 wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.3.2.tar.gz
@@ -43,9 +43,6 @@ git clone https://github.com/pdlfs/mercury-runner.git
 # set up most of the libraries in spack
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 cd $SANDBOX/spack
-git checkout carns/dev-shell-detection
-patch -p1 < $SANDBOX/spack-libfabric-1.7.0.patch
-patch -p1 < $SANDBOX/spack-mercury-udreg-variant.patch
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack compiler find
 spack compilers
