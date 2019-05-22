@@ -81,6 +81,8 @@ packages:
         variants: fabrics=verbs,rxm,sockets
     mvapich2:
         variants: fabrics=mrail
+    mercury:
+        variants: ~boostsys
     libxml2:
         paths:
             libxml2@2.9.1: /usr/
