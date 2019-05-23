@@ -5,10 +5,7 @@
 #COBALT -A radix-io
 #COBALT -q ibleaf3-debug
 
-get_pmdk_lib_path() {
-        module show `spack module tcl find pmdk` |&grep LIBRARY_PATH | awk '{print $3}'
-}
-
+export HOME=$SANDBOX
 export FI_FORK_UNSAFE=1
 
 . $SANDBOX/spack/share/spack/setup-env.sh
@@ -17,10 +14,6 @@ spack load -r bake
 spack load -r mvapich2
 
 module list
-
-# note, pmdk library not setting rpath correctly
-LIB_PATH_HACK=$(get_pmdk_lib_path)
-export LD_LIBRARY_PATH="$LIB_PATH_HACK:$LD_LIBRARY_PATH"
 
 echo "### NOTE: ALL BAKE RESULTS BELOW are using 2nd socket on cooley nodes: cores 6-11"
 
