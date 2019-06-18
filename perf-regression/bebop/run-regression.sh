@@ -10,95 +10,81 @@
 # exit on any error
 set -e
 
+get_psm2_lib_path() {
+    module show `spack module tcl find opa-psm2` |&grep LD_LIBRARY_PATH | cut -d \" -f 4
+}
+
 # load newer gcc up front
 module load gcc_new/7.3.0
 
+# location of this script
+ORIGIN=$PWD
+# scratch area for builds
 SANDBOX=$PWD/mochi-regression-sandbox-$$
+# install destination
 PREFIX=$PWD/mochi-regression-install-$$
+# job submission dir
 JOBDIR=$PWD/mochi-regression-job-$$
+# modify HOME env variable so that we don't perturb ~/.spack/ files for the 
+# users calling this script
+export HOME=$SANDBOX
 
-# scratch area to clone and build things
-mkdir -p $SANDBOX
-cp packages.yaml $SANDBOX/
+mkdir $SANDBOX
+mkdir $PREFIX
+mkdir $JOBDIR
+cp $ORIGIN/margo-regression.sbatch $JOBDIR
+cp $ORIGIN/bake-regression.sbatch $JOBDIR
+cp $ORIGIN/pmdk-regression.sbatch $JOBDIR
+cp $ORIGIN/mobject-regression.sbatch $JOBDIR
 
-# scratch area for job submission
-mkdir -p $JOBDIR
-cp margo-regression.sbatch $JOBDIR
-cp bake-regression.sbatch $JOBDIR
-cp pmdk-regression.sbatch $JOBDIR
-cp mobject-regression.sbatch $JOBDIR
-
+# set up build environment
 cd $SANDBOX
-git clone https://github.com/spack/spack.git
-# back out prolematic opa-psm2 change
-(cd spack && git revert --no-edit d4fbaa054f8d718eaffecb53b1d37ad93ceeca05)
+# as of 2019-05-17, clone fork with correction to PSM2 package
+git clone -b carns/dev-opa-psm2-path https://github.com/carns/spack.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-repo.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-tests.git
-wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.3.2.tar.gz
-tar -xvzf osu-micro-benchmarks-5.3.2.tar.gz
-git clone https://github.com/pdlfs/mercury-runner.git
 
-export SPACK_ROOT=${SANDBOX}/spack
-
-# set up most of the libraries in spack
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
-cd $SANDBOX/spack
 . $SANDBOX/spack/share/spack/setup-env.sh
-
 spack compiler find
 spack compilers
-# put packages file in place in SPACK_ROOT to set our preferences for building
-# Mochi stack
-mkdir -p $SPACK_ROOT/etc/spack
-cp $SANDBOX/packages.yaml $SPACK_ROOT/etc/spack
-# set up repos file to point to sds-repo; we do this manually because 
-#    "spack repo add" will create files in ~/.spack, which is a bad idea in 
-#    CI environments
-echo "repos:" > $SPACK_ROOT/etc/spack/repos.yaml
-echo "- ${SANDBOX}/sds-repo" >> $SPACK_ROOT/etc/spack/repos.yaml
 
-
+# use our own packages.yaml for bebop-specific preferences
+cp $ORIGIN/packages.yaml $SPACK_ROOT/etc/spack
+# add external repo for mochi.  Note that this will not modify the 
+# user's ~/.spack/ files because we modified $HOME above
+spack repo add ${SANDBOX}/sds-repo
+# sanity check
+spack repo list
+# clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury opa-psm2 bake || true
-# nightly tests should test nightly software!
-spack install ior@develop+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
+# nightly tests should test nightly software!
+# spack install ior@develop+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
+
+# ior acts as our "apex" package here, causing several other packages to build
+spack install ior@develop +mobject 
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
+# load ssg and bake because they are needed by things compiled outside of
+# spack later in this script
 spack load -r ssg
 spack load -r bake
-spack load -r mobject
-
-export CFLAGS="-O3"
-
-# OSU MPI benchmarks
-echo "=== BUILDING OSU MICRO BENCHMARKS ==="
-cd $SANDBOX/osu-micro-benchmarks-5.3.2
-mkdir build
-cd build
-../configure --prefix=$PREFIX CC=mpicc CXX=mpicxx
-make -j 3
-make install
 
 # sds-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
+# TODO: why is this needed?  For some reason when we link software
+#       outside of spack we are not picking up the path from the psm2 package
+LIB_PATH_HACK=$(get_psm2_lib_path)
 cd $SANDBOX/sds-tests
-libtoolize
 ./prepare.sh
 mkdir build
 cd build
-../configure --prefix=$PREFIX CC=mpicc
+echo ../configure --prefix=$PREFIX CC=mpicc LDFLAGS="-L$LIB_PATH_HACK"
+../configure --prefix=$PREFIX CC=mpicc LDFLAGS="-L$LIB_PATH_HACK"
 make -j 3
 make install
-
-# mercury-runner benchmark
-# echo "=== BUILDING MERCURY-RUNNER BENCHMARK ==="
-# cd $SANDBOX/mercury-runner
-# mkdir build
-# cd build
-# CC=mpicc CXX=mpicxx CXXFLAGS='-D__STDC_FORMAT_MACROS' cmake -DCMAKE_PREFIX_PATH=$PREFIX -DCMAKE_INSTALL_PREFIX=$PREFIX -DMPI=ON ..
-# make -j 3
-# make install
 
 # set up job to run
 echo "=== SUBMITTING AND WAITING FOR JOB ==="
@@ -106,9 +92,8 @@ cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 cp $PREFIX/bin/bake-p2p-bw $JOBDIR
 cp $PREFIX/bin/pmdk-bw $JOBDIR
-cp $PREFIX/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency $JOBDIR
-# cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
+
 export SANDBOX
 sbatch --wait --export=ALL ./margo-regression.sbatch
 sbatch --wait --export=ALL ./bake-regression.sbatch
