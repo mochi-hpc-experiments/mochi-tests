@@ -95,10 +95,10 @@ cp $PREFIX/bin/pmdk-bw $JOBDIR
 cd $JOBDIR
 
 export SANDBOX
-sbatch --wait --export=ALL ./margo-regression.sbatch
-sbatch --wait --export=ALL ./bake-regression.sbatch
-sbatch --wait --export=ALL ./pmdk-regression.sbatch
-sbatch --wait --export=ALL ./mobject-regression.sbatch
+sbatch --wait --export=ALL ./margo-regression.sbatch || true
+sbatch --wait --export=ALL ./bake-regression.sbatch || true
+sbatch --wait --export=ALL ./pmdk-regression.sbatch || true
+sbatch --wait --export=ALL ./mobject-regression.sbatch || true
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
