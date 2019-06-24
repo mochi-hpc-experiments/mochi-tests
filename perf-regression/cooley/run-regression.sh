@@ -33,6 +33,7 @@ cp $ORIGIN/margo-regression.qsub $JOBDIR
 cp $ORIGIN/bake-regression.qsub $JOBDIR
 cp $ORIGIN/pmdk-regression.qsub $JOBDIR
 cp $ORIGIN/mobject-regression.qsub $JOBDIR
+cp $ORIGIN/bake-kove.qsub $JOBDIR
 
 # set up build environment
 cd $SANDBOX
@@ -58,13 +59,17 @@ spack bootstrap
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
 spack install ior@develop +mobject
+# check what stable version of bake we got
+BAKE_STABLE_VER=`spack find bake |grep bake |grep -v file-backend`
+# load an additional version of bake that uses a file backend
+spack install bake@dev-file-backend
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 # load ssg and bake because they are needed by things compiled outside of
 # spack later in this script
 spack load -r ssg
-spack load -r bake
+spack load -r $BAKE_STABLE_VER
 
 # sds-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
@@ -104,10 +109,12 @@ JOBID3=`qsub --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
 cqwait $JOBID3
 JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
 cqwait $JOBID4
+JOBID5=`qsub --env SANDBOX=$SANDBOX ./bake-kove.qsub`
+cqwait $JOBID5
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.*> combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* > combined.$JOBID.txt
 dos2unix combined.$JOBID.txt
 mailx -s "mochi-regression (cooley)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
