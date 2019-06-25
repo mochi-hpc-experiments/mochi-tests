@@ -56,4 +56,4 @@ packages:
     libfabric:
         variants: fabrics=gni
     mercury:
-        variants: +udreg
+        variants: +udreg ~boostsys
