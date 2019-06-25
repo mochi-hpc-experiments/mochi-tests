@@ -79,5 +79,7 @@ packages:
         buildable: False
     ssg:
         variants: +mpi
+    mercury:
+        variants: ~boostsys
     libfabric:
         variants: fabrics=psm2,sockets
