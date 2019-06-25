@@ -1,0 +1,59 @@
+packages:
+    all:
+        compiler: [gcc@7.3.0]
+        providers:
+            mpi: [mpich]
+    mpich:
+        modules: 
+            mpich@7.7.3: cray-mpich/7.7.3
+        buildable: False
+    autoconf:
+        paths:
+            autoconf@2.69: /usr
+        buildable: False
+    m4:
+        paths:
+            m4@1.4.16: /usr
+        buildable: False
+    automake:
+        paths:
+            automake@1.13.4: /usr
+        buildable: False
+    pkg-config:
+        paths:
+            pkg-config@0.29: /usr
+        buildable: False
+    libtool:
+        paths:
+            libtool@2.4.2: /usr
+        buildable: False
+    perl:
+        paths:
+            perl@5.18.2: /usr
+        buildable: False
+    cmake:
+        paths:
+            cmake@3.5.2: /usr
+        buildable: False
+    libuuid:
+        paths:
+            libuuid@2.2.9.2: /usr
+        buildable: False
+    zlib:
+        paths:
+            zlib@1.2.8: /usr
+        buildable: False
+    ncurses:
+        paths:
+            ncurses@5.9: /usr
+        buildable: False
+    openssl:
+        paths:
+            openssl@1.0.2: /usr
+        buildable: False
+    ssg:
+        variants: +mpi
+    libfabric:
+        variants: fabrics=gni
+    mercury:
+        variants: +udreg ~boostsys
