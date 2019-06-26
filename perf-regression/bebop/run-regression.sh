@@ -63,7 +63,9 @@ spack uninstall -R -y argobots mercury opa-psm2 bake || true
 # spack install ior@develop+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@develop +mobject 
+# NOTE: as of June 2019 we use libfabric@develop to make sure that the 
+#       PSM2 provider is stable with the version of opa-psm2 that we are using.
+spack install ior@develop +mobject ^libfabric@develop
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
