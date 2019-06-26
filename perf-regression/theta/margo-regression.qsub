@@ -22,6 +22,8 @@ module list
 
 export LD_LIBRARY_PATH=$LIBRARY_PATH
 
+echo "### NOTE: all benchmarks are using numactl to keep processes on socket 0"
+
 #ldd ./margo-p2p-latency
 
 # NOTE: needed as of January 2018 to avoid conflicts between MPI and 
@@ -37,40 +39,40 @@ export LD_LIBRARY_PATH=$LIBRARY_PATH
 echo "## Margo OFI/GNI (round trip):"
 aprun -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+gni://ipogif0:5000
 echo "## Margo OFI/GNI (bw, 1MiB):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 1 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 1 -D 20
 echo "## Margo OFI/GNI (bw, 1MiB, 8x concurrency):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 8 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 8 -D 20
 echo "## Margo OFI/GNI (bw, 8MiB):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 1 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 1 -D 20
 echo "## Margo OFI/GNI (bw, 8MiB, 8x concurrency):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 8 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 8 -D 20
 echo "## Margo OFI/GNI (bw, 1MB unaligned):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 1 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 1 -D 20
 echo "## Margo OFI/GNI (bw, 1MB unaligned, 8x concurrency):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 8 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 8 -D 20
 
 
 echo "## Margo OFI/GNI (round trip, Hg busy spin):"
 aprun -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+gni://ipogif0:5000 -t 0,0
 echo "## Margo OFI/GNI (bw, 1MiB, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 1 -D 20 -t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 1 -D 20 -t 0,0
 echo "## Margo OFI/GNI (bw, 1MiB, 8x concurrency, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 8 -D 20 -t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 8 -D 20 -t 0,0
 echo "## Margo OFI/GNI (bw, 8MiB, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 1 -D 20 -t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 1 -D 20 -t 0,0
 echo "## Margo OFI/GNI (bw, 8MiB, 8x concurrency, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 8 -D 20-t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 8 -D 20-t 0,0
 echo "## Margo OFI/GNI (bw, 1MB unaligned, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 1 -D 20-t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 1 -D 20-t 0,0
 echo "## Margo OFI/GNI (bw, 1MB unaligned, 8x concurrency, Hg busy spin):"
-aprun -n 2 -N 1 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 8 -D 20 -t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 8 -D 20 -t 0,0
 
 # echo "## Margo BMI/TCP (round trip):"
 # aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./margo-p2p-latency -i 100000 -n bmi+tcp://
 # echo "## Margo BMI/TCP (bw):"
-# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 1 -D 20
+# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 1 -D 20
 # echo "## Margo BMI/TCP (bw, 8x concurrency):"
-# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 8 -D 20
+# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 8 -D 20
 
 # echo "## WARNING: Margo OFI/TCP (disabled because it hangs as of 8/10/2017)"
 # aprun -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+tcp://ipogif0:5000
