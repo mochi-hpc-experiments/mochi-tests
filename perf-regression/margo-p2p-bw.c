@@ -42,6 +42,7 @@ struct options
     char* diag_file_name;
     char* na_transport;
     unsigned long g_buffer_size;
+    int align_buffer;
 };
 
 #define BW_TOTAL_MEM_SIZE 2147483648UL
@@ -124,9 +125,17 @@ int main(int argc, char **argv)
     /* On server side, optionally use an mmap'd buffer.  Always calloc on
      * client. */
     if(rank == 1 && g_opts.mmap_filename)
+    {
         g_buffer = custom_mmap_alloc(g_opts.mmap_filename, g_opts.g_buffer_size, rank);
+    }
     else
-        g_buffer = calloc(g_opts.g_buffer_size, 1);
+    {
+        g_buffer = NULL;
+        if(g_opts.align_buffer)
+            posix_memalign((void**)(&g_buffer), 4096, g_opts.g_buffer_size);
+        else
+            g_buffer = calloc(g_opts.g_buffer_size, 1);
+    }
 
     if(!g_buffer)
     {
@@ -292,7 +301,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->mercury_timeout_server = UINT_MAX; 
     opts->g_buffer_size = BW_TOTAL_MEM_SIZE;
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:m:X:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:m:X:a")) != -1)
     {
         switch(opt)
         {
@@ -349,6 +358,9 @@ static int parse_args(int argc, char **argv, struct options *opts)
                     return -1;
                 }
                 break;
+            case 'a':
+                opts->align_buffer = 1;
+                break;
             default:
                 return(-1);
         }
@@ -376,6 +388,7 @@ static void usage(void)
         "\t[-t <client_progress_timeout,server_progress_timeout>] # use \"-t 0,0\" to busy spin\n"
         "\t[-m <filename>] - use memory-mapped file as buffers instead of malloc\n"
         "\t[-X <xfer_memory>] - size of total memory buffer to allocate (and iterate over during transfer) in each process\n"
+        "\t[-a] - explicitly align memory buffer to page size\n"
         "\t\texample: mpiexec -n 2 ./margo-p2p-bw -x 4096 -D 30 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
     
@@ -515,16 +528,17 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     ret = margo_get_output(handle, &out);
     assert(ret == HG_SUCCESS);
 
-    printf("<op>\t<concurrency>\t<threads>\t<xfer_size>\t<total_bytes>\t<seconds>\t<MiB/s>\t<xfer_memory>\n");
+    printf("<op>\t<concurrency>\t<threads>\t<xfer_size>\t<total_bytes>\t<seconds>\t<MiB/s>\t<xfer_memory>\t<align_buffer>\n");
 
-    printf("PULL\t%d\t%d\t%d\t%lu\t%f\t%f\t%lu\n",
+    printf("PULL\t%d\t%d\t%d\t%lu\t%f\t%f\t%lu\t%d\n",
         g_opts.concurrency,
         g_opts.threads,
         g_opts.xfer_size,
         out.bytes_moved,
         (end_ts-start_ts),
         ((double)out.bytes_moved/(end_ts-start_ts))/(1024.0*1024.0),
-        g_opts.g_buffer_size);
+        g_opts.g_buffer_size,
+        g_opts.align_buffer);
 
     margo_free_output(handle, &out);
 
@@ -541,14 +555,15 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     ret = margo_get_output(handle, &out);
     assert(ret == HG_SUCCESS);
 
-    printf("PUSH\t%d\t%d\t%d\t%lu\t%f\t%f\t%lu\n",
+    printf("PUSH\t%d\t%d\t%d\t%lu\t%f\t%f\t%lu\t%d\n",
         g_opts.concurrency,
         g_opts.threads,
         g_opts.xfer_size,
         out.bytes_moved,
         (end_ts-start_ts),
         ((double)out.bytes_moved/(end_ts-start_ts))/(1024.0*1024.0),
-        g_opts.g_buffer_size);
+        g_opts.g_buffer_size,
+        g_opts.align_buffer);
 
     /* calculate how many bytes of the buffer have been transferred */
     bytes_to_check = (g_opts.g_buffer_size / g_opts.xfer_size) * g_opts.xfer_size;
