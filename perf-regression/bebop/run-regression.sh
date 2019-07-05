@@ -39,8 +39,7 @@ cp $ORIGIN/mobject-regression.sbatch $JOBDIR
 
 # set up build environment
 cd $SANDBOX
-# as of 2019-05-17, clone fork with correction to PSM2 package
-git clone -b carns/dev-opa-psm2-path https://github.com/carns/spack.git
+git clone https://github.com/spack/spack.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-repo.git
 git clone https://xgitlab.cels.anl.gov/sds/sds-tests.git
 
@@ -63,9 +62,7 @@ spack uninstall -R -y argobots mercury opa-psm2 bake || true
 # spack install ior@develop+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
 # ior acts as our "apex" package here, causing several other packages to build
-# NOTE: as of June 2019 we use libfabric@develop to make sure that the 
-#       PSM2 provider is stable with the version of opa-psm2 that we are using.
-spack install ior@develop +mobject ^libfabric@develop
+spack install ior@develop +mobject
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
