@@ -12,7 +12,7 @@
 export FI_FORK_UNSAFE=1
 export HOME=$SANDBOX
 export KDSA_MPIO_MAX_CONN=1
-export PMDK_PATH="/xmem/xpdgb"
+export PMDK_PATH="/xmem/xpdha"
 
 . $SANDBOX/spack/share/spack/setup-env.sh
 BAKE_STABLE_VER=`spack find bake |grep bake |grep -v file-backend`
@@ -24,7 +24,7 @@ module list
 
 echo "### NOTE: ALL BAKE RESULTS BELOW are using 2nd socket on cooley nodes: cores 6-11, also using numactl to constrain memory allocations"
 
-kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdgb
+kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
 
 echo "### verbs kove pmdk no threads"
 sleep 1
@@ -32,8 +32,8 @@ dd if=/dev/zero of=$PMDK_PATH bs=100M count=1 conv=notrunc
 bake-mkpool $PMDK_PATH
 mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p $PMDK_PATH -c 12
 
-kdsa_manage disconnect xpdgb
-kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdgb
+kdsa_manage disconnect xpdha
+kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
 
 echo "### verbs kove pmdk 4 rpc threads"
 sleep 1
@@ -41,8 +41,8 @@ dd if=/dev/zero of=$PMDK_PATH bs=100M count=1 conv=notrunc
 bake-mkpool $PMDK_PATH
 mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p $PMDK_PATH -c 12 -r 4
 
-kdsa_manage disconnect xpdgb
-kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdgb
+kdsa_manage disconnect xpdha
+kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
 
 echo "### verbs kove pmdk no threads, pipelined"
 sleep 1
@@ -50,8 +50,8 @@ dd if=/dev/zero of=$PMDK_PATH bs=100M count=1 conv=notrunc
 bake-mkpool $PMDK_PATH
 mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p $PMDK_PATH -c 12 -i
 
-kdsa_manage disconnect xpdgb
-kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdgb
+kdsa_manage disconnect xpdha
+kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
 
 echo "### verbs kove pmdk 4 rpc threads, pipelined"
 sleep 1
@@ -59,8 +59,8 @@ dd if=/dev/zero of=$PMDK_PATH bs=100M count=1 conv=notrunc
 bake-mkpool $PMDK_PATH
 mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p $PMDK_PATH -c 12 -r 4 -i
 
-kdsa_manage disconnect xpdgb
-kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdgb
+kdsa_manage disconnect xpdha
+kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
 
 # reset to use file backend
 
@@ -69,21 +69,21 @@ spack load bake@dev-file-backend
 
 echo "### verbs kove filesystem no threads, pipelined"
 sleep 1
-dd bs=4M if=/projects/RAN/toonen/mochi-100GiB-xfs.img of=/dev/xpdgb oflag=direct
-mount /kovefs/xfs
-bake-mkpool /kovefs/xfs/bake.dat
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p /kovefs/xfs/bake.dat -c 12 -i
-umount /kovefs/xfs
+dd bs=4M if=/projects/RAN/toonen/mochi-100GiB-xfs.img of=/dev/xpdha oflag=direct
+mount /kovefs/xfsa
+bake-mkpool /kovefs/xfsa/bake.dat
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p /kovefs/xfsa/bake.dat -c 12 -i
+umount /kovefs/xfsa
 
-kdsa_manage disconnect xpdgb
-kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdgb
+kdsa_manage disconnect xpdha
+kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
 
 echo "### verbs kove filesystem 4 rpc threads, pipelined"
 sleep 1
-dd bs=4M if=/projects/RAN/toonen/mochi-100GiB-xfs.img of=/dev/xpdgb oflag=direct
-mount /kovefs/xfs
-bake-mkpool /kovefs/xfs/bake.dat
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p /kovefs/xfs/bake.dat -c 12 -r 4 -i
-umount /kovefs/xfs
+dd bs=4M if=/projects/RAN/toonen/mochi-100GiB-xfs.img of=/dev/xpdha oflag=direct
+mount /kovefs/xfsa
+bake-mkpool /kovefs/xfsa/bake.dat
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p /kovefs/xfsa/bake.dat -c 12 -r 4 -i
+umount /kovefs/xfsa
 
-kdsa_manage disconnect xpdgb
+kdsa_manage disconnect xpdha
