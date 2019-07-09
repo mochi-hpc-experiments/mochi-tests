@@ -82,6 +82,17 @@ cd build
 make -j 3
 make install
 
+# switch bake versions and build another copy with file backend
+echo "=== BUILDING SDS TEST PROGRAMS WITH FILE BACKEND ==="
+spack unload $BAKE_STABLE_VER
+spack load bake@dev-file-backend
+cd $SANDBOX/sds-tests
+mkdir build-file
+cd build-file
+../configure --prefix=${PREFIX}-file CC=mpicc
+make -j 3
+make install
+
 # mercury-runner benchmark
 # echo "=== BUILDING MERCURY-RUNNER BENCHMARK ==="
 # cd $SANDBOX/mercury-runner
@@ -96,6 +107,7 @@ echo "=== SUBMITTING AND WAITING FOR JOB ==="
 cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 cp $PREFIX/bin/bake-p2p-bw $JOBDIR
+cp ${PREFIX}-file/bin/bake-p2p-bw $JOBDIR/bake-p2p-bw-file
 cp $PREFIX/bin/pmdk-bw $JOBDIR
 # cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
