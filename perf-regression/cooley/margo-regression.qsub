@@ -9,8 +9,10 @@ export HOME=$SANDBOX
 export FI_FORK_UNSAFE=1
 
 . $SANDBOX/spack/share/spack/setup-env.sh
+BAKE_STABLE_VER=`spack find bake |grep bake |grep -v file-backend`
 spack load -r ssg 
-spack load -r bake
+spack load -r $BAKE_STABLE_VER
+spack load -r mvapich2
 
 module list
 
