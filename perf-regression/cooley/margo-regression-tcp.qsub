@@ -1,0 +1,59 @@
+#!/bin/bash
+#COBALT -n 2
+#COBALT -t 30
+#COBALT --mode script
+#COBALT -A radix-io
+#COBALT -q ibleaf3-debug
+
+export HOME=$SANDBOX
+
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack load -r ssg 
+
+module list
+
+# echo "## MPI (one way, double the latency for round trip):"
+# mpirun -f $COBALT_NODEFILE -n 2 ./osu_latency
+
+echo "### NOTE: all benchmarks are using numactl to keep processes on socket 1"
+
+host0=`head -n 1 $COBALT_NODEFILE` 
+host1=`tail -n 1 $COBALT_NODEFILE` 
+
+for xport in bmi+tcp ofi+tcp ofi+sockets; do
+	sleep 1
+
+	echo "## Margo $xport (round trip):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100000 -n "$xport://$host0:3334" : -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100000 -n "$xport://$host1:3334"
+	echo "## Margo $xport (bw, 1MiB):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host0:3334" -c 1 -D 20 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host1:3334" -c 1 -D 20
+	echo "## Margo $xport (bw, 1MiB, 8x concurrency):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host0:3334" -c 8 -D 20 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host1:3334" -c 8 -D 20
+	echo "## Margo $xport (bw, 8MiB):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 8388608 -n "$xport://$host0:3334" -c 1 -D 20 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 8388608 -n "$xport://$host1:3334" -c 1 -D 20
+	echo "## Margo $xport (bw, 8MiB, 8x concurrency):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 8388608 -n "$xport://$host0:3334" -c 8 -D 20 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 8388608 -n "$xport://$host1:3334" -c 8 -D 20
+	echo "## Margo $xport (bw, 1MB unaligned):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "$xport://$host0:3334" -c 1 -D 20 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "$xport://$host1:3334" -c 1 -D 20
+	echo "## Margo $xport (bw, 1MB unaligned, 8x concurrency):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "$xport://$host0:3334" -c 8 -D 20 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "$xport://$host1:3334" -c 8 -D 20
+
+	sleep 1 
+
+	echo "## Margo $xport (round trip, Hg busy spin):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100000 -n "$xport://$host0:3334" -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100000 -n "$xport://$host1:3334" -t 0,0
+	echo "## Margo $xport (bw, 1MiB, Hg busy spin):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host0:3334" -c 1 -D 20 -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host1:3334" -c 1 -D 20 -t 0,0
+	echo "## Margo $xport (bw, 1MiB, 8x concurrency, Hg busy spin):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host0:3334" -c 8 -D 20 -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host1:3334" -c 8 -D 20 -t 0,0
+	echo "## Margo $xport (bw, 8MiB, Hg busy spin):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 8388608 -n "$xport://$host0:3334" -c 1 -D 20 -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 8388608 -n "$xport://$host1:3334" -c 1 -D 20 -t 0,0
+	echo "## Margo $xport (bw, 8MiB, 8x concurrency, Hg busy spin):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 8388608 -n "$xport://$host0:3334" -c 8 -D 20 -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 8388608 -n "$xport://$host1:3334" -c 8 -D 20 -t 0,0
+	echo "## Margo $xport (bw, 1MB unaligned, Hg busy spin):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "$xport://$host0:3334" -c 1 -D 20 -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "$xport://$host1:3334" -c 1 -D 20 -t 0,0
+	echo "## Margo $xport (bw, 1MB unaligned, 8x concurrency, Hg busy spin):"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "$xport://$host0:3334" -c 8 -D 20 -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "$xport://$host1:3334" -c 8 -D 20 -t 0,0
+
+done
+

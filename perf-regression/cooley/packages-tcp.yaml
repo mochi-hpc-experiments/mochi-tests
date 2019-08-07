@@ -1,0 +1,94 @@
+packages:
+    openssl:
+        paths:
+            openssl@1.0.2k: /usr
+        buildable: False
+    mvapich2:
+        paths:
+            mvapich2@2.2: /soft/libraries/mpi/mvapich2/gcc
+        buildable: False
+    cmake:
+        paths:
+            cmake@3.9.1: /soft/buildtools/cmake/3.9.1
+        buildable: False
+    autoconf:
+        paths:
+            autoconf@2.69: /soft/buildtools/autotools/feb2016
+        buildable: False
+    automake:
+        paths:
+            automake@1.15: /soft/buildtools/autotools/feb2016
+        buildable: False
+    bzip2:
+        paths:
+            bzip2@1.0.6: /
+        buildable: False
+    bison:
+        paths:
+            bison@3.0.4: /
+        buildable: False
+    flex:
+        paths:
+            flex@2.5.37: /
+        buildable: False
+    coreutils:
+        paths:
+            coreutils@8.22: /usr
+        buildable: False
+    zlib:
+        paths:
+            zlib@1.2.7: /usr
+        buildable: False
+    tar:
+        paths:
+            tar@1.26: /
+        buildable: False
+    gettext:
+        paths:
+            gettext@0.19: /usr
+        buildable: False
+    ncurses:
+        paths:
+            ncurses@5.9: /usr
+        buildable: False
+    tcl:
+        paths:
+            tcl@8.5.13: /usr
+        buildable: False
+    findutils:
+        paths:
+            findutils@4.5.11: /usr
+        buildable: False
+    gdbm:
+        paths:
+            gdbm@1.10: /usr
+        buildable: False
+    libtool:
+        paths:
+            libtool@2.4.2: /usr
+        buildable: False
+    perl:
+        paths:
+            perl@5.16.3: /usr
+        buildable: False
+    readline:
+        paths:
+            readline@6.2: /usr
+        buildable: False
+    texinfo:
+        paths:
+            texinfo@5.1: /usr
+        buildable: False
+    ssg:
+        variants: +mpi
+    libfabric:
+        variants: fabrics=sockets,tcp,rxm
+    mercury:
+        variants: ~boostsys+ofi+bmi
+    libxml2:
+        paths:
+            libxml2@2.9.1: /usr/
+        buildable: False
+    all:
+        providers:
+            mpi: [mvapich2,mpich,openmpi]
