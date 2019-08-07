@@ -98,6 +98,9 @@ int main(int argc, char **argv)
     ABT_xstream *bw_worker_xstreams = NULL;
     ABT_sched *bw_worker_scheds = NULL;
     struct hg_init_info hii;
+    char ssg_self_str[128] = {0};
+    hg_size_t ssg_self_str_len = 128;
+    hg_addr_t self_addr;
 
     MPI_Init(&argc, &argv);
 
@@ -110,8 +113,6 @@ int main(int argc, char **argv)
     }
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Get_processor_name(processor_name,&namelen);
-    printf("Process %d of %d is on %s\n",
-	rank, nranks, processor_name);
 
     ret = parse_args(argc, argv, &g_opts);
     if(ret < 0)
@@ -186,6 +187,15 @@ int main(int argc, char **argv)
     assert(ssg_get_group_size(gid) == 2);
 
     self = ssg_get_group_self_id(gid);
+
+    self_addr = ssg_get_addr(gid, self);
+    assert(self_addr != HG_ADDR_NULL);
+    ret = margo_addr_to_string(mid, ssg_self_str, &ssg_self_str_len, self_addr);
+    assert(ret == 0);
+
+    printf("Process %d of %d is on host %s, advertising Hg address %s\n",
+       rank, nranks, processor_name, ssg_self_str);
+
 
     if(self == 1)
     {
