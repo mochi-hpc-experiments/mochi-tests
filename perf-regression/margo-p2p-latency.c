@@ -24,14 +24,15 @@ struct options
     unsigned int mercury_timeout_server;
     char* diag_file_name;
     char* na_transport;
+    int warmup_iterations;
 };
 
 static int parse_args(int argc, char **argv, struct options *opts);
 static void usage(void);
-static int run_benchmark(int iterations, hg_id_t id, ssg_member_id_t target, 
+static int run_benchmark(int warmup_iterations, int iterations, hg_id_t id, ssg_member_id_t target, 
     ssg_group_id_t gid, margo_instance_id mid, double *measurement_array);
-static void bench_routine_print(const char* op, int size, int iterations, 
-    double* measurement_array);
+static void bench_routine_print(const char* op, int size, int iterations,
+    int warmup_iterations, double* measurement_array);
 static int measurement_cmp(const void* a, const void *b);
 DECLARE_MARGO_RPC_HANDLER(noop_ult);
 
@@ -138,11 +139,11 @@ int main(int argc, char **argv)
         measurement_array = calloc(g_opts.iterations, sizeof(*measurement_array));
         assert(measurement_array);
 
-        ret = run_benchmark(g_opts.iterations, noop_id, 1, gid, mid, measurement_array);
+        ret = run_benchmark(g_opts.warmup_iterations, g_opts.iterations, noop_id, 1, gid, mid, measurement_array);
         assert(ret == 0);
 
-        printf("# <op> <iterations> <size> <min> <q1> <med> <avg> <q3> <max>\n");
-        bench_routine_print("noop", 0, g_opts.iterations, measurement_array);
+        printf("# <op> <iterations> <warmup_iterations> <size> <min> <q1> <med> <avg> <q3> <max>\n");
+        bench_routine_print("noop", 0, g_opts.iterations, g_opts.warmup_iterations, measurement_array);
         free(measurement_array);
     }
     else
@@ -155,7 +156,7 @@ int main(int argc, char **argv)
         assert(ret == 0);
 
         ABT_eventual_wait(rpcs_serviced_eventual, NULL);
-        assert(rpcs_serviced == g_opts.iterations);
+        assert(rpcs_serviced == (g_opts.iterations + g_opts.warmup_iterations));
         sleep(3);
     }
 
@@ -182,7 +183,10 @@ static int parse_args(int argc, char **argv, struct options *opts)
     opts->mercury_timeout_client = UINT_MAX;
     opts->mercury_timeout_server = UINT_MAX; 
 
-    while((opt = getopt(argc, argv, "n:i:d:t:")) != -1)
+    /* unless otherwise specified, do 100 iterations before timing */
+    opts->warmup_iterations = 100;
+
+    while((opt = getopt(argc, argv, "n:i:d:t:x:")) != -1)
     {
         switch(opt)
         {
@@ -196,6 +200,11 @@ static int parse_args(int argc, char **argv, struct options *opts)
                 break;
             case 'i':
                 ret = sscanf(optarg, "%d", &opts->iterations);
+                if(ret != 1)
+                    return(-1);
+                break;
+            case 'x':
+                ret = sscanf(optarg, "%d", &opts->warmup_iterations);
                 if(ret != 1)
                     return(-1);
                 break;
@@ -217,7 +226,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
         }
     }
 
-    if(opts->iterations < 1 || !opts->na_transport)
+    if(opts->iterations < 1 || opts->warmup_iterations < 0 || !opts->na_transport)
         return(-1);
 
     return(0);
@@ -232,6 +241,7 @@ static void usage(void)
         "\t-n <na> - na transport\n"
         "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
+        "\t[-x <warmup_iterations>] - number of warmup iterations before measurement (defaults to 100)\n"
         "\t\texample: mpiexec -n 2 ./margo-p2p-latency -i 10000 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
     
@@ -246,7 +256,7 @@ static void noop_ult(hg_handle_t handle)
     margo_destroy(handle);
 
     rpcs_serviced++;
-    if(rpcs_serviced == g_opts.iterations)
+    if(rpcs_serviced == (g_opts.iterations + g_opts.warmup_iterations))
     {
         ABT_eventual_set(rpcs_serviced_eventual, NULL, 0);
     }
@@ -255,7 +265,7 @@ static void noop_ult(hg_handle_t handle)
 }
 DEFINE_MARGO_RPC_HANDLER(noop_ult)
 
-static int run_benchmark(int iterations, hg_id_t id, ssg_member_id_t target, 
+static int run_benchmark(int warmup_iterations, int iterations, hg_id_t id, ssg_member_id_t target, 
     ssg_group_id_t gid, margo_instance_id mid, double *measurement_array)
 {
     hg_handle_t handle;
@@ -269,6 +279,12 @@ static int run_benchmark(int iterations, hg_id_t id, ssg_member_id_t target,
 
     ret = margo_create(mid, target_addr, id, &handle);
     assert(ret == 0);
+
+    for(i=0; i<warmup_iterations; i++)
+    {
+        ret = margo_forward(handle, NULL);
+        assert(ret == 0);
+    }
 
     for(i=0; i<iterations; i++)
     {
@@ -284,7 +300,7 @@ static int run_benchmark(int iterations, hg_id_t id, ssg_member_id_t target,
     return(0);
 }
 
-static void bench_routine_print(const char* op, int size, int iterations, double* measurement_array)
+static void bench_routine_print(const char* op, int size, int iterations, int warmup_iterations, double* measurement_array)
 {
     double min, max, q1, q3, med, avg, sum;
     int bracket1, bracket2;
@@ -323,7 +339,7 @@ static void bench_routine_print(const char* op, int size, int iterations, double
         bracket2 = bracket1;
     q3 = (measurement_array[bracket1] + measurement_array[bracket2])/(double)2;
 
-    printf("%s\t%d\t%d\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\n", op, iterations, size, min, q1, med, avg, q3, max);
+    printf("%s\t%d\t%d\t%d\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\n", op, iterations, warmup_iterations, size, min, q1, med, avg, q3, max);
 #if 0
     for(i=0; i<iterations; i++)
     {
