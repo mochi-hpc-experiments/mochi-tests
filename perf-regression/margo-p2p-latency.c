@@ -186,7 +186,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     /* unless otherwise specified, do 100 iterations before timing */
     opts->warmup_iterations = 100;
 
-    while((opt = getopt(argc, argv, "n:i:d:t:x:")) != -1)
+    while((opt = getopt(argc, argv, "n:i:d:t:w:")) != -1)
     {
         switch(opt)
         {
@@ -203,7 +203,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
                 if(ret != 1)
                     return(-1);
                 break;
-            case 'x':
+            case 'w':
                 ret = sscanf(optarg, "%d", &opts->warmup_iterations);
                 if(ret != 1)
                     return(-1);
@@ -241,7 +241,7 @@ static void usage(void)
         "\t-n <na> - na transport\n"
         "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
-        "\t[-x <warmup_iterations>] - number of warmup iterations before measurement (defaults to 100)\n"
+        "\t[-w <warmup_iterations>] - number of warmup iterations before measurement (defaults to 100)\n"
         "\t\texample: mpiexec -n 2 ./margo-p2p-latency -i 10000 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
     
