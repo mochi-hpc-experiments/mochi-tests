@@ -55,7 +55,8 @@ static void usage(void);
 
 MERCURY_GEN_PROC(bw_rpc_in_t,
         ((hg_bulk_t)(bulk_handle))\
-        ((int32_t)(op)))
+        ((int32_t)(op))\
+        ((int32_t)(shutdown)))
 MERCURY_GEN_PROC(bw_rpc_out_t,
         ((hg_size_t)(bytes_moved)))
 DECLARE_MARGO_RPC_HANDLER(bw_ult);
@@ -494,7 +495,7 @@ static void bw_ult(hg_handle_t handle)
 
     ABT_mutex_free(&cur_off_mutex);
     
-    if(arg_array[0].op == HG_BULK_PUSH)
+    if(in.shutdown)
         ABT_eventual_set(g_bw_done_eventual, NULL, 0);
 
     free(arg_array);
@@ -529,6 +530,7 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     ret = margo_bulk_create(mid, 1, &buffer, &g_opts.g_buffer_size, HG_BULK_READWRITE, &in.bulk_handle);
     assert(ret == 0);
     in.op = HG_BULK_PULL;
+    in.shutdown = 0;
 
     start_ts = ABT_get_wtime();
     ret = margo_forward(handle, &in);
@@ -556,6 +558,7 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     margo_thread_sleep(mid, 100);
 
     in.op = HG_BULK_PUSH;
+    in.shutdown = 1;
 
     start_ts = ABT_get_wtime();
     ret = margo_forward(handle, &in);
