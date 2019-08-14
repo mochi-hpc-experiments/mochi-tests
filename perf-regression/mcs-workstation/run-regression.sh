@@ -25,9 +25,11 @@ export HOME=$SANDBOX
 mkdir $SANDBOX
 mkdir $PREFIX
 mkdir $JOBDIR
-cp $ORIGIN/margo-regression.qsub $JOBDIR
-cp $ORIGIN/bake-regression.qsub $JOBDIR
-cp $ORIGIN/pmdk-regression.qsub $JOBDIR
+mkdir -p $HOME/.spack/linux
+
+cp $ORIGIN/margo-regression.sh $JOBDIR
+cp $ORIGIN/bake-regression.sh $JOBDIR
+cp $ORIGIN/pmdk-regression.sh $JOBDIR
 
 # set up build environment
 cd $SANDBOX
@@ -42,11 +44,15 @@ spack compilers
 
 # use our own packages.yaml for the workstation-specific preferences
 cp $ORIGIN/packages.yaml $SPACK_ROOT/etc/spack
+cp $ORIGIN/compilers.yaml $HOME/.spack/linux
 # add external repo for mochi.  Note that this will not modify the 
 # user's ~/.spack/ files because we modified $HOME above
 spack repo add ${SANDBOX}/sds-repo
 # sanity check
 spack repo list
+# bootstrap spack to get environment modules
+spack bootstrap
+. $SANDBOX/spack/share/spack/setup-env.sh
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
@@ -58,6 +64,7 @@ spack install ior@develop +mobject ^bake@develop
 # spack later in this script
 spack load -r ssg
 spack load -r bake
+spack load -r mpich
 
 # sds-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
@@ -66,7 +73,7 @@ libtoolize
 ./prepare.sh
 mkdir build
 cd build
-../configure --prefix=$PREFIX CC=cc
+../configure --prefix=$PREFIX CC=mpicc
 make -j 3
 make install
 
@@ -79,7 +86,7 @@ cp $PREFIX/bin/pmdk-bw $JOBDIR
 cd $JOBDIR
 
 ./margo-regression.sh $SANDBOX
-#./bake-regression.sh $SANDBOX
+./bake-regression.sh $SANDBOX
 #./pmdk-regression.sh $SANDBOX
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="

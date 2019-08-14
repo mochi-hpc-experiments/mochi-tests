@@ -1,0 +1,67 @@
+compilers:
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: []
+    operating_system: ubuntu14.04
+    paths:
+      cc: /usr/bin/clang
+      cxx: /usr/bin/clang++
+      f77: null
+      fc: null
+    spec: clang@3.4-1ubuntu3
+    target: x86_64
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: []
+    operating_system: ubuntu14.04
+    paths:
+      cc: /usr/bin/gcc-4.8
+      cxx: /usr/bin/g++-4.8
+      f77: /usr/bin/gfortran-4.8
+      fc: /usr/bin/gfortran-4.8
+    spec: gcc@4.8
+    target: x86_64
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: []
+    operating_system: ubuntu14.04
+    paths:
+      cc: /usr/bin/gcc-4.4
+      cxx: /usr/bin/g++-4.4
+      f77: /usr/bin/gfortran-4.4
+      fc: /usr/bin/gfortran-4.4
+    spec: gcc@4.4.7
+    target: x86_64
+- compiler:
+    environment: {}
+    extra_rpaths:
+    - /soft/apps/packages/gcc/gcc-8.2.0/lib64
+    flags: {}
+    modules: []
+    operating_system: ubuntu14.04
+    paths:
+      cc: /soft/apps/packages/gcc/gcc-8.2.0/bin/gcc
+      cxx: /soft/apps/packages/gcc/gcc-8.2.0/bin/g++
+      f77: /soft/apps/packages/gcc/gcc-8.2.0/bin/gfortran
+      fc: /soft/apps/packages/gcc/gcc-8.2.0/bin/gfortran
+    spec: gcc@8.2.1
+    target: x86_64
+- compiler:
+    environment: {}
+    extra_rpaths: []
+    flags: {}
+    modules: []
+    operating_system: ubuntu14.04
+    paths:
+      cc: /soft/apps/packages/clang+llvm-8.0.0/bin/clang
+      cxx: /soft/apps/packages/clang+llvm-8.0.0/bin/clang++
+      f77: null
+      fc: null
+    spec: clang@8.0.0
+    target: x86_64
