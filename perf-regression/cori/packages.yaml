@@ -1,11 +1,10 @@
 packages:
     all:
-        compiler: [gcc@7.3.0]
         providers:
             mpi: [mpich]
     mpich:
         modules: 
-            mpich@7.7.3: cray-mpich/7.7.3
+            mpich@7.7.6: cray-mpich/7.7.6
         buildable: False
     autoconf:
         paths:
