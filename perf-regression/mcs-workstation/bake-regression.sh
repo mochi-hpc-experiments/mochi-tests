@@ -1,18 +1,6 @@
 #!/bin/bash
-#COBALT -n 2
-#COBALT -t 20
-#COBALT --mode script
-#COBALT -A CSC250STDM12
-#COBALT -q debug-cache-quad
 
-# XXX xalt module currently eating '-M' flag for mercury-runner...disabling for now
-# module unload xalt
-
-# necessary when using the udreg option in Mercury
-export MPICH_GNI_NDREG_ENTRIES=1024
-
-module swap PrgEnv-intel PrgEnv-gnu
-module load cce
+SANDBOX=$1
 
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg 

@@ -9,8 +9,6 @@ set -e
 
 # default to O3 optimizations unless otherwise specified
 export CFLAGS="-O3"
-# dynamic link everything by default
-export CRAYPE_LINK_TYPE=dynamic
 
 # location of this script
 ORIGIN=$PWD
@@ -42,7 +40,7 @@ echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 spack compiler find
 spack compilers
 
-# use our own packages.yaml for theta-specific preferences
+# use our own packages.yaml for the workstation-specific preferences
 cp $ORIGIN/packages.yaml $SPACK_ROOT/etc/spack
 # add external repo for mochi.  Note that this will not modify the 
 # user's ~/.spack/ files because we modified $HOME above
@@ -52,7 +50,7 @@ spack repo list
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@develop +mobject
+spack install ior@develop +mobject ^bake@develop
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
@@ -80,18 +78,15 @@ cp $PREFIX/bin/bake-p2p-bw $JOBDIR
 cp $PREFIX/bin/pmdk-bw $JOBDIR
 cd $JOBDIR
 
-JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
-cqwait $JOBID
-JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`
-cqwait $JOBID2
-JOBID3=`qsub --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
-cqwait $JOBID3
+./margo-regression.sh $SANDBOX
+#./bake-regression.sh $SANDBOX
+#./pmdk-regression.sh $SANDBOX
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
 cat $JOBID.* $JOBID2.* $JOBID3.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
-mailx -r carns@mcs.anl.gov -s "mochi-regression (theta)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
+mailx -r mdorier@anl.gov -s "mochi-regression (MCS workstation)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
 
 cd /tmp
