@@ -323,7 +323,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     /* warm up for 1 second by default */
     opts->warmup_seconds = 1;
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:m:X:a:w:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:m:X:aw:")) != -1)
     {
         switch(opt)
         {
