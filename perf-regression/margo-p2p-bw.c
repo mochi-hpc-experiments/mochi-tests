@@ -7,10 +7,10 @@
 /* Effective streaming bandwidth test, as measured by client including RPC
  * used to start and complete the streaming operation.
  *
- * NOTE: This test is not as clean as it could be.  Because it is set up as 
- * an MPI program, the server is able to make assumptions about the pattern; 
- * it assumes that it should set a fill pattern after the first RPC and shut
- * down after the second RPC.  It assumes it can read all params from argv.
+ * NOTE: This test is not as clean as it could be.  Because it is set up as
+ * an MPI program, the server is able to make assumptions about the pattern;
+ * it assumes that it should set a fill pattern after the first RPC.
+ * It assumes it can read all params from argv.
  */
 #include <unistd.h>
 #include <fcntl.h>
