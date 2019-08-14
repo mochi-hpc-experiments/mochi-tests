@@ -1,0 +1,82 @@
+packages:
+  all:
+    providers:
+      mpi: [ mpich, openmpi ]
+  autoconf:
+    paths:
+      autoconf@2.69: /usr
+    buildable: False
+  automake:
+    paths:
+      automake@1.14.1: /usr
+    buildable: False
+  binutils:
+    paths:
+      binutils@2.24: /usr
+    buildable: False
+  bison:
+    paths:
+      bison@3.0.2: /usr
+    buildable: False
+  bzip2:
+    paths:
+      bzip2@1.0.6: /usr
+    buildable: False
+  cmake:
+    paths:
+      cmake@3.14.3: /soft/apps/packages/cmake-3.14.3
+    buildable: False
+  coreutils:
+    paths:
+      coreutils@8.21: /usr
+    buildable: False
+  flex:
+    paths:
+      flex@2.5.35: /usr
+    buildable: False
+  gettext:
+    paths:
+      gettext@0.13.3: /usr
+    buildable: False
+  git:
+    paths:
+      git@2.10.1: /soft/apps/packages/git-2.10.1/bin/git
+    buildable: False
+  libtool:
+    paths:
+      libtool@2.4.2: /usr
+    buildable: False
+  m4:
+    paths:
+      m4@1.4.17: /usr
+    buildable: False
+  mercury:
+    variants: ~boostsys
+  openssl:
+    paths:
+      openssl@1.0.1f: /usr
+    buildable: False
+  perl:
+    paths:
+      perl@5.18.2: /usr
+    buildable: False
+  pkg-config:
+    paths:
+      pkg-config@0.26: /usr
+    buildable: False
+  python:
+    version: [3.6.5]
+  ssg:
+    variants: +mpi
+  tar:
+    paths:
+      tar@1.27.1: /usr
+    buildable: False
+  xz:
+    paths:
+      xz@5.1.0: /usr
+    buildable: False
+  zlib:
+    paths:
+      zlib@1.2.8: /usr
+    buildable: False
