@@ -323,7 +323,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     /* warm up for 1 second by default */
     opts->warmup_seconds = 1;
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:m:X:a:w:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:m:X:aw:")) != -1)
     {
         switch(opt)
         {
@@ -564,8 +564,8 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
         printf("<op>\t<warmup_seconds>\t<concurrency>\t<threads>\t<xfer_size>\t<total_bytes>\t<seconds>\t<MiB/s>\t<xfer_memory>\t<align_buffer>\n");
 
         printf("PULL\t%d\t%d\t%d\t%d\t%lu\t%f\t%f\t%lu\t%d\n",
-            g_opts.concurrency,
             g_opts.warmup_seconds,
+            g_opts.concurrency,
             g_opts.threads,
             g_opts.xfer_size,
             out.bytes_moved,
@@ -595,8 +595,8 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     if(print_flag)
     {
         printf("PUSH\t%d\t%d\t%d\t%d\t%lu\t%f\t%f\t%lu\t%d\n",
-            g_opts.concurrency,
             g_opts.warmup_seconds,
+            g_opts.concurrency,
             g_opts.threads,
             g_opts.xfer_size,
             out.bytes_moved,
