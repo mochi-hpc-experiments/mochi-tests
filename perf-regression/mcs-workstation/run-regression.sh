@@ -56,7 +56,7 @@ spack bootstrap
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@develop +mobject ^bake@develop
+spack install ior@develop +mobject ^bake
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
@@ -85,16 +85,16 @@ cp $PREFIX/bin/bake-p2p-bw $JOBDIR
 cp $PREFIX/bin/pmdk-bw $JOBDIR
 cd $JOBDIR
 
-./margo-regression.sh $SANDBOX
-./bake-regression.sh $SANDBOX
-#./pmdk-regression.sh $SANDBOX
+./margo-regression.sh $SANDBOX | tee > margo-results.txt
+./bake-regression.sh $SANDBOX  | tee > bake-results.txt
+./pmdk-regression.sh $SANDBOX  | tee > pmdk-results.txt
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* $JOBID3.* > combined.$JOBID.txt
+cat *-results.txt > combined.txt
 #dos2unix combined.$JOBID.txt
-mailx -r mdorier@anl.gov -s "mochi-regression (MCS workstation)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
-cat combined.$JOBID.txt
+mailx -r mdorier@anl.gov -s "mochi-regression (MCS workstation)" sds-commits@lists.mcs.anl.gov < combined.txt
+cat combined.txt
 
 cd /tmp
 rm -rf $SANDBOX

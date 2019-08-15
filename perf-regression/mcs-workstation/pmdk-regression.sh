@@ -9,8 +9,6 @@ spack load -r mpich
 
 module list
 
-# NOTE: rpath doesn't seem to be set correctly, and the paths we need are 
-#  in LIBRARY_PATH instead of LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$LIBRARY_PATH
 
 echo "## PMDK (8x concurrency):"
@@ -40,4 +38,5 @@ dd if=/dev/zero of=/dev/shm/foo.dat bs=1M count=61440
 pmempool create obj /dev/shm/foo.dat
 ls -alh /dev/shm/foo.dat
 mpirun -np 1 ./pmdk-bw -x 16777216 -m 34359738368 -p /dev/shm/foo.dat -c 8 -T 8
+rm -f /dev/shm/foo.dat
 
