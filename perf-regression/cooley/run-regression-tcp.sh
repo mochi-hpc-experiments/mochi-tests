@@ -93,5 +93,5 @@ dos2unix combined.$JOBID.txt
 mailx -s "mochi-regression (cooley, TCP/IP)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
 cd /tmp
-# rm -rf $SANDBOX
-# rm -rf $PREFIX
+rm -rf $SANDBOX
+rm -rf $PREFIX
