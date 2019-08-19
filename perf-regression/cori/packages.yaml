@@ -32,7 +32,7 @@ packages:
         buildable: False
     cmake:
         paths:
-            cmake@3.5.2: /usr
+            cmake@3.10.2: /usr
         buildable: False
     libuuid:
         paths:
