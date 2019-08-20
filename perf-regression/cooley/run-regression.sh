@@ -85,7 +85,7 @@ make install
 # switch bake versions and build another copy with file backend
 echo "=== BUILDING SDS TEST PROGRAMS WITH FILE BACKEND ==="
 spack unload $BAKE_STABLE_VER
-spack load bake@dev-file-backend
+spack load -r bake@dev-file-backend
 cd $SANDBOX/sds-tests
 mkdir build-file
 cd build-file
