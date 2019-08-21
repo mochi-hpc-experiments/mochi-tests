@@ -46,8 +46,9 @@ echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 spack compiler find
 spack compilers
 
-# use our own packages.yaml for theta-specific preferences
+# use our own configuration file for theta-specific preferences
 cp $ORIGIN/packages.yaml $SPACK_ROOT/etc/spack
+cp $ORIGIN/config.yaml $SPACK_ROOT/etc/spack
 # add external repo for mochi.  Note that this will not modify the 
 # user's ~/.spack/ files because we modified $HOME above
 spack repo add ${SANDBOX}/sds-repo
