@@ -101,9 +101,9 @@ sbatch --wait --export=ALL ./mobject-regression.sbatch || true
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat *.out > combined.$JOBID.txt
-# dos2unix combined.$JOBID.txt
-mailx -s "mochi-regression (bebop)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
+cat *.out | col -b > combined.$SLURM_JOB_ID.txt
+# dos2unix combined.$SLURM_JOB_ID.txt
+mailx -s "mochi-regression (bebop)" sds-commits@lists.mcs.anl.gov < combined.$SLURM_JOB_ID.txt
 
 cd /tmp
 rm -rf $SANDBOX
