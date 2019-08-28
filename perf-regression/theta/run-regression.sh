@@ -57,7 +57,7 @@ spack repo list
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@develop +mobject
+spack install ior@develop +mobject ^libfabric@1.7.1
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
@@ -87,18 +87,14 @@ cd $JOBDIR
 
 JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
 cqwait $JOBID
-JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`
-cqwait $JOBID2
-JOBID3=`qsub --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
-cqwait $JOBID3
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
 cat $JOBID.* $JOBID2.* $JOBID3.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
-mailx -r carns@mcs.anl.gov -s "mochi-regression (theta)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
+mailx -r carns@mcs.anl.gov -s "mochi-regression FOO (theta)" carns@mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
 
 cd /tmp
-rm -rf $SANDBOX
-rm -rf $PREFIX
+# rm -rf $SANDBOX
+# rm -rf $PREFIX
