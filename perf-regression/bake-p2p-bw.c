@@ -73,7 +73,7 @@ int main(int argc, char **argv)
     int nranks;
     int ret;
     ssg_group_id_t gid;
-    ssg_member_id_t self;
+    int ssg_self_rank;
     int rank;
     int namelen;
     char processor_name[MPI_MAX_PROCESSOR_NAME];
@@ -151,13 +151,13 @@ int main(int argc, char **argv)
     ret = ssg_init(mid);
     assert(ret == 0);
     gid = ssg_group_create_mpi("bake-bench", MPI_COMM_WORLD, NULL, NULL);
-    assert(gid != SSG_GROUP_ID_NULL);
+    assert(gid != SSG_GROUP_ID_INVALID);
 
     assert(ssg_get_group_size(gid) == 2);
 
-    self = ssg_get_group_self_id(gid);
+    ssg_self_rank = ssg_get_group_self_rank(gid);
 
-    if(self == 0)
+    if(ssg_self_rank == 0)
     {
         bake_provider_t provider;
         bake_target_id_t tid;
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if(self > 0)
+    if(ssg_self_rank > 0)
     {
         /* ssg id 1 (client) initiates benchmark */
         hg_handle_t handle;
@@ -193,7 +193,7 @@ int main(int argc, char **argv)
         bake_target_id_t bti;
         uint64_t num_targets = 0;
 
-        target_addr = ssg_get_addr(gid, 0);
+        target_addr = ssg_get_group_member_addr(gid, ssg_get_group_member_id_from_rank(gid, 1));
         assert(target_addr != HG_ADDR_NULL);
 
         ret = bake_client_init(mid, &bcl);

@@ -47,7 +47,8 @@ int main(int argc, char **argv)
     int nranks;
     int ret;
     ssg_group_id_t gid;
-    ssg_member_id_t self;
+    ssg_member_id_t ssg_self_id;
+    int ssg_self_rank;
     int rank;
     double *measurement_array;
     int namelen;
@@ -119,12 +120,13 @@ int main(int argc, char **argv)
 
     assert(ssg_get_group_size(gid) == 2);
 
-    self = ssg_get_self_id(mid);
+    ssg_self_id = ssg_get_self_id(mid);
+    ssg_self_rank = ssg_get_group_self_rank(gid);
 #if 0
-    printf("MPI rank %d has SSG ID %lu\n", rank, self);
+    printf("MPI rank %d has SSG ID %lu\n", rank, ssg_self_id);
 #endif
 
-    self_addr = ssg_get_group_member_addr(gid, self);
+    self_addr = ssg_get_group_member_addr(gid, ssg_self_id);
     assert(self_addr != HG_ADDR_NULL);
     ret = margo_addr_to_string(mid, ssg_self_str, &ssg_self_str_len, self_addr);
     assert(ret == 0);
@@ -132,14 +134,15 @@ int main(int argc, char **argv)
     printf("Process %d of %d is on host %s, advertising Hg address %s\n",
 	rank, nranks, processor_name, ssg_self_str);
 
-    if(self == 0)
+    if(ssg_self_rank == 0)
     {
         /* ssg id 0 runs benchmark */
 
         measurement_array = calloc(g_opts.iterations, sizeof(*measurement_array));
         assert(measurement_array);
 
-        ret = run_benchmark(g_opts.warmup_iterations, g_opts.iterations, noop_id, 1, gid, mid, measurement_array);
+        ret = run_benchmark(g_opts.warmup_iterations, g_opts.iterations, noop_id,
+            ssg_get_group_member_id_from_rank(gid, 1), gid, mid, measurement_array);
         assert(ret == 0);
 
         printf("# <op> <iterations> <warmup_iterations> <size> <min> <q1> <med> <avg> <q3> <max>\n");

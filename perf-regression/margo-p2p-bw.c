@@ -94,7 +94,8 @@ int main(int argc, char **argv)
     int nranks;
     int ret;
     ssg_group_id_t gid;
-    ssg_member_id_t self;
+    ssg_member_id_t ssg_self_id;
+    int ssg_self_rank;
     int rank;
     int namelen;
     char processor_name[MPI_MAX_PROCESSOR_NAME];
@@ -190,9 +191,10 @@ int main(int argc, char **argv)
 
     assert(ssg_get_group_size(gid) == 2);
 
-    self = ssg_get_self_id(mid);
+    ssg_self_id = ssg_get_self_id(mid);
+    ssg_self_rank = ssg_get_group_self_rank(gid);
 
-    self_addr = ssg_get_group_member_addr(gid, self);
+    self_addr = ssg_get_group_member_addr(gid, ssg_self_id);
     assert(self_addr != HG_ADDR_NULL);
     ret = margo_addr_to_string(mid, ssg_self_str, &ssg_self_str_len, self_addr);
     assert(ret == 0);
@@ -201,7 +203,7 @@ int main(int argc, char **argv)
        rank, nranks, processor_name, ssg_self_str);
 
 
-    if(self == 1)
+    if(ssg_self_rank == 1)
     {
         /* server side: prep everything before letting the client initiate
          * benchmark
@@ -257,16 +259,18 @@ int main(int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if(self == 0)
+    if(ssg_self_rank == 0)
     {
-        /* ssg id 0 (client) initiates benchmark */
+        /* ssg rank 0 (client) initiates benchmark */
 
         /* warmup */
         if(g_opts.warmup_seconds)
-            ret = run_benchmark(g_bw_id, 1, gid, mid, 0, g_opts.warmup_seconds, 0);
+            ret = run_benchmark(g_bw_id, ssg_get_group_member_id_from_rank(gid, 1),
+                gid, mid, 0, g_opts.warmup_seconds, 0);
         assert(ret == 0);
 
-        ret = run_benchmark(g_bw_id, 1, gid, mid, 1, g_opts.duration_seconds, 1);
+        ret = run_benchmark(g_bw_id, ssg_get_group_member_id_from_rank(gid, 1),
+            gid, mid, 1, g_opts.duration_seconds, 1);
         assert(ret == 0);
     }
     else
