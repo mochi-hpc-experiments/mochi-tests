@@ -186,13 +186,13 @@ int main(int argc, char **argv)
     ret = ssg_init(mid);
     assert(ret == 0);
     gid = ssg_group_create_mpi("margo-p2p-latency", MPI_COMM_WORLD, NULL, NULL);
-    assert(gid != SSG_GROUP_ID_NULL);
+    assert(gid != SSG_GROUP_ID_INVALID);
 
     assert(ssg_get_group_size(gid) == 2);
 
-    self = ssg_get_group_self_id(gid);
+    self = ssg_get_self_id(mid);
 
-    self_addr = ssg_get_addr(gid, self);
+    self_addr = ssg_get_group_member_addr(gid, self);
     assert(self_addr != HG_ADDR_NULL);
     ret = margo_addr_to_string(mid, ssg_self_str, &ssg_self_str_len, self_addr);
     assert(ret == 0);
@@ -539,7 +539,7 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     for(i=0; i<(g_opts.g_buffer_size/sizeof(i)); i++)
         ((hg_size_t*)buffer)[i] = i;
 
-    target_addr = ssg_get_addr(gid, target);
+    target_addr = ssg_get_group_member_addr(gid, target);
     assert(target_addr != HG_ADDR_NULL);
 
     ret = margo_create(mid, target_addr, id, &handle);
