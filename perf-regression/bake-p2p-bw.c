@@ -63,11 +63,11 @@ static char *g_buffer = NULL;
 DECLARE_MARGO_RPC_HANDLER(bench_stop_ult);
 static hg_id_t bench_stop_id;
 static ABT_eventual bench_stop_eventual;
-static int run_benchmark(struct options *opts, bake_provider_handle_t bph, 
+static int run_benchmark(struct options *opts, bake_provider_handle_t bph,
     bake_target_id_t bti);
 static void bench_worker(void *_arg);
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
     margo_instance_id mid;
     int nranks;
@@ -117,7 +117,6 @@ int main(int argc, char **argv)
     if((rank > 0 && g_opts.mercury_timeout_client == 0) ||
        (rank == 0 && g_opts.mercury_timeout_server == 0))
     {
-        
         /* If mercury timeout of zero is requested, then set
          * init option to NO_BLOCK.  This allows some transports to go
          * faster because they do not have to set up or maintain the data
@@ -141,8 +140,8 @@ int main(int argc, char **argv)
         margo_set_param(mid, MARGO_PARAM_PROGRESS_TIMEOUT_UB, &g_opts.mercury_timeout_server);
 
     bench_stop_id = MARGO_REGISTER(
-        mid, 
-        "bench_stop_rpc", 
+        mid,
+        "bench_stop_rpc",
         void,
         void,
         bench_stop_ult);
@@ -254,7 +253,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
 
     /* default to using whatever the standard timeout is in margo */
     opts->mercury_timeout_client = UINT_MAX;
-    opts->mercury_timeout_server = UINT_MAX; 
+    opts->mercury_timeout_server = UINT_MAX;
 
     while((opt = getopt(argc, argv, "n:x:c:d:t:p:m:r:i")) != -1)
     {
@@ -317,7 +316,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
         }
     }
 
-    if(opts->concurrency < 1 || !opts->na_transport 
+    if(opts->concurrency < 1 || !opts->na_transport
      || !opts->bake_pool)
     {
         return(-1);
@@ -342,7 +341,7 @@ static void usage(void)
         "\t[-i] - enable intermediate buffering pipeline\n"
         "\t\texample: mpiexec -n 2 ./bake-p2p-bw -x 4096 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
-    
+
     return;
 }
 
@@ -359,7 +358,7 @@ static void bench_stop_ult(hg_handle_t handle)
 DEFINE_MARGO_RPC_HANDLER(bench_stop_ult)
 
 
-static int run_benchmark(struct options *opts, bake_provider_handle_t bph, 
+static int run_benchmark(struct options *opts, bake_provider_handle_t bph,
     bake_target_id_t bti)
 {
     ABT_pool pool;
@@ -392,7 +391,7 @@ static int run_benchmark(struct options *opts, bake_provider_handle_t bph,
         arg_array[i].bti = bti;
         arg_array[i].cur_off_mutex = &cur_off_mutex;
         arg_array[i].cur_off = &cur_off;
-        ret = ABT_thread_create(pool, bench_worker, 
+        ret = ABT_thread_create(pool, bench_worker,
             &arg_array[i], ABT_THREAD_ATTR_NULL, &tid_array[i]);
         assert(ret == 0);
     }
@@ -432,7 +431,7 @@ static void bench_worker(void *_arg)
         (*arg->cur_off) += g_opts.xfer_size;
         ABT_mutex_unlock(*arg->cur_off_mutex);
 
-        ret = bake_create_write_persist(arg->bph, arg->bti, this_buffer, 
+        ret = bake_create_write_persist(arg->bph, arg->bti, this_buffer,
             g_opts.xfer_size, &rid);
         assert(ret == 0);
         ABT_mutex_spinlock(*arg->cur_off_mutex);
