@@ -71,39 +71,41 @@ int main(int argc, char **argv)
 {
     margo_instance_id mid;
     int nranks;
-    int ret;
+    int my_mpi_rank;
     ssg_group_id_t gid;
-    int ssg_self_rank;
-    int rank;
+    char *gid_buffer;
+    size_t gid_buffer_size;
+    int gid_buffer_size_int;
     int namelen;
     char processor_name[MPI_MAX_PROCESSOR_NAME];
+    int group_size;
     struct hg_init_info hii;
+    int ret;
 
     MPI_Init(&argc, &argv);
 
-    /* TODO: relax this, maybe 1 server N clients? */
-    /* 2 processes only */
+    /* 1 server, N clients */
     MPI_Comm_size(MPI_COMM_WORLD, &nranks);
-    if(nranks != 2)
+    if(nranks < 2)
     {
         usage();
         exit(EXIT_FAILURE);
     }
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_mpi_rank);
     MPI_Get_processor_name(processor_name,&namelen);
     printf("Process %d of %d is on %s\n",
-	rank, nranks, processor_name);
+        my_mpi_rank, nranks, processor_name);
 
     ret = parse_args(argc, argv, &g_opts);
     if(ret < 0)
     {
-        if(rank == 0)
+        if(my_mpi_rank == 0)
             usage();
         exit(EXIT_FAILURE);
     }
 
     /* allocate one big buffer for writes on client */
-    if(rank > 0)
+    if(my_mpi_rank > 0)
     {
         g_buffer = calloc(g_opts.total_mem_size, 1);
         if(!g_buffer)
@@ -114,8 +116,8 @@ int main(int argc, char **argv)
     }
 
     memset(&hii, 0, sizeof(hii));
-    if((rank > 0 && g_opts.mercury_timeout_client == 0) ||
-       (rank == 0 && g_opts.mercury_timeout_server == 0))
+    if((my_mpi_rank > 0 && g_opts.mercury_timeout_client == 0) ||
+       (my_mpi_rank == 0 && g_opts.mercury_timeout_server == 0))
     {
         /* If mercury timeout of zero is requested, then set
          * init option to NO_BLOCK.  This allows some transports to go
@@ -127,16 +129,16 @@ int main(int argc, char **argv)
     }
 
     /* actually start margo */
-    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 0, g_opts.rpc_xstreams);
+    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 1, g_opts.rpc_xstreams);
     assert(mid);
 
     if(g_opts.diag_file_name)
         margo_diag_start(mid);
 
     /* adjust mercury timeout in Margo if requested */
-    if(rank > 0 && g_opts.mercury_timeout_client != UINT_MAX)
+    if(my_mpi_rank > 0 && g_opts.mercury_timeout_client != UINT_MAX)
         margo_set_param(mid, MARGO_PARAM_PROGRESS_TIMEOUT_UB, &g_opts.mercury_timeout_client);
-    if(rank == 0 && g_opts.mercury_timeout_server != UINT_MAX)
+    if(my_mpi_rank == 0 && g_opts.mercury_timeout_server != UINT_MAX)
         margo_set_param(mid, MARGO_PARAM_PROGRESS_TIMEOUT_UB, &g_opts.mercury_timeout_server);
 
     bench_stop_id = MARGO_REGISTER(
@@ -146,17 +148,46 @@ int main(int argc, char **argv)
         void,
         bench_stop_ult);
 
-    /* set up group */
     ret = ssg_init(mid);
-    assert(ret == 0);
-    gid = ssg_group_create_mpi("bake-bench", MPI_COMM_WORLD, NULL, NULL);
-    assert(gid != SSG_GROUP_ID_INVALID);
+    assert(ret == SSG_SUCCESS);
 
-    assert(ssg_get_group_size(gid) == 2);
+    if(my_mpi_rank == 0)
+    {
+        /* set up server "group" on rank 0 */
+        gid = ssg_group_create_mpi("bake-bench", MPI_COMM_SELF, NULL, NULL);
+        assert(gid != SSG_GROUP_ID_INVALID);
 
-    ssg_self_rank = ssg_get_group_self_rank(gid);
+        /* load group info into a buffer */
+        ssg_group_id_serialize(gid, &gid_buffer, &gid_buffer_size);
+        assert(gid_buffer && (gid_buffer_size > 0));
+        gid_buffer_size_int = (int)gid_buffer_size;
+    }
 
-    if(ssg_self_rank == 0)
+    /* broadcast server group info to clients */
+    MPI_Bcast(&gid_buffer_size_int, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (my_mpi_rank > 0)
+    {
+        /* client ranks allocate a buffer for receiving GID buffer */
+        gid_buffer = calloc((size_t)gid_buffer_size_int, 1);
+        assert(gid_buffer);
+    }
+    MPI_Bcast(gid_buffer, gid_buffer_size_int, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+    /* clients observe server group */
+    if (my_mpi_rank > 0)
+    {
+        ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &gid);
+        assert(gid != SSG_GROUP_ID_INVALID);
+
+        ret = ssg_group_observe(gid);
+        assert(ret == SSG_SUCCESS);
+    }
+
+    /* sanity check group size on server/client */
+    group_size = ssg_get_group_size(gid);
+    assert(group_size == 1);
+
+    if(my_mpi_rank == 0)
     {
         bake_provider_t provider;
         bake_target_id_t tid;
@@ -182,9 +213,9 @@ int main(int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if(ssg_self_rank > 0)
+    if(my_mpi_rank > 0)
     {
-        /* ssg id 1 (client) initiates benchmark */
+        /* ssg clients initiate benchmark */
         hg_handle_t handle;
         hg_addr_t target_addr;
         bake_client_t bcl;
@@ -192,7 +223,8 @@ int main(int argc, char **argv)
         bake_target_id_t bti;
         uint64_t num_targets = 0;
 
-        target_addr = ssg_get_group_member_addr(gid, ssg_get_group_member_id_from_rank(gid, 1));
+        target_addr = ssg_get_group_member_addr(gid,
+            ssg_get_group_member_id_from_rank(gid, 0));
         assert(target_addr != HG_ADDR_NULL);
 
         ret = bake_client_init(mid, &bcl);
@@ -216,22 +248,28 @@ int main(int argc, char **argv)
         ret = margo_forward(handle, NULL);
         assert(ret == 0);
         margo_destroy(handle);
+
+        ret = ssg_group_unobserve(gid);
+        assert(ret == SSG_SUCCESS);
     }
     else
     {
-        /* ssg id 0 (server) services requests until told to stop */
+        /* ssg server services requests until told to stop */
         ABT_eventual_wait(bench_stop_eventual, NULL);
         margo_thread_sleep(mid, 2000);
+
+        ret = ssg_group_destroy(gid);
+        assert(ret == SSG_SUCCESS);
     }
 
-    ssg_group_destroy(gid);
     ssg_finalize();
 
     if(g_opts.diag_file_name)
         margo_diag_dump(mid, g_opts.diag_file_name, 1);
 
-    if(rank > 0)
+    if(my_mpi_rank > 0)
         free(g_buffer);
+    free(gid_buffer);
 
     margo_finalize(mid);
     MPI_Finalize();
