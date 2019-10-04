@@ -62,7 +62,14 @@ spack uninstall -R -y argobots mercury opa-psm2 bake || true
 # spack install ior@develop+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@develop +mobject
+# spack install ior@develop +mobject
+
+# TODO: TEMPORARY as of 2019-10-4, remove later
+# Mobject and the sds-tests benchmarks require different versions of SSG.
+# Skip the former for now until they are in sync again
+spack install bake
+spack install ssg@develop
+
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
@@ -97,7 +104,11 @@ export SANDBOX
 sbatch --wait --export=ALL ./margo-regression.sbatch || true
 sbatch --wait --export=ALL ./bake-regression.sbatch || true
 sbatch --wait --export=ALL ./pmdk-regression.sbatch || true
-sbatch --wait --export=ALL ./mobject-regression.sbatch || true
+
+# TODO: TEMPORARY as of 2019-10-4, remove later
+# Mobject and the sds-tests benchmarks require different versions of SSG.
+# Skip the former for now until they are in sync again
+# sbatch --wait --export=ALL ./mobject-regression.sbatch || true
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
