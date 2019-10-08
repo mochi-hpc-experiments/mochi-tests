@@ -57,7 +57,18 @@ spack repo list
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@develop +mobject ^libfabric@1.7.1
+#spack spec ior@develop +mobject
+#spack install ior@develop +mobject
+# TODO: TEMPORARY as of 2019-10-4, remove later
+# ssg@develop needed because benchmark/latency tests use new interface
+# Mobject and the sds-tests benchmarks require different versions of SSG.
+# Skip the former for now until they are in sync again
+spack spec bake
+spack spec ssg@develop ^mpich
+spack install bake
+spack install ssg@develop ^mpich
+
+
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
@@ -69,7 +80,6 @@ spack load -r bake
 # sds-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
 cd $SANDBOX/sds-tests
-libtoolize
 ./prepare.sh
 mkdir build
 cd build
@@ -87,6 +97,13 @@ cd $JOBDIR
 
 JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
 cqwait $JOBID
+JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`
+cqwait $JOBID2
+JOBID3=`qsub --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
+cqwait $JOBID3
+# cannot run mobject until updated to match ssg group changes
+#JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
+#cqwait $JOBID4
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
