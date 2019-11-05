@@ -113,7 +113,7 @@ echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
 cat $JOBID.* $JOBID2.* $JOBID3.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
-mailx -r carns@mcs.anl.gov -s "mochi-regression FOO (theta)" carns@mcs.anl.gov < combined.$JOBID.txt
+mailx -r sds-commits@mcs.anl.gov -s "mochi-regression (theta)" carns@mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
 
 cd /tmp
