@@ -58,7 +58,11 @@ spack bootstrap
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@develop +mobject
+# TODO: temporary, for now just testing bake and margo until mobject is
+#       updated to use same version of ssg 2019-11-11
+# spack install ior@develop +mobject
+spack install ssg
+spack install bake
 # check what stable version of bake we got
 BAKE_STABLE_VER=`spack find bake |grep bake |grep -v file-backend`
 # load an additional version of bake that uses a file backend
