@@ -62,9 +62,9 @@ spack uninstall -R -y argobots mercury libfabric || true
 # TODO: above temporarily disabled because
 #       Mobject and the sds-tests benchmarks require different versions of SSG.
 spack spec bake
-spack spec ssg
+spack spec ssg ^mpich
 spack install bake
-spack install ssg
+spack install ssg ^mpich
 
 
 # deliberately repeat setup-env step after building modules to ensure
