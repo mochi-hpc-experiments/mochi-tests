@@ -9,6 +9,8 @@
 # pmdk or the file backend to bake.  Note that it is hard coded to use a specific
 # xpd and volume; this job assumes it has exclusive access.
 
+# note: disable registration cache for verbs provider for now; see
+#       discussion in https://github.com/ofiwg/libfabric/issues/5244
 export FI_MR_CACHE_MAX_COUNT=0
 export HOME=$SANDBOX
 export KDSA_MPIO_MAX_CONN=1
