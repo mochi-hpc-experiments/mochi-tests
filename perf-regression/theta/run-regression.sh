@@ -59,14 +59,12 @@ spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
 #spack spec ior@develop +mobject
 #spack install ior@develop +mobject
-# TODO: TEMPORARY as of 2019-10-4, remove later
-# ssg@develop needed because benchmark/latency tests use new interface
-# Mobject and the sds-tests benchmarks require different versions of SSG.
-# Skip the former for now until they are in sync again
+# TODO: above temporarily disabled because
+#       Mobject and the sds-tests benchmarks require different versions of SSG.
 spack spec bake
-spack spec ssg@develop ^mpich
+spack spec ssg
 spack install bake
-spack install ssg@develop ^mpich
+spack install ssg
 
 
 # deliberately repeat setup-env step after building modules to ensure
