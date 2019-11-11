@@ -33,7 +33,7 @@ echo "### verbs kove pmdk no threads"
 sleep 1
 dd if=/dev/zero of=$PMDK_PATH bs=100M count=1 conv=notrunc
 bake-mkpool $PMDK_PATH
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p $PMDK_PATH -c 12
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p $PMDK_PATH -c 12
 
 kdsa_manage disconnect xpdha
 kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
@@ -42,7 +42,7 @@ echo "### verbs kove pmdk 4 rpc threads"
 sleep 1
 dd if=/dev/zero of=$PMDK_PATH bs=100M count=1 conv=notrunc
 bake-mkpool $PMDK_PATH
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p $PMDK_PATH -c 12 -r 4
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p $PMDK_PATH -c 12 -r 4
 
 kdsa_manage disconnect xpdha
 kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
@@ -51,7 +51,7 @@ echo "### verbs kove pmdk no threads, pipelined"
 sleep 1
 dd if=/dev/zero of=$PMDK_PATH bs=100M count=1 conv=notrunc
 bake-mkpool $PMDK_PATH
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p $PMDK_PATH -c 12 -i
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p $PMDK_PATH -c 12 -i
 
 kdsa_manage disconnect xpdha
 kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
@@ -60,7 +60,7 @@ echo "### verbs kove pmdk 4 rpc threads, pipelined"
 sleep 1
 dd if=/dev/zero of=$PMDK_PATH bs=100M count=1 conv=notrunc
 bake-mkpool $PMDK_PATH
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "verbs://" -p $PMDK_PATH -c 12 -r 4 -i
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p $PMDK_PATH -c 12 -r 4 -i
 
 kdsa_manage disconnect xpdha
 kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc9e8 xpdha
@@ -76,7 +76,7 @@ sleep 1
 dd bs=4M if=/projects/RAN/toonen/mochi-100GiB-xfs.img of=/dev/xpdha oflag=direct
 mount /kovefs/xfsa
 bake-mkpool /kovefs/xfsa/bake.dat
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw-file -x 16777216 -m 34359738368 -n "verbs://" -p /kovefs/xfsa/bake.dat -c 12 -i
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw-file -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /kovefs/xfsa/bake.dat -c 12 -i
 umount /kovefs/xfsa
 
 kdsa_manage disconnect xpdha
@@ -87,7 +87,7 @@ sleep 1
 dd bs=4M if=/projects/RAN/toonen/mochi-100GiB-xfs.img of=/dev/xpdha oflag=direct
 mount /kovefs/xfsa
 bake-mkpool /kovefs/xfsa/bake.dat
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw-file -x 16777216 -m 34359738368 -n "verbs://" -p /kovefs/xfsa/bake.dat -c 12 -r 4 -i
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./bake-p2p-bw-file -x 16777216 -m 34359738368 -n "ofi+verbs;ofi_rxm://" -p /kovefs/xfsa/bake.dat -c 12 -r 4 -i
 umount /kovefs/xfsa
 
 kdsa_manage disconnect xpdha
