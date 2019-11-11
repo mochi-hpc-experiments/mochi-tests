@@ -6,6 +6,7 @@
 #COBALT -q ibleaf3-debug
 
 export HOME=$SANDBOX
+export FI_MR_CACHE_MAX_COUNT=0
 
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg 

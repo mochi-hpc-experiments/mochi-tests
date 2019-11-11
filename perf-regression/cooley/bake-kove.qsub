@@ -9,7 +9,7 @@
 # pmdk or the file backend to bake.  Note that it is hard coded to use a specific
 # xpd and volume; this job assumes it has exclusive access.
 
-export FI_FORK_UNSAFE=1
+export FI_MR_CACHE_MAX_COUNT=0
 export HOME=$SANDBOX
 export KDSA_MPIO_MAX_CONN=1
 export PMDK_PATH="/xmem/xpdha"
