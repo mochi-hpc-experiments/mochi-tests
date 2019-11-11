@@ -111,5 +111,5 @@ mailx -r sds-commits@mcs.anl.gov -s "mochi-regression (theta)" carns@mcs.anl.gov
 cat combined.$JOBID.txt
 
 cd /tmp
-# rm -rf $SANDBOX
-# rm -rf $PREFIX
+rm -rf $SANDBOX
+rm -rf $PREFIX
