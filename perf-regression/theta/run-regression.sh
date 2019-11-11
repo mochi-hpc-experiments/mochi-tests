@@ -9,12 +9,8 @@ set -e
 
 # set up environment
 # use gnu compilers
-# TODO: temporary workaround for darshan/perftools-base conflict
-module unload darshan
 module swap PrgEnv-intel PrgEnv-gnu
 module load cce
-# TODO: temporary workaround for darshan/perftools-base conflict
-module load darshan
 # default to O3 optimizations unless otherwise specified
 export CFLAGS="-O3"
 # dynamic link everything by default
