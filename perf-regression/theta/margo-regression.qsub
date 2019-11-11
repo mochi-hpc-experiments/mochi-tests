@@ -10,8 +10,8 @@
 
 # necessary when using the udreg option in Mercury
 export MPICH_GNI_NDREG_ENTRIES=1024
-export FI_LOG_LEVEL=debug
-export FI_LOG_PROV=gni
+#export FI_LOG_LEVEL=debug
+#export FI_LOG_PROV=gni
 
 module swap PrgEnv-intel PrgEnv-gnu
 module load cce
