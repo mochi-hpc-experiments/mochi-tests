@@ -21,7 +21,7 @@ tail -n $((nnodes/2)) $COBALT_NODEFILE > client_nodes
 
 echo " ==== running server "
 export MOBJECT_CLUSTER_FILE=mobject-cluster.gid
-mpirun -f $COBALT_NODEFILE -n 2 mobject-server-daemon "ofi+verbs;ofi_rxm://" $MOBJECT_CLUSTER_FILE &
+mpirun -f $COBALT_NODEFILE -n 2 mobject-server-daemon "verbs://" $MOBJECT_CLUSTER_FILE &
 # give the mobject-server nodes a chance to set up
 sleep 5
 
