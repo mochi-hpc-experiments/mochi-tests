@@ -131,7 +131,8 @@ cqwait $JOBID5
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* > combined.$JOBID.txt
+#cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID5.* > combined.$JOBID.txt
 dos2unix combined.$JOBID.txt
 mailx -s "mochi-regression (cooley)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
