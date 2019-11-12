@@ -30,35 +30,35 @@ echo "### NOTE: all benchmarks are using numactl to keep processes on socket 0"
 # aprun -n 2 -N 1 ./osu_latency
 
 echo "## Margo OFI/GNI (round trip):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-latency -i 100000 -n ofi+gni://ipogif0:5000
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-latency -i 100000 -n "gni://"
 echo "## Margo OFI/GNI (bw, 1MiB):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 1 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 1 -D 20
 echo "## Margo OFI/GNI (bw, 1MiB, 8x concurrency):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 8 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 8 -D 20
 echo "## Margo OFI/GNI (bw, 8MiB):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 1 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 1 -D 20
 echo "## Margo OFI/GNI (bw, 8MiB, 8x concurrency):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 8 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 8 -D 20
 echo "## Margo OFI/GNI (bw, 1MB unaligned):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 1 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 1 -D 20
 echo "## Margo OFI/GNI (bw, 1MB unaligned, 8x concurrency):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 8 -D 20
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 8 -D 20
 
 
 echo "## Margo OFI/GNI (round trip, Hg busy spin):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-latency -i 100000 -n ofi+gni://ipogif0:5000 -t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-latency -i 100000 -n "gni://" -t 0,0
 echo "## Margo OFI/GNI (bw, 1MiB, Hg busy spin):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 1 -D 20 -t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 1 -D 20 -t 0,0
 echo "## Margo OFI/GNI (bw, 1MiB, 8x concurrency, Hg busy spin):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n ofi+gni://ipogif0:5000 -c 8 -D 20 -t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 8 -D 20 -t 0,0
 echo "## Margo OFI/GNI (bw, 8MiB, Hg busy spin):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 1 -D 20 -t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 1 -D 20 -t 0,0
 echo "## Margo OFI/GNI (bw, 8MiB, 8x concurrency, Hg busy spin):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n ofi+gni://ipogif0:5000 -c 8 -D 20-t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 8 -D 20-t 0,0
 echo "## Margo OFI/GNI (bw, 1MB unaligned, Hg busy spin):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 1 -D 20-t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 1 -D 20-t 0,0
 echo "## Margo OFI/GNI (bw, 1MB unaligned, 8x concurrency, Hg busy spin):"
-aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0:5000 -c 8 -D 20 -t 0,0
+aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 8 -D 20 -t 0,0
 
 # echo "## Margo BMI/TCP (round trip):"
 # aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./margo-p2p-latency -i 100000 -n bmi+tcp://
@@ -85,8 +85,8 @@ aprun -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n ofi+gni://ipogif0
 
 # one more margo run, this time with diagnostics enabled
 # echo "## Margo OFI/GNI (round trip) with diagnostics:"
-# aprun -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+gni://ipogif0:5000 -d $COBALT_JOBID.diag
+# aprun -n 2 -N 1 ./margo-p2p-latency -i 100000 -n "gni://" -d $COBALT_JOBID.diag
 
 # echo "## Mercury-runner OFI/GNI (round trip):"
-# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./mercury-runner -q -c 100000 -l 1 -m c -M -d `pwd` 1 h0=ofi+gni://ipogif0:5000 h1
+# aprun -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./mercury-runner -q -c 100000 -l 1 -m c -M -d `pwd` 1 h0="gni://" h1
 
