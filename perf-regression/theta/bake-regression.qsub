@@ -5,6 +5,7 @@
 #COBALT -A CSC250STDM12
 #COBALT -q debug-cache-quad
 
+export HOME=$SANDBOX
 # XXX xalt module currently eating '-M' flag for mercury-runner...disabling for now
 # module unload xalt
 
