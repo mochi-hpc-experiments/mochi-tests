@@ -5,6 +5,7 @@
 #SBATCH --time=5:00
 #SBATCH -p bdwall
 
+export HOME=$SANDBOX
 # example of running benchmarks with spack-compiled software stack
 
 export LMOD_PAGER=none
