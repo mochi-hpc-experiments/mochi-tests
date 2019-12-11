@@ -2,6 +2,11 @@ if HAVE_MARGO
 bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw
 endif
 
+if HAVE_SSG
+bin_PROGRAMS += perf-regression/ssg-test-separate-group-create \
+		perf-regression/ssg-test-separate-group-attach
+endif
+
 if HAVE_BAKE
 bin_PROGRAMS += perf-regression/bake-p2p-bw
 endif
