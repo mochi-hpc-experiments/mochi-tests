@@ -1,3 +1,4 @@
+#!/bin/bash
 #COBALT -n 2
 #COBALT -t 5
 #COBALT --mode script
