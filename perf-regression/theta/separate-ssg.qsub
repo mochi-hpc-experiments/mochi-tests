@@ -1,0 +1,42 @@
+#COBALT -n 2
+#COBALT -t 5
+#COBALT --mode script
+#COBALT -A CSC250STDM12
+#COBALT -q debug-cache-quad
+
+export HOME=$SANDBOX
+source $SANDBOX/spack//share/spack/setup-env.sh
+
+module swap PrgEnv-intel PrgEnv-gnu
+# ssg and libfabric-1.8.0
+#spack load -r ssg/lfdi2fo
+
+spack load -r ssg
+
+module list
+
+# spack won't set LD_LIBRARY_PATH for us
+export LD_LIBRARY_PATH=${LIBRARY_PATH}
+export MPICH_GNI_NDREG_ENTRIES=1024
+
+
+SSG_PDOMAIN="ssg-test"
+apmgr pdomain -c -u $SSG_PDOMAIN
+
+SSG_STATEFILE=ssg-state.cfg
+rm -f $SSG_STATEFILE
+
+aprun -p ${SSG_PDOMAIN} -n 1 -N 1 ./ssg-test-separate-group-create ${SSG_STATEFILE} &
+
+sleep_time=1;
+while [ ! -e $SSG_STATEFILE ] ; do
+	sleep $sleep_time;
+	sleep_time=$(( sleep_time * 2))
+done
+
+xxd $SSG_STATEFILE
+
+aprun -p ${SSG_PDOMAIN} -n 1 -N 1 ./ssg-test-separate-group-attach ofi+gni ${SSG_STATEFILE}
+kill %1
+apmgr pdomain -r  -u ${SSG_PDOMAIN}
+

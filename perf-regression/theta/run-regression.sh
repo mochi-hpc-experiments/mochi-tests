@@ -34,6 +34,7 @@ mkdir $JOBDIR
 cp $ORIGIN/margo-regression.qsub $JOBDIR
 cp $ORIGIN/bake-regression.qsub $JOBDIR
 cp $ORIGIN/pmdk-regression.qsub $JOBDIR
+cp $ORIGIN/separate-ssg.qsub $JOBDIR
 
 # set up build environment
 cd $SANDBOX
@@ -91,6 +92,8 @@ cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 cp $PREFIX/bin/bake-p2p-bw $JOBDIR
 cp $PREFIX/bin/pmdk-bw $JOBDIR
+cp $PREFIX/bin/ssg-test-separate-group-create $JOBDIR
+cp $PREFIX/bin/ssg-test-separate-group-attach $JOBDIR
 cd $JOBDIR
 
 JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
@@ -102,10 +105,12 @@ cqwait $JOBID3
 # cannot run mobject until updated to match ssg group changes
 #JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
 #cqwait $JOBID4
+JOBID5=`qsub --env SANDBOX=$SANDBOX ./separate-ssg.qsub
+cqwait $JOBID5
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* $JOBID3.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
 mailx -r sds-commits@mcs.anl.gov -s "mochi-regression (theta)" sds-commits@mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
