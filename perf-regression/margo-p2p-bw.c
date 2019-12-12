@@ -136,8 +136,10 @@ int main(int argc, char **argv)
     else
     {
         g_buffer = NULL;
-        if(g_opts.align_buffer)
-            posix_memalign((void**)(&g_buffer), 4096, g_opts.g_buffer_size);
+        if(g_opts.align_buffer) {
+            ret = posix_memalign((void**)(&g_buffer), 4096, g_opts.g_buffer_size);
+            if (ret != 0) fprintf(stderr, "Error in posix_memalign: %s\n", strerror(ret));
+        }
         else
             g_buffer = calloc(g_opts.g_buffer_size, 1);
     }
@@ -183,17 +185,17 @@ int main(int argc, char **argv)
         bw_ult);
 
     /* set up group */
-    ret = ssg_init(mid);
+    ret = ssg_init();
     assert(ret == SSG_SUCCESS);
 
     if(my_mpi_rank == 0)
     {
         /* set up server "group" on rank 0 */
-        gid = ssg_group_create_mpi("margo-p2p-bw", MPI_COMM_SELF, NULL, NULL);
+        gid = ssg_group_create_mpi(mid, "margo-p2p-bw", MPI_COMM_SELF, NULL, NULL, NULL);
         assert(gid != SSG_GROUP_ID_INVALID);
 
         /* load group info into a buffer */
-        ssg_group_id_serialize(gid, &gid_buffer, &gid_buffer_size);
+        ssg_group_id_serialize(gid,1,  &gid_buffer, &gid_buffer_size);
         assert(gid_buffer && (gid_buffer_size > 0));
         gid_buffer_size_int = (int)gid_buffer_size;
     }
@@ -211,10 +213,11 @@ int main(int argc, char **argv)
     /* client observes server group */
     if (my_mpi_rank == 1)
     {
-        ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &gid);
+        int count=1;
+        ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &count, &gid);
         assert(gid != SSG_GROUP_ID_INVALID);
 
-        ret = ssg_group_observe(gid);
+        ret = ssg_group_observe(mid, gid);
         assert(ret == SSG_SUCCESS);
     }
 
@@ -298,7 +301,6 @@ int main(int argc, char **argv)
     else
     {
         /* rank 0 (server) waits for test RPC to complete */
-        int i;
 
         ABT_eventual_wait(g_bw_done_eventual, NULL);
 

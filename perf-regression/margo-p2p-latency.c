@@ -111,17 +111,17 @@ int main(int argc, char **argv)
         void,
         noop_ult);
 
-    ret = ssg_init(mid);
+    ret = ssg_init();
     assert(ret == SSG_SUCCESS);
 
     if(my_mpi_rank == 0)
     {
         /* set up server "group" on rank 0 */
-        gid = ssg_group_create_mpi("margo-p2p-latency", MPI_COMM_SELF, NULL, NULL);
+        gid = ssg_group_create_mpi(mid, "margo-p2p-latency", MPI_COMM_SELF, NULL, NULL, NULL);
         assert(gid != SSG_GROUP_ID_INVALID);
 
         /* load group info into a buffer */
-        ssg_group_id_serialize(gid, &gid_buffer, &gid_buffer_size);
+        ssg_group_id_serialize(gid, 1, &gid_buffer, &gid_buffer_size);
         assert(gid_buffer && (gid_buffer_size > 0));
         gid_buffer_size_int = (int)gid_buffer_size;
     }
@@ -139,10 +139,11 @@ int main(int argc, char **argv)
     /* client observes server group */
     if (my_mpi_rank == 1)
     {
-        ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &gid);
+        int count=1;
+        ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &count, &gid);
         assert(gid != SSG_GROUP_ID_INVALID);
 
-        ret = ssg_group_observe(gid);
+        ret = ssg_group_observe(mid, gid);
         assert(ret == SSG_SUCCESS);
     }
 
