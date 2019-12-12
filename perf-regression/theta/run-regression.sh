@@ -105,7 +105,7 @@ cqwait $JOBID3
 # cannot run mobject until updated to match ssg group changes
 #JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
 #cqwait $JOBID4
-JOBID5=`qsub --env SANDBOX=$SANDBOX ./separate-ssg.qsub
+JOBID5=`qsub --env SANDBOX=$SANDBOX ./separate-ssg.qsub`
 cqwait $JOBID5
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
