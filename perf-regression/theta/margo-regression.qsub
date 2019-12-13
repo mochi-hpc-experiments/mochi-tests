@@ -32,45 +32,45 @@ echo "### NOTE: all benchmarks are using numactl to keep processes on socket 0"
 # aprun -n 2 -N 1 ./osu_latency
 
 echo "## Margo OFI/GNI (round trip):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-latency -i 100000 -n "gni://"
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-latency -i 100000 -n "gni://"
 echo "## Margo OFI/GNI (bw, 1MiB):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 1 -D 20
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 1 -D 20
 echo "## Margo OFI/GNI (bw, 1MiB, 8x concurrency):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 8 -D 20
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 8 -D 20
 echo "## Margo OFI/GNI (bw, 8MiB):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 1 -D 20
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 1 -D 20
 echo "## Margo OFI/GNI (bw, 8MiB, 8x concurrency):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 8 -D 20
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 8 -D 20
 echo "## Margo OFI/GNI (bw, 1MB unaligned):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 1 -D 20
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 1 -D 20
 echo "## Margo OFI/GNI (bw, 1MB unaligned, 8x concurrency):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 8 -D 20
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 8 -D 20
 
 
 echo "## Margo OFI/GNI (round trip, Hg busy spin):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-latency -i 100000 -n "gni://" -t 0,0
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-latency -i 100000 -n "gni://" -t 0,0
 echo "## Margo OFI/GNI (bw, 1MiB, Hg busy spin):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 1 -D 20 -t 0,0
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 1 -D 20 -t 0,0
 echo "## Margo OFI/GNI (bw, 1MiB, 8x concurrency, Hg busy spin):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 8 -D 20 -t 0,0
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n "gni://" -c 8 -D 20 -t 0,0
 echo "## Margo OFI/GNI (bw, 8MiB, Hg busy spin):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 1 -D 20 -t 0,0
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 1 -D 20 -t 0,0
 echo "## Margo OFI/GNI (bw, 8MiB, 8x concurrency, Hg busy spin):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 8 -D 20-t 0,0
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 8388608 -n "gni://" -c 8 -D 20-t 0,0
 echo "## Margo OFI/GNI (bw, 1MB unaligned, Hg busy spin):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 1 -D 20-t 0,0
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 1 -D 20-t 0,0
 echo "## Margo OFI/GNI (bw, 1MB unaligned, 8x concurrency, Hg busy spin):"
-aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 8 -D 20 -t 0,0
+aprun -cc none -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c 8 -D 20 -t 0,0
 
 # echo "## Margo BMI/TCP (round trip):"
-# aprun -d 64 -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./margo-p2p-latency -i 100000 -n bmi+tcp://
+# aprun -cc none -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./margo-p2p-latency -i 100000 -n bmi+tcp://
 # echo "## Margo BMI/TCP (bw):"
-# aprun -d 64 -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 1 -D 20
+# aprun -cc none -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 1 -D 20
 # echo "## Margo BMI/TCP (bw, 8x concurrency):"
-# aprun -d 64 -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 8 -D 20
+# aprun -cc none -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1048576 -n bmi+tcp:// -c 8 -D 20
 
 # echo "## WARNING: Margo OFI/TCP (disabled because it hangs as of 8/10/2017)"
-# aprun -d 64 -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+tcp://ipogif0:5000
+# aprun -cc none -n 2 -N 1 ./margo-p2p-latency -i 100000 -n ofi+tcp://ipogif0:5000
 
 
 # figure out nodes and hostnames for use with fi_
@@ -78,17 +78,17 @@ aprun -d 64 -n 2 -N 1 numactl -N 0 -m 0 ./margo-p2p-bw -x 1000000 -n "gni://" -c
 # server_hostname=$(printf "nid%05d\n" ${nodes[0]})
 
 # echo "## fi_pingpong OFI/GNI (one way, double the usec/xfer for round trip):"
-# aprun -d 64 -n 1 -N 1 -L ${nodes[0]} -b -p carns-test ./fi_pingpong -p gni -S 1 -I 10000 > $COBALT_JOBID.fi_pingpong_server.log &
+# aprun -cc none -n 1 -N 1 -L ${nodes[0]} -b -p carns-test ./fi_pingpong -p gni -S 1 -I 10000 > $COBALT_JOBID.fi_pingpong_server.log &
 # sleep 5
-# aprun -d 64 -n 1 -N 1 -L ${nodes[1]} -b -p carns-test ./fi_pingpong -p gni -S 1 -I 10000 $server_hostname > $COBALT_JOBID.fi_pingpong_client.log &
+# aprun -cc none -n 1 -N 1 -L ${nodes[1]} -b -p carns-test ./fi_pingpong -p gni -S 1 -I 10000 $server_hostname > $COBALT_JOBID.fi_pingpong_client.log &
 
 # wait
 # cat $COBALT_JOBID.fi_pingpong_client.log
 
 # one more margo run, this time with diagnostics enabled
 # echo "## Margo OFI/GNI (round trip) with diagnostics:"
-# aprun -d 64 -n 2 -N 1 ./margo-p2p-latency -i 100000 -n "gni://" -d $COBALT_JOBID.diag
+# aprun -cc none -n 2 -N 1 ./margo-p2p-latency -i 100000 -n "gni://" -d $COBALT_JOBID.diag
 
 # echo "## Mercury-runner OFI/GNI (round trip):"
-# aprun -d 64 -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./mercury-runner -q -c 100000 -l 1 -m c -M -d `pwd` 1 h0="gni://" h1
+# aprun -cc none -e MPICH_GNI_NDREG_ENTRIES=2000 -n 2 -N 1 ./mercury-runner -q -c 100000 -l 1 -m c -M -d `pwd` 1 h0="gni://" h1
 
