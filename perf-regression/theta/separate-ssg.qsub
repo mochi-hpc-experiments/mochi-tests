@@ -13,6 +13,8 @@ module swap PrgEnv-intel PrgEnv-gnu
 #spack load -r ssg/lfdi2fo
 
 spack load -r ssg
+# ssg doesn't need bake, but these ssg tests were built as part of sds-tests, which does
+spack load -r bake
 
 module list
 
@@ -27,7 +29,7 @@ apmgr pdomain -c -u $SSG_PDOMAIN
 SSG_STATEFILE=ssg-state.cfg
 rm -f $SSG_STATEFILE
 
-aprun -cc none -p ${SSG_PDOMAIN} -n 1 -N 1 ./ssg-test-separate-group-create ${SSG_STATEFILE} &
+aprun -cc none -p ${SSG_PDOMAIN} -n 1 -N 1 ./ssg-test-separate-group-create ofi+gni:// ${SSG_STATEFILE} &
 
 sleep_time=1;
 while [ ! -e $SSG_STATEFILE ] ; do
@@ -37,7 +39,6 @@ done
 
 xxd $SSG_STATEFILE
 
-aprun -cc none -p ${SSG_PDOMAIN} -n 1 -N 1 ./ssg-test-separate-group-attach ofi+gni ${SSG_STATEFILE}
-kill %1
-apmgr pdomain -r  -u ${SSG_PDOMAIN}
+aprun -cc none -p ${SSG_PDOMAIN} -n 1 -N 1 ./ssg-test-separate-group-attach ofi+gni:// ${SSG_STATEFILE}
+apmgr pdomain -r ${SSG_PDOMAIN}
 
