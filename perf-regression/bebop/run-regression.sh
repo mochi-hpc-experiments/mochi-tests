@@ -61,12 +61,8 @@ spack uninstall -R -y argobots mercury opa-psm2 bake || true
 # nightly tests should test nightly software!
 # spack install ior@develop+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
-# TODO: TEMPORARY as of 2019-10-4, remove later
-# Mobject and the sds-tests benchmarks require different versions of SSG.
-# Skip the former for now until they are in sync again
 # ior acts as our "apex" package here, causing several other packages to build
-
-# spack install ior@develop +mobject
+spack install ior@develop +mobject
 
 spack install bake
 spack install ssg
@@ -105,11 +101,7 @@ export SANDBOX
 sbatch --wait --export=ALL ./margo-regression.sbatch || true
 sbatch --wait --export=ALL ./bake-regression.sbatch || true
 sbatch --wait --export=ALL ./pmdk-regression.sbatch || true
-
-# TODO: TEMPORARY as of 2019-10-4, remove later
-# Mobject and the sds-tests benchmarks require different versions of SSG.
-# Skip the former for now until they are in sync again
-# sbatch --wait --export=ALL ./mobject-regression.sbatch || true
+sbatch --wait --export=ALL ./mobject-regression.sbatch || true
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
