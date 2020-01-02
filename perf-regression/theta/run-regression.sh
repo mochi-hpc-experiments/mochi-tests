@@ -58,10 +58,8 @@ spack repo list
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-#spack spec ior@develop +mobject
-#spack install ior@develop +mobject
-# TODO: above temporarily disabled because
-#       Mobject and the sds-tests benchmarks require different versions of SSG.
+spack spec ior@develop +mobject
+spack install ior@develop +mobject
 spack spec bake
 spack spec ssg ^mpich
 spack install bake
@@ -102,15 +100,15 @@ JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`
 cqwait $JOBID2
 JOBID3=`qsub --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
 cqwait $JOBID3
-# cannot run mobject until updated to match ssg group changes
-#JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
-#cqwait $JOBID4
+ cannot run mobject until updated to match ssg group changes
+JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
+cqwait $JOBID4
 JOBID5=`qsub --env SANDBOX=$SANDBOX ./separate-ssg.qsub`
 cqwait $JOBID5
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID5.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
 mailx -r sds-commits@mcs.anl.gov -s "mochi-regression (theta)" sds-commits@mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
