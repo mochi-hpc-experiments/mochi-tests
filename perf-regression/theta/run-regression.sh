@@ -100,7 +100,7 @@ JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`
 cqwait $JOBID2
 JOBID3=`qsub --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
 cqwait $JOBID3
- cannot run mobject until updated to match ssg group changes
+# cannot run mobject until updated to match ssg group changes
 JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
 cqwait $JOBID4
 JOBID5=`qsub --env SANDBOX=$SANDBOX ./separate-ssg.qsub`
