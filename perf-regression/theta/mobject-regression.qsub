@@ -5,8 +5,8 @@
 #COBALT -A CSC250STDM12
 #COBALT -q debug-cache-quad
 
-export SPACK_ROOT=${HOME}/src/spack
-source ${SPACK_ROOT}/share/spack/setup-env.sh
+export HOME=$SANDBOX
+source ${SANDBOX}/spack/share/spack/setup-env.sh
 
 module swap PrgEnv-intel PrgEnv-gnu
 spack load -r ior@develop +mobject
