@@ -23,7 +23,7 @@ export LD_LIBRARY_PATH=${LIBRARY_PATH}
 export MPICH_GNI_NDREG_ENTRIES=1024
 
 
-SSG_PDOMAIN="ssg-test"
+SSG_PDOMAIN="sds-nightly"
 apmgr pdomain -c -u $SSG_PDOMAIN
 
 SSG_STATEFILE=ssg-state.cfg
@@ -40,5 +40,7 @@ done
 xxd $SSG_STATEFILE
 
 aprun -cc none -p ${SSG_PDOMAIN} -n 1 -N 1 ./ssg-test-separate-group-attach ofi+gni:// ${SSG_STATEFILE}
+# give creator aprun time to clean up the protection domain
+sleep 5
 apmgr pdomain -r ${SSG_PDOMAIN}
 

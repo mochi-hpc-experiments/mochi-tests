@@ -14,7 +14,7 @@ spack load -r ior@develop +mobject
 module list
 
 
-MOBJECT_PDOMAIN="mobject-test"
+MOBJECT_PDOMAIN="sds-nightly"
 apstat -P | grep $MOBJECT_PDOMAIN || apmgr pdomain -c -u $MOBJECT_PDOMAIN
 
 
@@ -24,14 +24,17 @@ export MPICH_GNI_NDREG_ENTRIES=1024
 
 echo " ==== running server "
 export MOBJECT_CLUSTER_FILE=mobject-cluster.gid
-rm ${MOBJECT_CLUSTER_FILE}
-aprun -p ${MOBJECT_PDOMAIN} -n 2 -N 1 mobject-server-daemon ofi+gni:// $MOBJECT_CLUSTER_FILE &
+rm -f ${MOBJECT_CLUSTER_FILE}
+aprun -p ${MOBJECT_PDOMAIN} -n 1 -N 1 mobject-server-daemon ofi+gni:// $MOBJECT_CLUSTER_FILE &
 # give the mobject-server nodes a chance to set up
 sleep 5
 xxd ${MOBJECT_CLUSTER_FILE}
 
 echo " ==== running benchmark "
-aprun -p ${MOCHI_PDOMAIN} -n 1 -N 1 ior -g -a RADOS -t 64k -b 128k --rados.user=foo --rados.pool=bar --rados.conf $MOBJECT_CLUSTER_FILE
+aprun -p ${MOBJECT_PDOMAIN} -n 1 -N 1 ior -g -a RADOS -t 64k -b 128k --rados.user=foo --rados.pool=bar --rados.conf $MOBJECT_CLUSTER_FILE
 
-kill %1
+aprun -p ${MOBJECT_PDOMAIN} -n 1 -N 1 mobject-server-ctl ${MOBJECT_CLUSTER_FILE} stat
+aprun -p ${MOBJECT_PDOMAIN} -n 1 -N 1 mobject-server-ctl ${MOBJECT_CLUSTER_FILE} shutdown
+# give aprun a chance to tear down protection domain
+sleep 5
 apmgr pdomain -r -u $MOBJECT_PDOMAIN
