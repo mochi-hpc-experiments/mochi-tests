@@ -20,6 +20,8 @@ export PSM2_MULTI_EP=1
 
 export MOBJECT_CLUSTER_FILE=mobject-cluster.gid
 echo " ==== running server"
+# clean up from any prior runs
+srun -n 4 --exclusive rm /dev/shm/mobject.dat
 # 'sockets' seems to work well, but we are debugging why 'psm2' is a problem
 srun -n 4 --exclusive mobject-server-daemon sockets:// $MOBJECT_CLUSTER_FILE &
 # backgrounding the 'mobject-server-daemon' means we need to wait just a bit before the cluster is setup
