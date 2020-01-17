@@ -21,9 +21,9 @@ export PSM2_MULTI_EP=1
 export MOBJECT_CLUSTER_FILE=mobject-cluster.gid
 echo " ==== running server"
 # clean up from any prior runs
-srun -n 4 --exclusive rm /dev/shm/mobject.dat
+srun -n 1 --exclusive rm -f /dev/shm/mobject.dat
 # 'sockets' seems to work well, but we are debugging why 'psm2' is a problem
-srun -n 4 --exclusive mobject-server-daemon sockets:// $MOBJECT_CLUSTER_FILE &
+srun -n 1 --exclusive mobject-server-daemon sockets:// $MOBJECT_CLUSTER_FILE &
 # backgrounding the 'mobject-server-daemon' means we need to wait just a bit before the cluster is setup
 sleep 5
 # ... then this confirms the cluster is ready
@@ -33,4 +33,4 @@ echo " ==== running benchmark "
 # -g : intra-test barrier
 # -t: transfer size
 # -b: block size
-srun -n 8 --exclusive ior -g -a RADOS -t 64k -b 128k --rados.user=foo --rados.pool=bar --rados.conf $MOBJECT_CLUSTER_FILE
+srun -n 1 --exclusive ior -g -a RADOS -t 64k -b 128k --rados.user=foo --rados.pool=bar --rados.conf $MOBJECT_CLUSTER_FILE
