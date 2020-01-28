@@ -21,9 +21,9 @@ tail -n $((nnodes/2)) $COBALT_NODEFILE > client_nodes
 
 echo " ==== running server "
 export MOBJECT_CLUSTER_FILE=mobject-cluster.gid
-mpirun -f $COBALT_NODEFILE -n 2 mobject-server-daemon "verbs://" $MOBJECT_CLUSTER_FILE &
+mpirun -f $COBALT_NODEFILE -n 1 mobject-server-daemon "verbs://" $MOBJECT_CLUSTER_FILE &
 # give the mobject-server nodes a chance to set up
 sleep 5
 
 echo " ==== running benchmark "
-mpirun -f $COBALT_NODEFILE -n 2 ior -g -a RADOS -t 64k -b 128k --rados.user=foo --rados.pool=bar --rados.conf $MOBJECT_CLUSTER_FILE
+mpirun -f $COBALT_NODEFILE -n 1 ior -g -a RADOS -t 64k -b 128k --rados.user=foo --rados.pool=bar --rados.conf $MOBJECT_CLUSTER_FILE
