@@ -27,7 +27,7 @@ for xport in bmi+tcp ofi+tcp ofi+sockets; do
 	sleep 1
 
 	echo "## Margo $xport (round trip):"
-	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100000 -n "$xport://$host0:3334" : -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100000 -n "$xport://$host1:3334"
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100 -n "$xport://$host0:3334" : -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100 -n "$xport://$host1:3334"
 	echo "## Margo $xport (bw, 1MiB):"
 	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host0:3334" -c 1 -D 20 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host1:3334" -c 1 -D 20
 	echo "## Margo $xport (bw, 1MiB, 8x concurrency):"
@@ -44,7 +44,7 @@ for xport in bmi+tcp ofi+tcp ofi+sockets; do
 	sleep 1 
 
 	echo "## Margo $xport (round trip, Hg busy spin):"
-	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100000 -n "$xport://$host0:3334" -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100000 -n "$xport://$host1:3334" -t 0,0
+	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100 -n "$xport://$host0:3334" -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-latency -i 100 -n "$xport://$host1:3334" -t 0,0
 	echo "## Margo $xport (bw, 1MiB, Hg busy spin):"
 	mpirun -f $COBALT_NODEFILE -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host0:3334" -c 1 -D 20 -t 0,0 : -n 1 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "$xport://$host1:3334" -c 1 -D 20 -t 0,0
 	echo "## Margo $xport (bw, 1MiB, 8x concurrency, Hg busy spin):"
