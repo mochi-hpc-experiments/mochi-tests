@@ -13,7 +13,7 @@ export FI_MR_CACHE_MAX_COUNT=0
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r ssg 
 
-module list
+spack find --loaded
 
 # echo "## MPI (one way, double the latency for round trip):"
 # mpirun -f $COBALT_NODEFILE -n 2 ./osu_latency

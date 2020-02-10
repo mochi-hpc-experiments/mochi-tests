@@ -12,7 +12,7 @@ export FI_MR_CACHE_MAX_COUNT=0
 . ${SANDBOX}/spack/share/spack/setup-env.sh
 spack load -r ior@develop +mobject
 
-module list
+spack find --loaded
 
 # make half the nodes servers, half clients
 nnodes=$(wc -l <$COBALT_NODEFILE)

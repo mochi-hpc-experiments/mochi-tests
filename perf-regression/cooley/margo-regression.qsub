@@ -16,7 +16,7 @@ spack load -r ssg
 spack load -r $BAKE_STABLE_VER
 spack load -r mvapich2
 
-module list
+spack find --loaded
 
 # echo "## MPI (one way, double the latency for round trip):"
 # mpirun -f $COBALT_NODEFILE -n 2 ./osu_latency

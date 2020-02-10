@@ -22,7 +22,7 @@ spack load -r ssg
 spack load -r $BAKE_STABLE_VER
 spack load -r mvapich2
 
-module list
+spack find --loaded
 
 echo "### NOTE: all results in this output are using Kove XPD volumes"
 echo "### NOTE: ALL BAKE RESULTS BELOW are using 2nd socket on cooley nodes: cores 6-11, also using numactl to constrain memory allocations"

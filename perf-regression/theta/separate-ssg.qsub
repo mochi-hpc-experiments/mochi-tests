@@ -16,7 +16,7 @@ spack load -r ssg
 # ssg doesn't need bake, but these ssg tests were built as part of sds-tests, which does
 spack load -r bake
 
-module list
+spack find --loaded
 
 # spack won't set LD_LIBRARY_PATH for us
 export LD_LIBRARY_PATH=${LIBRARY_PATH}

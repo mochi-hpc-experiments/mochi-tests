@@ -13,7 +13,7 @@ export LMOD_PAGER=none
 
 spack load -r ior
 
-module list
+spack find --loaded
 
 # make sure that MPI and libfabric can share PSM2
 export PSM2_MULTI_EP=1

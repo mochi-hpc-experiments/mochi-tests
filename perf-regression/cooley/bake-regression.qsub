@@ -16,7 +16,7 @@ spack load -r ssg
 spack load -r $BAKE_STABLE_VER
 spack load -r mvapich2
 
-module list
+spack find --loaded
 
 echo "### NOTE: all benchmarks are using numactl to keep processes on socket 1"
 

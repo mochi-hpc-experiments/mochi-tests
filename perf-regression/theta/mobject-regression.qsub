@@ -11,7 +11,7 @@ source ${SANDBOX}/spack/share/spack/setup-env.sh
 module swap PrgEnv-intel PrgEnv-gnu
 spack load -r ior@develop +mobject
 
-module list
+spack find --loaded
 
 
 MOBJECT_PDOMAIN="sds-nightly"

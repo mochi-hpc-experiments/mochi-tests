@@ -16,7 +16,7 @@ module load numactl boost cmake
 spack load -r ssg
 spack load -r bake
 
-module list
+spack find --loaded
 
 # make sure that MPI and libfabric can share PSM2
 export PSM2_MULTI_EP=1

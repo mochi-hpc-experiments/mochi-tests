@@ -7,7 +7,7 @@ spack load -r ssg
 spack load -r bake
 spack load -r mpich
 
-module list
+spack find --loaded
 
 export LD_LIBRARY_PATH=$LIBRARY_PATH
 

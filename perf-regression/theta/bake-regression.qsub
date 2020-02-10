@@ -19,7 +19,7 @@ module load cce
 spack load -r ssg 
 spack load -r bake
 
-module list
+spack find --loaded
 
 # NOTE: rpath doesn't seem to be set correctly, and the paths we need are 
 #  in LIBRARY_PATH instead of LD_LIBRARY_PATH

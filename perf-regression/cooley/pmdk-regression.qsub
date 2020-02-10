@@ -16,7 +16,7 @@ spack load -r ssg
 spack load -r $BAKE_STABLE_VER
 spack load -r mvapich2
 
-module list
+spack find --loaded
 
 echo "## PMDK (8x concurrency):"
 rm -f /dev/shm/foo.dat
