@@ -165,7 +165,7 @@ int main(int argc, char **argv)
     }
 
     /* actually start margo */
-    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 1, -1);
+    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 0, -1);
     assert(mid);
 
     if(g_opts.diag_file_name)
