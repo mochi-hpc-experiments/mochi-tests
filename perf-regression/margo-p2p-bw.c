@@ -279,10 +279,15 @@ int main(int argc, char **argv)
         assert(ret == 0);
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
-
     if(my_mpi_rank == 1)
     {
+        /* TODO: this is a hack; we need a better way to wait for services
+         * to be ready.  MPI Barriers aren't safe without setting aside
+         * threads to make sure that servers can answer RPCs.
+         */
+        /* wait for server to be ready */
+        margo_thread_sleep(mid, 3000);
+
         /* rank 1 (client) initiates benchmark */
 
         /* warmup */
