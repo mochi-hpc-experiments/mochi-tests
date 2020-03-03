@@ -56,7 +56,7 @@ spack repo add ${SANDBOX}/sds-repo
 # sanity check
 spack repo list
 # clean out any stray packages from previous runs, just in case
-spack uninstall -R -y argobots mercury opa-psm2 bake || true
+spack uninstall -R -y argobots mercury opa-psm2 mochi-bake || true
 
 # nightly tests should test nightly software!
 # spack install ior@develop+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
@@ -64,16 +64,16 @@ spack uninstall -R -y argobots mercury opa-psm2 bake || true
 # ior acts as our "apex" package here, causing several other packages to build
 spack install ior@develop +mobject
 
-spack install bake
-spack install ssg
+spack install mochi-bake
+spack install mochi-ssg
 
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 # load ssg and bake because they are needed by things compiled outside of
 # spack later in this script
-spack load -r ssg
-spack load -r bake
+spack load -r mochi-ssg
+spack load -r mochi-bake
 
 # sds-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
