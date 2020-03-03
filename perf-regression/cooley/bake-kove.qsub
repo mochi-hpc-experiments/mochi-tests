@@ -17,8 +17,8 @@ export KDSA_MPIO_MAX_CONN=1
 export PMDK_PATH="/xmem/xpdha"
 
 . $SANDBOX/spack/share/spack/setup-env.sh
-BAKE_STABLE_VER=`spack find bake |grep bake |grep -v file-backend`
-spack load -r ssg
+BAKE_STABLE_VER=`spack find mochi-bake |grep mochi-bake |grep -v file-backend`
+spack load -r mochi-ssg
 spack load -r $BAKE_STABLE_VER
 spack load -r mvapich2
 
@@ -69,7 +69,7 @@ kdsa_manage connect mlx5_0.1/260535867639876.8:124391e4-a843-4cc8-ab28-39a93c7cc
 # benchmark executable as well for the one that was linked against this
 # backend and has it's rpath set accordingly.
 spack unload $BAKE_STABLE_VER
-spack load -r bake@dev-file-backend
+spack load -r mochi-bake@dev-file-backend
 
 echo "### verbs kove filesystem no threads, pipelined"
 sleep 1

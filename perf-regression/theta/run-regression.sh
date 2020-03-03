@@ -58,10 +58,10 @@ spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
 spack spec ior@develop +mobject
 spack install ior@develop +mobject
-spack spec bake
-spack spec ssg ^mpich
-spack install bake
-spack install ssg ^mpich
+spack spec mochi-bake
+spack spec mochi-ssg ^mpich
+spack install mochi-bake
+spack install mochi-ssg ^mpich
 
 
 # deliberately repeat setup-env step after building modules to ensure
@@ -69,8 +69,8 @@ spack install ssg ^mpich
 . $SANDBOX/spack/share/spack/setup-env.sh
 # load ssg and bake because they are needed by things compiled outside of
 # spack later in this script
-spack load -r ssg
-spack load -r bake
+spack load -r mochi-ssg
+spack load -r mochi-bake
 
 # sds-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="

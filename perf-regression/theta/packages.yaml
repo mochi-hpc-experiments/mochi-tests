@@ -52,7 +52,7 @@ packages:
         paths:
             openssl@1.0.2: /usr
         buildable: False
-    ssg:
+    mochi-ssg:
         variants: +mpi
     libfabric:
         variants: fabrics=gni

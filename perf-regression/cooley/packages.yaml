@@ -83,7 +83,7 @@ packages:
         paths:
             texinfo@5.1: /usr
         buildable: False
-    ssg:
+    mochi-ssg:
         variants: +mpi
     libfabric:
         variants: fabrics=verbs,rxm,sockets
