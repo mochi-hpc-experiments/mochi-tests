@@ -59,19 +59,19 @@ spack bootstrap
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
 spack install ior@develop +mobject
-spack install ssg
-spack install bake
+spack install mochi-ssg
+spack install mochi-bake
 # check what stable version of bake we got
-BAKE_STABLE_VER=`spack find bake |grep bake |grep -v file-backend`
+BAKE_STABLE_VER=`spack find mochi-bake |grep mochi-bake |grep -v file-backend`
 # load an additional version of bake that uses a file backend
 # temporary: thallium@develop contains fixes for recent argobots opaque type changes
-spack install bake@dev-file-backend ^thallium@develop
+spack install mochi-bake@dev-file-backend ^mochi-thallium@develop
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 # load ssg and bake because they are needed by things compiled outside of
 # spack later in this script
-spack load -r ssg
+spack load -r mochi-ssg
 spack load -r $BAKE_STABLE_VER
 
 # sds-tests
@@ -88,7 +88,7 @@ make install
 # switch bake versions and build another copy with file backend
 echo "=== BUILDING SDS TEST PROGRAMS WITH FILE BACKEND ==="
 spack unload $BAKE_STABLE_VER
-spack load -r bake@dev-file-backend
+spack load -r mochi-bake@dev-file-backend
 cd $SANDBOX/sds-tests
 mkdir build-file
 cd build-file
