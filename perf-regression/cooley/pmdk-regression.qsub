@@ -11,7 +11,7 @@ export HOME=$SANDBOX
 export FI_MR_CACHE_MAX_COUNT=0
 
 . $SANDBOX/spack/share/spack/setup-env.sh
-BAKE_STABLE_VER=`spack find bake |grep bake |grep -v file-backend`
+BAKE_STABLE_VER=`spack find mochi-bake |grep mochi-bake |grep -v file-backend`
 spack load -r mochi-ssg
 spack load -r $BAKE_STABLE_VER
 spack load -r mvapich2
