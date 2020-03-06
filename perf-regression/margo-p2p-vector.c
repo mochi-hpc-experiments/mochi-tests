@@ -4,8 +4,19 @@
  * See COPYRIGHT in top-level directory.
  */
 
-/* Effective streaming bandwidth test, as measured by client including RPC
- * used to start and complete the streaming operation.
+/* Streaming bandwidth test that repeatedly transfers the same buffer until
+ * time expires.  The buffer size is split into a user-defined number of
+ * discrete regions, expressed as a single vector to Mercury.
+ *
+ * The vectors are contiguous in memory.  There are three possible ways that
+ * a given Mercury/network combination could handle this, ranked in order of
+ * their likely performance:
+ *
+ * - detect that the regions are contiguous and merge them into a single
+ *   buffer for registration and transfer
+ * - treat them as discrete regions, but use vector support at the network
+ *   layer to transfer them in a single operation
+ * - register and transfer each region independently
  *
  * NOTE: This test is not as clean as it could be.  Because it is set up as
  * an MPI program, the server is able to make assumptions about the pattern;
