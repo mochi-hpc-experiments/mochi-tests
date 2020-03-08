@@ -43,7 +43,7 @@
 
 struct options
 {
-    int xfer_size;
+    long unsigned xfer_size;
     int duration_seconds;
     int concurrency;
     int threads;
@@ -53,6 +53,7 @@ struct options
     char* na_transport;
     int align_buffer;
     int warmup_seconds;
+    int vector_len;
 };
 
 static int parse_args(int argc, char **argv, struct options *opts);
@@ -141,7 +142,7 @@ int main(int argc, char **argv)
 
     if(!g_buffer)
     {
-        fprintf(stderr, "Error: unable to allocate %d byte buffer.\n", g_opts.xfer_size);
+        fprintf(stderr, "Error: unable to allocate %lu byte buffer.\n", g_opts.xfer_size);
         return(-1);
     }
 
@@ -226,10 +227,28 @@ int main(int argc, char **argv)
          * benchmark
          */
         void* buffer = g_buffer;
+        void **buf_ptrs;
+        hg_size_t *buf_sizes;
+        int i;
+
+        buf_ptrs = malloc(g_opts.vector_len * sizeof(*buf_ptrs));
+        assert(buf_ptrs);
+        buf_sizes = malloc(g_opts.vector_len * sizeof(*buf_sizes));
+        assert(buf_sizes);
+
+        /* express as a vector of contiguous regions */
+        for(i=0; i<g_opts.vector_len; i++)
+        {
+            buf_sizes[i] = g_opts.xfer_size / g_opts.vector_len;
+            buf_ptrs[i] = buffer + (buf_sizes[0] * i);
+        }
 
         /* register memory for xfer */
-        ret = margo_bulk_create(mid, 1, &buffer, &g_opts.xfer_size, HG_BULK_READWRITE, &g_bulk_handle);
+        ret = margo_bulk_create(mid, g_opts.vector_len, buf_ptrs, buf_sizes, HG_BULK_READWRITE, &g_bulk_handle);
         assert(ret == 0);
+
+        free(buf_ptrs);
+        free(buf_sizes);
 
         /* set up abt pool */
         if(g_opts.threads == 0)
@@ -343,6 +362,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     memset(opts, 0, sizeof(*opts));
 
     opts->concurrency = 1;
+    opts->vector_len = 1;
 
     /* default to using whatever the standard timeout is in margo */
     opts->mercury_timeout_client = UINT_MAX;
@@ -350,7 +370,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     /* warm up for 1 second by default */
     opts->warmup_seconds = 1;
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:aw:")) != -1)
+    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:aw:v:")) != -1)
     {
         switch(opt)
         {
@@ -363,7 +383,12 @@ static int parse_args(int argc, char **argv, struct options *opts)
                 }
                 break;
             case 'x':
-                ret = sscanf(optarg, "%d", &opts->xfer_size);
+                ret = sscanf(optarg, "%lu", &opts->xfer_size);
+                if(ret != 1)
+                    return(-1);
+                break;
+            case 'v':
+                ret = sscanf(optarg, "%d", &opts->vector_len);
                 if(ret != 1)
                     return(-1);
                 break;
@@ -408,6 +433,9 @@ static int parse_args(int argc, char **argv, struct options *opts)
         }
     }
 
+    if(opts->xfer_size % opts->vector_len)
+        return(-1);
+
     if(opts->xfer_size < 1 || opts->concurrency < 1 || opts->duration_seconds < 1 || !opts->na_transport || opts->warmup_seconds < 0)
     {
         return(-1);
@@ -421,9 +449,10 @@ static void usage(void)
     fprintf(stderr,
         "Usage: "
         "margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
-        "\t-x <xfer_size> - size of each bulk tranfer in bytes\n"
+        "\t-x <xfer_size> - size of each bulk tranfer in bytes, must be evenly divisible by vector len\n"
         "\t-D <duration> - duration of test in seconds\n"
         "\t-n <na> - na transport\n"
+        "\t-v <vector len> - number of discrete regions per transfer\n"
         "\t[-c <concurrency>] - number of concurrent operations to issue with ULTs\n"
         "\t[-T <os threads>] - number of dedicated operating system threads to run ULTs on\n"
         "\t[-d <filename>] - enable diagnostics output\n"
@@ -547,6 +576,8 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     hg_size_t i;
     hg_size_t bytes_to_check;
     double start_ts, end_ts;
+    void **buf_ptrs;
+    hg_size_t *buf_sizes;
 
     /* fill pattern in origin buffer */
     for(i=0; i<(g_opts.xfer_size/sizeof(i)); i++)
@@ -558,8 +589,25 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     ret = margo_create(mid, target_addr, id, &handle);
     assert(ret == 0);
 
-    ret = margo_bulk_create(mid, 1, &buffer, &g_opts.xfer_size, HG_BULK_READWRITE, &in.bulk_handle);
+    buf_ptrs = malloc(g_opts.vector_len * sizeof(*buf_ptrs));
+    assert(buf_ptrs);
+    buf_sizes = malloc(g_opts.vector_len * sizeof(*buf_sizes));
+    assert(buf_sizes);
+
+    /* express as a vector of contiguous regions */
+    for(i=0; i<g_opts.vector_len; i++)
+    {
+        buf_sizes[i] = g_opts.xfer_size / g_opts.vector_len;
+        buf_ptrs[i] = buffer + (buf_sizes[0] * i);
+    }
+
+    /* register memory for xfer */
+    ret = margo_bulk_create(mid, g_opts.vector_len, buf_ptrs, buf_sizes, HG_BULK_READWRITE, &in.bulk_handle);
     assert(ret == 0);
+
+    free(buf_ptrs);
+    free(buf_sizes);
+
     in.op = HG_BULK_PULL;
     in.shutdown = 0;
     in.duration = duration;
@@ -576,7 +624,7 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     {
         printf("<op>\t<warmup_seconds>\t<concurrency>\t<threads>\t<xfer_size>\t<total_bytes>\t<seconds>\t<MiB/s>\t<xfer_memory>\t<align_buffer>\n");
 
-        printf("PULL\t%d\t%d\t%d\t%d\t%lu\t%f\t%f\t%d\n",
+        printf("PULL\t%d\t%d\t%d\t%lu\t%lu\t%f\t%f\t%d\n",
             g_opts.warmup_seconds,
             g_opts.concurrency,
             g_opts.threads,
@@ -606,7 +654,7 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
 
     if(print_flag)
     {
-        printf("PUSH\t%d\t%d\t%d\t%d\t%lu\t%f\t%f\t%d\n",
+        printf("PUSH\t%d\t%d\t%d\t%lu\t%lu\t%f\t%f\t%d\n",
             g_opts.warmup_seconds,
             g_opts.concurrency,
             g_opts.threads,
