@@ -64,8 +64,7 @@ spack install mochi-bake
 # check what stable version of bake we got
 BAKE_STABLE_VER=`spack find mochi-bake |grep mochi-bake |grep -v file-backend`
 # load an additional version of bake that uses a file backend
-# temporary: thallium@develop contains fixes for recent argobots opaque type changes
-spack install mochi-bake@dev-file-backend ^mochi-thallium@develop
+spack install mochi-bake@dev-file-backend
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
