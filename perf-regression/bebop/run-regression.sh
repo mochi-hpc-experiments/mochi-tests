@@ -60,10 +60,10 @@ spack repo list
 spack uninstall -R -y argobots mercury opa-psm2 mochi-bake || true
 
 # nightly tests should test nightly software!
-# spack install ior@develop+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
+# spack install ior@master+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@develop +mobject
+spack install ior@master +mobject
 
 spack install mochi-bake
 spack install mochi-ssg

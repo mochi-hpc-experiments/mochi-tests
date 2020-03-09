@@ -9,7 +9,7 @@ export HOME=$SANDBOX
 source ${SANDBOX}/spack/share/spack/setup-env.sh
 
 module swap PrgEnv-intel PrgEnv-gnu
-spack load -r ior@develop +mobject
+spack load -r ior@master +mobject
 
 spack find --loaded
 

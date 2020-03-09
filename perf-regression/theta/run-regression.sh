@@ -57,8 +57,8 @@ spack repo list
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-spack spec ior@develop +mobject
-spack install ior@develop +mobject
+spack spec ior@master +mobject
+spack install ior@master +mobject
 spack spec mochi-bake
 spack spec mochi-ssg ^mpich
 spack install mochi-bake
