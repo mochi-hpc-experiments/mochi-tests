@@ -10,7 +10,6 @@ set -e
 # grab helpful things (especially newer compiler) from softenv
 source /etc/profile.d/00softenv.sh
 soft add +gcc-8.2.0
-soft add +autotools-feb2016
 soft add +cmake-3.9.1
 soft add +mvapich2
 

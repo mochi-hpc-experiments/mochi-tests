@@ -5,7 +5,7 @@ packages:
         buildable: False
     m4:
         paths:
-            m4@1.4.16: /soft/buildtools/autotools/aug2013/
+            m4@1.4.16: /
         buildable: False
     openssl:
         paths:
@@ -17,11 +17,11 @@ packages:
         buildable: False
     autoconf:
         paths:
-            autoconf@2.69: /soft/buildtools/autotools/feb2016
+            autoconf@2.69: /
         buildable: False
     automake:
         paths:
-            automake@1.15: /soft/buildtools/autotools/feb2016
+            automake@1.15: /
         buildable: False
     bzip2:
         paths:
