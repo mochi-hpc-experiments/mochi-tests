@@ -30,6 +30,7 @@ mkdir $SANDBOX
 mkdir $PREFIX
 mkdir $JOBDIR
 cp $ORIGIN/margo-regression.qsub $JOBDIR
+cp $ORIGIN/margo-vector-regression.qsub $JOBDIR
 cp $ORIGIN/bake-regression.qsub $JOBDIR
 cp $ORIGIN/pmdk-regression.qsub $JOBDIR
 cp $ORIGIN/mobject-regression.qsub $JOBDIR
@@ -109,6 +110,7 @@ make install
 echo "=== SUBMITTING AND WAITING FOR JOB ==="
 cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
+cp $PREFIX/bin/margo-p2p-vector $JOBDIR
 cp $PREFIX/bin/bake-p2p-bw $JOBDIR
 cp ${PREFIX}-file/bin/bake-p2p-bw $JOBDIR/bake-p2p-bw-file
 cp $PREFIX/bin/pmdk-bw $JOBDIR
@@ -126,10 +128,12 @@ JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
 cqwait $JOBID4
 JOBID5=`qsub --env SANDBOX=$SANDBOX ./bake-kove.qsub`
 cqwait $JOBID5
+JOBID6=`qsub --env SANDBOX=$SANDBOX ./margo-vector-regression.qsub`
+cqwait $JOBID6
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* $JOBID6.* > combined.$JOBID.txt
 dos2unix combined.$JOBID.txt
 mailx -s "mochi-regression (cooley)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
