@@ -33,6 +33,7 @@ mkdir $SANDBOX
 mkdir $PREFIX
 mkdir $JOBDIR
 cp $ORIGIN/margo-regression.sbatch $JOBDIR
+cp $ORIGIN/margo-vector-regression.sbatch $JOBDIR
 cp $ORIGIN/bake-regression.sbatch $JOBDIR
 cp $ORIGIN/pmdk-regression.sbatch $JOBDIR
 cp $ORIGIN/mobject-regression.sbatch $JOBDIR
@@ -93,6 +94,7 @@ make install
 echo "=== SUBMITTING AND WAITING FOR JOB ==="
 cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
+cp $PREFIX/bin/margo-p2p-vector $JOBDIR
 cp $PREFIX/bin/bake-p2p-bw $JOBDIR
 cp $PREFIX/bin/pmdk-bw $JOBDIR
 cd $JOBDIR
@@ -102,6 +104,7 @@ sbatch --wait --export=ALL ./margo-regression.sbatch || true
 sbatch --wait --export=ALL ./bake-regression.sbatch || true
 sbatch --wait --export=ALL ./pmdk-regression.sbatch || true
 sbatch --wait --export=ALL ./mobject-regression.sbatch || true
+sbatch --wait --export=ALL ./margo-vector-regression.sbatch || true
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
