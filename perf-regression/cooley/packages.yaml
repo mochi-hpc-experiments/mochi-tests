@@ -92,7 +92,9 @@ packages:
     libfabric:
         variants: fabrics=verbs,rxm,sockets
     mvapich2:
-        variants: fabrics=mrail
+        paths:
+            mvapich2@2.2: /soft/libraries/mpi/mvapich2/gcc/
+        buildable: False
     mercury:
         variants: ~boostsys
     libxml2:
