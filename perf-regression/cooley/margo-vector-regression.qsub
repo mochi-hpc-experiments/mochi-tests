@@ -10,8 +10,9 @@ export HOME=$SANDBOX
 #       discussion in https://github.com/ofiwg/libfabric/issues/5244
 export FI_MR_CACHE_MAX_COUNT=0
 
-. SANDBOX/spack/share/spack/setup-env.sh
+. ${SANDBOX}/spack/share/spack/setup-env.sh
 spack load -r mochi-ssg
+spack load -r mochi-bake
 
 spack find --loaded
 

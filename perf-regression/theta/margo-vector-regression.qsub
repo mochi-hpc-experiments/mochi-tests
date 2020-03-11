@@ -19,6 +19,8 @@ module load cce
 
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack load -r mochi-ssg
+# top-level builder ends up building everything with pmem libs even if not using bake directly
+spack load -r mochi-bake
 
 spack find --loaded
 
