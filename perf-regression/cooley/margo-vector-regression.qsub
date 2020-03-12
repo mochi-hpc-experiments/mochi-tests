@@ -12,6 +12,11 @@ export FI_MR_CACHE_MAX_COUNT=0
 
 . ${SANDBOX}/spack/share/spack/setup-env.sh
 spack load -r mochi-ssg
+# looks strange but pmem dependency due to way all nightly tests built:
+# top-level configure looks for and brings in all the libraries any of the
+# tests might need
+spack load -r pmdk
+
 
 spack find --loaded
 
