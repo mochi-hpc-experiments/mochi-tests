@@ -21,11 +21,11 @@ spack load -r pmdk
 spack find --loaded
 
 echo "## Margo OFI/VERBS (vector benchmark with len 1, 512KiB xfers):"
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-vector -x 524288 -n "verbs://" -c 1 -D 20
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-vector -x 524288 -n "verbs://mlx5_0" -c 1 -D 20
 
 sleep 1
 
 echo "## Margo OFI/VERBS (vector benchmark with len 256, 512KiB xfers):"
-mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-vector -x 524288 -n "verbs://" -c 1 -D 20 -v 256
+mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-vector -x 524288 -n "verbs://mlx5_0" -c 1 -D 20 -v 256
 
 
