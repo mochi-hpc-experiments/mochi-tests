@@ -33,7 +33,9 @@ cp $ORIGIN/margo-vector-regression.qsub $JOBDIR
 cp $ORIGIN/bake-regression.qsub $JOBDIR
 cp $ORIGIN/pmdk-regression.qsub $JOBDIR
 cp $ORIGIN/mobject-regression.qsub $JOBDIR
-cp $ORIGIN/bake-kove.qsub $JOBDIR
+
+# Skipping Kove tests as of April 2020
+# cp $ORIGIN/bake-kove.qsub $JOBDIR
 
 # set up build environment
 cd $SANDBOX
@@ -125,14 +127,14 @@ JOBID3=`qsub --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
 cqwait $JOBID3
 JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
 cqwait $JOBID4
-JOBID5=`qsub --env SANDBOX=$SANDBOX ./bake-kove.qsub`
-cqwait $JOBID5
+# JOBID5=`qsub --env SANDBOX=$SANDBOX ./bake-kove.qsub`
+# cqwait $JOBID5
 JOBID6=`qsub --env SANDBOX=$SANDBOX ./margo-vector-regression.qsub`
 cqwait $JOBID6
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* $JOBID6.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID6.* > combined.$JOBID.txt
 dos2unix combined.$JOBID.txt
 mailx -s "mochi-regression (cooley)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
