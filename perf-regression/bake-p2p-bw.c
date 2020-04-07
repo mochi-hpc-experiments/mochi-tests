@@ -198,15 +198,15 @@ int main(int argc, char **argv)
         ret = bake_provider_register(mid, 1, BAKE_ABT_POOL_DEFAULT, &provider);
         assert(ret == 0);
 
+        if(g_opts.pipeline_enabled)
+            bake_provider_set_conf(provider, "pipeline_enabled", "1");
+
         ret = bake_provider_add_storage_target(provider, g_opts.bake_pool, &tid);
         if(ret != 0)
         {
             fprintf(stderr, "Error: failed to add bake pool %s\n", g_opts.bake_pool);
             abort();
         }
-
-        if(g_opts.pipeline_enabled)
-            bake_provider_set_conf(provider, "pipeline_enabled", "1");
 
         ret = ABT_eventual_create(0, &bench_stop_eventual);
         assert(ret == 0);
