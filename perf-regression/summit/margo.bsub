@@ -5,6 +5,11 @@
 #BSUB -W 10
 #BSUB -nnodes 2
 
+# disable MR cache in libfabric; still problematic as of libfabric 1.10.1
+export FI_MR_CACHE_MAX_COUNT=0
+# use shared recv context in RXM; should improve scalability
+export FI_OFI_RXM_USE_SRX=1
+
 cd /ccs/home/carns/working/install/bin
 jsrun -n 2 -r 1 ./margo-p2p-latency -i 100000 -n "ofi+verbs;ofi_rxm://"
 jsrun -n 2 -r 1 ./margo-p2p-bw -x 1048576 -n "ofi+verbs;ofi_rxm://" -c 1 -D 20
