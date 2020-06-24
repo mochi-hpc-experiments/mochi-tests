@@ -118,7 +118,6 @@ cp $PREFIX/bin/pmdk-bw $JOBDIR
 # cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
 
-# note: previously we also set --env LD_LIBRARY_PATH=$PREFIX/lib, hopefully no longer needed
 JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
 cqwait $JOBID
 JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`

@@ -9,8 +9,6 @@ spack load -r mpich
 
 spack find --loaded
 
-export LD_LIBRARY_PATH=$LIBRARY_PATH
-
 echo "## PMDK (8x concurrency):"
 rm -f /dev/shm/foo.dat
 truncate -s 60G /dev/shm/foo.dat

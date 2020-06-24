@@ -9,8 +9,6 @@ spack load -r mpich
 
 spack find --loaded
 
-export LD_LIBRARY_PATH=$LIBRARY_PATH
-
 echo "## Bake TCP:"
 rm -f /dev/shm/foo.dat
 bake-mkpool -s 60G /dev/shm/foo.dat

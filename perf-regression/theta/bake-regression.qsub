@@ -21,10 +21,6 @@ spack load -r mochi-bake
 
 spack find --loaded
 
-# NOTE: rpath doesn't seem to be set correctly, and the paths we need are 
-#  in LIBRARY_PATH instead of LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$LIBRARY_PATH
-
 # find nodes in job.  We have to do this so that we can manually specify 
 # in each aprun so that server ranks consitently run on node where we
 # set up storage space

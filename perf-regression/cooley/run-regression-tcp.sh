@@ -83,7 +83,6 @@ cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 cd $JOBDIR
 
-# note: previously we also set --env LD_LIBRARY_PATH=$PREFIX/lib, hopefully no longer needed
 JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression-tcp.qsub`
 cqwait $JOBID
 

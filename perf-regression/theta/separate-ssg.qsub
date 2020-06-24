@@ -18,10 +18,7 @@ spack load -r mochi-bake
 
 spack find --loaded
 
-# spack won't set LD_LIBRARY_PATH for us
-export LD_LIBRARY_PATH=${LIBRARY_PATH}
 export MPICH_GNI_NDREG_ENTRIES=1024
-
 
 SSG_PDOMAIN="sds-nightly"
 apmgr pdomain -c -u $SSG_PDOMAIN

@@ -17,9 +17,6 @@ spack find --loaded
 MOBJECT_PDOMAIN="sds-nightly"
 apstat -P | grep $MOBJECT_PDOMAIN || apmgr pdomain -c -u $MOBJECT_PDOMAIN
 
-
-# spack won't set LD_LIBRARY_PATH for us
-export LD_LIBRARY_PATH=${LIBRARY_PATH}
 export MPICH_GNI_NDREG_ENTRIES=1024
 
 echo " ==== running server "

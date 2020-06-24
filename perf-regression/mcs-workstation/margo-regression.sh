@@ -9,8 +9,6 @@ spack load -r mpich
 
 spack find --loaded
 
-export LD_LIBRARY_PATH=$LIBRARY_PATH
-
 echo "## Margo TCP (round trip):"
 mpirun -np 2 ./margo-p2p-latency -i 100000 -n tcp
 echo "## Margo TCP (bw, 1MiB):"
