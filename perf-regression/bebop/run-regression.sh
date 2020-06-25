@@ -10,10 +10,6 @@
 # exit on any error
 set -e
 
-get_psm2_lib_path() {
-    module show `spack module tcl find opa-psm2` |&grep LD_LIBRARY_PATH | cut -d \" -f 4
-}
-
 # load newer gcc up front
 module load gcc_new/7.3.0
 
@@ -79,15 +75,12 @@ spack load -r mochi-bake
 
 # sds-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
-# TODO: why is this needed?  For some reason when we link software
-#       outside of spack we are not picking up the path from the psm2 package
-LIB_PATH_HACK=$(get_psm2_lib_path)
 cd $SANDBOX/sds-tests
 ./prepare.sh
 mkdir build
 cd build
-echo ../configure --prefix=$PREFIX CC=mpicc LDFLAGS="-L$LIB_PATH_HACK"
-../configure --prefix=$PREFIX CC=mpicc LDFLAGS="-L$LIB_PATH_HACK"
+echo ../configure --prefix=$PREFIX CC=mpicc 
+../configure --prefix=$PREFIX CC=mpicc
 make -j 3
 make install
 
