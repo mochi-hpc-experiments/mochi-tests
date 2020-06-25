@@ -28,6 +28,8 @@ DECLARE_MARGO_RPC_HANDLER(noop_ult);
 
 static hg_id_t noop_id;
 static struct options g_opts;
+static int rpcs_serviced = 0;
+static ABT_eventual rpcs_serviced_eventual;
 
 int main(int argc, char **argv) 
 {
@@ -117,8 +119,24 @@ int main(int argc, char **argv)
     if(my_mpi_rank == 1)
     {
         /* rank 1 runs client code */
+        hg_handle_t handle;
+        hg_addr_t target_addr;
+        int i;
+        int ret;
 
-        /* TODO: issue noop */
+        target_addr = ssg_get_group_member_addr(gid, target);
+        assert(target_addr != HG_ADDR_NULL);
+
+        ret = margo_create(mid, target_addr, noop_id, &handle);
+        assert(ret == 0);
+
+        for(i=0; i<100; i++)
+        {
+            ret = margo_forward(handle, NULL);
+            assert(ret == 0);
+        }
+
+        margo_destroy(handle);
 
         ret = ssg_group_unobserve(gid);
         assert(ret == SSG_SUCCESS);
@@ -127,8 +145,14 @@ int main(int argc, char **argv)
     {
         /* rank 0 acts as server */
 
-        /* for now, just wait a little for client to finish */
-        margo_thread_sleep(mid, 5000);
+        ret = ABT_eventual_create(0, &rpcs_serviced_eventual);
+        assert(ret == 0);
+
+        ABT_eventual_wait(rpcs_serviced_eventual, NULL);
+        assert(rpcs_serviced == (100));
+
+        /* wait a little for other things to finish */
+        margo_thread_sleep(mid, 2000);
 
         ret = ssg_group_destroy(gid);
         assert(ret == SSG_SUCCESS);
@@ -187,6 +211,10 @@ static void noop_ult(hg_handle_t handle)
 {
     margo_respond(handle, NULL);
     margo_destroy(handle);
+
+    rpcs_serviced++;
+    if(rpcs_serviced == 100)
+        ABT_eventual_set(rpcs_serviced_eventual, NULL, 0);
 
     return;
 }
