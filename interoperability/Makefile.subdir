@@ -2,3 +2,4 @@ if HAVE_MARGO
 bin_PROGRAMS += interoperability/margo-plus-non-margo
 endif
 
+interoperability_margo_plus_non_margo_SOURCES = interoperability/margo-plus-non-margo.c interoperability/lib-nm.c

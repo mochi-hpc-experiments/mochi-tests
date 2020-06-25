@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <pthread.h>
 
 #include <mpi.h>
 
@@ -16,6 +17,7 @@
 #include <abt.h>
 #include <ssg.h>
 #include <ssg-mpi.h>
+#include "lib-nm.h"
 
 struct options
 {
@@ -31,7 +33,7 @@ static struct options g_opts;
 static int rpcs_serviced = 0;
 static ABT_eventual rpcs_serviced_eventual;
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
     margo_instance_id mid;
     int nranks;
@@ -66,7 +68,10 @@ int main(int argc, char **argv)
     }
 
     /* actually start margo */
-    mid = margo_init(g_opts.na_transport, MARGO_SERVER_MODE, 0, -1);
+    /* note: enabling progress thread to make sure margo rpcs remain
+     * responsive even if we block in pthread calls (for example)
+     */
+    mid = margo_init(g_opts.na_transport, MARGO_SERVER_MODE, 1, -1);
     assert(mid);
 
     noop_id = MARGO_REGISTER(
@@ -123,10 +128,16 @@ int main(int argc, char **argv)
         hg_addr_t target_addr;
         int i;
         int ret;
+        pthread_t tid;
 
-        target_addr = ssg_get_group_member_addr(gid, target);
+        target_addr = ssg_get_group_member_addr(gid, ssg_get_group_member_id_from_rank(gid, 0));
         assert(target_addr != HG_ADDR_NULL);
 
+        /* create pthread to run some non-margo code */
+        ret = pthread_create(&tid, NULL, nm_run_server, NULL);
+        assert(ret == 0);
+
+        /* do margo stuff */
         ret = margo_create(mid, target_addr, noop_id, &handle);
         assert(ret == 0);
 
@@ -138,20 +149,32 @@ int main(int argc, char **argv)
 
         margo_destroy(handle);
 
+        /* wait for non-margo pthread to exit */
+        pthread_join(tid, NULL);
+
         ret = ssg_group_unobserve(gid);
         assert(ret == SSG_SUCCESS);
     }
     else
     {
         /* rank 0 acts as server */
+        pthread_t tid;
 
         ret = ABT_eventual_create(0, &rpcs_serviced_eventual);
         assert(ret == 0);
 
+        /* create pthread to run some non-margo code */
+        ret = pthread_create(&tid, NULL, nm_run_server, NULL);
+        assert(ret == 0);
+
+        /* wait for for margo service stuff to finish */
         ABT_eventual_wait(rpcs_serviced_eventual, NULL);
         assert(rpcs_serviced == (100));
 
-        /* wait a little for other things to finish */
+        /* wait for non-margo pthread to exit */
+        pthread_join(tid, NULL);
+
+        /* wait a little for client to finish */
         margo_thread_sleep(mid, 2000);
 
         ret = ssg_group_destroy(gid);
