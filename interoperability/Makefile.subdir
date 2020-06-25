@@ -1,0 +1,4 @@
+if HAVE_MARGO
+bin_PROGRAMS += interoperability/margo-plus-non-margo
+endif
+
