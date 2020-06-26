@@ -129,12 +129,15 @@ int main(int argc, char **argv)
         int i;
         int ret;
         pthread_t tid;
+        struct nm_client_args nm_args;
 
         target_addr = ssg_get_group_member_addr(gid, ssg_get_group_member_id_from_rank(gid, 0));
         assert(target_addr != HG_ADDR_NULL);
 
         /* create pthread to run some non-margo code */
-        ret = pthread_create(&tid, NULL, nm_run_server, NULL);
+        nm_args.class = margo_get_class(mid);
+        nm_args.target_addr = target_addr;
+        ret = pthread_create(&tid, NULL, nm_run_client, &nm_args);
         assert(ret == 0);
 
         /* do margo stuff */
@@ -159,12 +162,14 @@ int main(int argc, char **argv)
     {
         /* rank 0 acts as server */
         pthread_t tid;
+        struct nm_server_args nm_args;
 
         ret = ABT_eventual_create(0, &rpcs_serviced_eventual);
         assert(ret == 0);
 
         /* create pthread to run some non-margo code */
-        ret = pthread_create(&tid, NULL, nm_run_server, NULL);
+        nm_args.class = margo_get_class(mid);
+        ret = pthread_create(&tid, NULL, nm_run_server, &nm_args);
         assert(ret == 0);
 
         /* wait for for margo service stuff to finish */
