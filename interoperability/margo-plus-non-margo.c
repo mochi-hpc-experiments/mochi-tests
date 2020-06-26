@@ -4,6 +4,11 @@
  * See COPYRIGHT in top-level directory.
  */
 
+/* Example program demonstrating margo and non-margo users of Mercury in the
+ * same executable.  The margo code is in this file and runs in the main
+ * thread.  The non-margo code is in lib-nm.c and runs in a separate thread.
+ */
+
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>

@@ -4,6 +4,15 @@
  * See COPYRIGHT in top-level directory.
  */
 
+/* Example non-margo code that can run in tandem with margo code.  The
+ * explicit differences from normal Mercury bootstrapping are:
+ *
+ * - assume that a class has already been set up by another party (margo in
+ *   this case)
+ * - create a separate context (with it's own id) in that class to prevent
+ *   interference
+ */
+
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
