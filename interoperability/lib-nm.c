@@ -13,14 +13,36 @@
 
 #include "lib-nm.h"
 
+#define NM_ID 1
+
 void* nm_run_client(void* _arg)
 {
-    /* do stuff using raw mercury interface */
+    struct nm_client_args *nm_args = _arg;
+    hg_context_t *context;
+
+    /* create separate context for this component */
+    context = HG_Context_create_id(nm_args->class, NM_ID);
+    assert(context);
+
+    sleep(1);
+
+    HG_Context_destroy(context);
+
     return(NULL);
 }
 
 void* nm_run_server(void* _arg)
 {
-    /* do stuff using raw mercury interface */
+    struct nm_server_args *nm_args = _arg;
+    hg_context_t *context;
+
+    /* create separate context for this component */
+    context = HG_Context_create_id(nm_args->class, NM_ID);
+    assert(context);
+
+    sleep(1);
+
+    HG_Context_destroy(context);
+
     return(NULL);
 }
