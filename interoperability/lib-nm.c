@@ -72,21 +72,30 @@ static hg_return_t nm_noop_rpc_cb(hg_handle_t handle)
     return ret;
 }
 
-static int client_done_flag = 0;
+static int client_done_count = 0;
 pthread_cond_t client_done_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t client_done_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-struct nm_noop_forward_cb_args
-{
-};
 
 static hg_return_t
 nm_noop_forward_cb(const struct hg_cb_info *callback_info)
 {
+    int ret;
+
+    assert(callback_info->ret == HG_SUCCESS);
+
     pthread_mutex_lock(&client_done_mutex);
-    client_done_flag = 1;
-    pthread_cond_signal(&client_done_cond);
+    client_done_count++;
+    if(client_done_count == 100)
+    {
+        pthread_cond_signal(&client_done_cond);
+        pthread_mutex_unlock(&client_done_mutex);
+        return(HG_SUCCESS);
+    }
     pthread_mutex_unlock(&client_done_mutex);
+
+    /* keep forwarding until we hit the desired count */
+    ret = HG_Forward(callback_info->info.forward.handle, nm_noop_forward_cb, NULL, NULL);
+    assert(ret == 0);
 
     return(HG_SUCCESS);
 }
@@ -99,7 +108,6 @@ void* nm_run_client(void* _arg)
     int ret;
     hg_id_t nm_noop_id;
     hg_handle_t handle;
-    struct nm_noop_forward_cb_args fargs;
 
     /* create separate context for this component */
     pargs.context = HG_Context_create_id(nm_args->class, NM_ID);
@@ -116,11 +124,11 @@ void* nm_run_client(void* _arg)
             nm_noop_id, &handle);
     assert(ret == HG_SUCCESS);
 
-    ret = HG_Forward(handle, nm_noop_forward_cb, &fargs, NULL);
+    ret = HG_Forward(handle, nm_noop_forward_cb, NULL, NULL);
     assert(ret == 0);
 
     pthread_mutex_lock(&client_done_mutex);
-    while(!client_done_flag)
+    while(client_done_count < 100)
         pthread_cond_wait(&client_done_cond, &client_done_mutex);
     pthread_mutex_unlock(&client_done_mutex);
 
