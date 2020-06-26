@@ -11,6 +11,7 @@
 #include <pthread.h>
 
 #include <mercury.h>
+#include <mercury_macros.h>
 
 #include "lib-nm.h"
 
@@ -48,16 +49,34 @@ void* progress_fn(void* _arg)
     return(NULL);
 }
 
+static hg_return_t nm_noop_rpc_cb(hg_handle_t handle)
+{
+    hg_return_t ret = HG_SUCCESS;
+
+    /* Send response back */
+    ret = HG_Respond(handle, NULL, NULL, NULL);
+    assert(ret == HG_SUCCESS);
+
+    ret = HG_Destroy(handle);
+    assert(ret == HG_SUCCESS);
+
+    return ret;
+}
+
 void* nm_run_client(void* _arg)
 {
     struct nm_client_args *nm_args = _arg;
     struct progress_fn_args pargs;
     pthread_t tid;
     int ret;
+    hg_id_t nm_noop_id;
 
     /* create separate context for this component */
     pargs.context = HG_Context_create_id(nm_args->class, NM_ID);
     assert(pargs.context);
+
+    nm_noop_id = MERCURY_REGISTER(nm_args->class, "nm_noop",
+            void, void, NULL);
 
     /* create thread to drive progress */
     ret = pthread_create(&tid, NULL, progress_fn, &pargs);
@@ -79,10 +98,14 @@ void* nm_run_server(void* _arg)
     struct progress_fn_args pargs;
     pthread_t tid;
     int ret;
+    hg_id_t nm_noop_id;
 
     /* create separate context for this component */
     pargs.context = HG_Context_create_id(nm_args->class, NM_ID);
     assert(pargs.context);
+
+    nm_noop_id = MERCURY_REGISTER(nm_args->class, "nm_noop",
+            void, void, nm_noop_rpc_cb);
 
     /* create thread to drive progress */
     ret = pthread_create(&tid, NULL, progress_fn, &pargs);
