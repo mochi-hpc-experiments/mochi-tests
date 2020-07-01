@@ -37,7 +37,7 @@ cp $ORIGIN/margo-regression-tcp.qsub $JOBDIR
 # set up build environment
 cd $SANDBOX
 git clone -q https://github.com/spack/spack.git
-(cd spack && git checkout -b spack-0.14.2 v0.14.2)
+(cd spack && git checkout -b spack-0.15.0 v0.15.0)
 git clone -q https://xgitlab.cels.anl.gov/sds/sds-repo.git
 git clone -q https://xgitlab.cels.anl.gov/sds/sds-tests.git
 

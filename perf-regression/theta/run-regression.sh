@@ -37,9 +37,7 @@ cp ${ORIGIN}/*.qsub ${JOBDIR}
 # set up build environment
 cd $SANDBOX
 git clone -q https://github.com/spack/spack.git
-# temporarily using older version of spack until
-# https://github.com/spack/spack/pull/15630 is in a release
-(cd spack && git checkout -b spack-0.14 v0.14.2)
+(cd spack && git checkout -b spack-0.15.0 v0.15.0)
 git clone -q https://xgitlab.cels.anl.gov/sds/sds-repo.git
 git clone -q https://xgitlab.cels.anl.gov/sds/sds-tests.git
 
