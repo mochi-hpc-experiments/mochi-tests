@@ -51,8 +51,6 @@ cp $ORIGIN/compilers.yaml $HOME/.spack/linux
 spack repo add ${SANDBOX}/sds-repo
 # sanity check
 spack repo list
-# bootstrap spack to get environment modules
-spack bootstrap
 . $SANDBOX/spack/share/spack/setup-env.sh
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true

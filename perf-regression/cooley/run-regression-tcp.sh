@@ -53,8 +53,6 @@ cp $ORIGIN/packages-tcp.yaml $SPACK_ROOT/etc/spack/packages.yaml
 spack repo add ${SANDBOX}/sds-repo
 # sanity check
 spack repo list
-# underlying tools needed by spack
-spack bootstrap
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury rdma-core libfabric bmi || true
 # ssg acts as our "apex" package here, causing several other packages to build

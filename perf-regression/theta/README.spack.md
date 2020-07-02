@@ -6,7 +6,6 @@ To compile the full stack on theta as of August 2018 using spack:
 git clone https://github.com/spack/spack.git
 cd spack
 . share/spack/setup-env.sh
-# do not bootstrap; we will use existing module environment on theta
 
 git clone git@xgitlab.cels.anl.gov:sds/sds-repo
 spack repo add .

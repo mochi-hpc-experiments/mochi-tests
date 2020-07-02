@@ -7,7 +7,6 @@ git clone https://github.com/spack/spack.git
 git clone git@xgitlab.cels.anl.gov:sds/sds-repo
 cd spack
 . share/spack/setup-env.sh
-spack bootstrap
 cd ../sds-repo
 spack repo add .
 ```

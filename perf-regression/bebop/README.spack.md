@@ -12,7 +12,6 @@ module load numactl
 git clone https://github.com/spack/spack.git
 cd spack
 . share/spack/setup-env.sh
-# do not bootstrap; we will use existing lmod install on Bebop
 
 git clone git@xgitlab.cels.anl.gov:sds/sds-repo
 spack repo add .
