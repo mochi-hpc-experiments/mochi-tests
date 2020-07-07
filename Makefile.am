@@ -34,3 +34,4 @@ LDADD =
 include Make.rules
 
 include $(top_srcdir)/perf-regression/Makefile.subdir
+include $(top_srcdir)/interoperability/Makefile.subdir
