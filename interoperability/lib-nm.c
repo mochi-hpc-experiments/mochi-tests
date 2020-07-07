@@ -46,7 +46,7 @@ void* progress_fn(void* _arg)
         }while((ret == HG_SUCCESS) && actual_count);
 
         if(!shutdown_flag)
-            ret = HG_Progress(pargs->context, 100);
+            ret = HG_Progress(pargs->context, 10);
 
         if(ret != HG_SUCCESS && ret != HG_TIMEOUT)
         {
@@ -61,6 +61,10 @@ void* progress_fn(void* _arg)
 static hg_return_t nm_noop_rpc_cb(hg_handle_t handle)
 {
     hg_return_t ret = HG_SUCCESS;
+    pthread_t tid;
+
+    tid = pthread_self();
+    printf("# (non-margo) nm_noop_rpc_cb tid: %lu\n", tid);
 
     /* Send response back */
     ret = HG_Respond(handle, NULL, NULL, NULL);
@@ -85,7 +89,7 @@ nm_noop_forward_cb(const struct hg_cb_info *callback_info)
 
     pthread_mutex_lock(&client_done_mutex);
     client_done_count++;
-    if(client_done_count == 100)
+    if(client_done_count == 10)
     {
         pthread_cond_signal(&client_done_cond);
         pthread_mutex_unlock(&client_done_mutex);
@@ -120,6 +124,8 @@ void* nm_run_client(void* _arg)
     ret = pthread_create(&tid, NULL, progress_fn, &pargs);
     assert(ret == 0);
 
+    printf("# (non-margo) client progress_fn tid: %lu\n", tid);
+
     ret = HG_Create(pargs.context, nm_args->target_addr,
             nm_noop_id, &handle);
     assert(ret == HG_SUCCESS);
@@ -128,7 +134,7 @@ void* nm_run_client(void* _arg)
     assert(ret == 0);
 
     pthread_mutex_lock(&client_done_mutex);
-    while(client_done_count < 100)
+    while(client_done_count < 10)
         pthread_cond_wait(&client_done_cond, &client_done_mutex);
     pthread_mutex_unlock(&client_done_mutex);
 
@@ -158,6 +164,8 @@ void* nm_run_server(void* _arg)
     /* create thread to drive progress */
     ret = pthread_create(&tid, NULL, progress_fn, &pargs);
     assert(ret == 0);
+
+    printf("# (non-margo) server progress_fn tid: %lu\n", tid);
 
     sleep(1);
 

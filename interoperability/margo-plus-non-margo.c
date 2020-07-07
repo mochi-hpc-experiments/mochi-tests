@@ -51,6 +51,7 @@ int main(int argc, char **argv)
     char processor_name[MPI_MAX_PROCESSOR_NAME];
     int group_size;
     int ret;
+    pthread_t tid;
 
     MPI_Init(&argc, &argv);
 
@@ -71,6 +72,9 @@ int main(int argc, char **argv)
             usage();
         exit(EXIT_FAILURE);
     }
+
+    tid = pthread_self();
+    printf("# (margo) main tid: %lu\n", tid);
 
     /* actually start margo */
     /* note: enabling progress thread to make sure margo rpcs remain
@@ -145,11 +149,13 @@ int main(int argc, char **argv)
         ret = pthread_create(&tid, NULL, nm_run_client, &nm_args);
         assert(ret == 0);
 
+        printf("# (non-margo) nm_run_client tid: %lu\n", tid);
+
         /* do margo stuff */
         ret = margo_create(mid, target_addr, noop_id, &handle);
         assert(ret == 0);
 
-        for(i=0; i<100; i++)
+        for(i=0; i<10; i++)
         {
             ret = margo_forward(handle, NULL);
             assert(ret == 0);
@@ -177,9 +183,11 @@ int main(int argc, char **argv)
         ret = pthread_create(&tid, NULL, nm_run_server, &nm_args);
         assert(ret == 0);
 
+        printf("# (non-margo) nm_run_server tid: %lu\n", tid);
+
         /* wait for for margo service stuff to finish */
         ABT_eventual_wait(rpcs_serviced_eventual, NULL);
-        assert(rpcs_serviced == (100));
+        assert(rpcs_serviced == (10));
 
         /* wait for non-margo pthread to exit */
         pthread_join(tid, NULL);
@@ -244,9 +252,13 @@ static void noop_ult(hg_handle_t handle)
 {
     margo_respond(handle, NULL);
     margo_destroy(handle);
+    pthread_t tid;
+
+    tid = pthread_self();
+    printf("# (margo) noop_ult tid: %lu\n", tid);
 
     rpcs_serviced++;
-    if(rpcs_serviced == 100)
+    if(rpcs_serviced == 10)
         ABT_eventual_set(rpcs_serviced_eventual, NULL, 0);
 
     return;
