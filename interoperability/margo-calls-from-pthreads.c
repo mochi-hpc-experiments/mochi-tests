@@ -22,6 +22,9 @@
 #include <ssg.h>
 #include <ssg-mpi.h>
 
+#define NTHREADS 10
+#define ITERS 10
+
 struct options
 {
     char* na_transport;
@@ -35,6 +38,34 @@ static hg_id_t noop_id;
 static struct options g_opts;
 static int rpcs_serviced = 0;
 static ABT_eventual rpcs_serviced_eventual;
+
+struct pthread_client_fn_args
+{
+    margo_instance_id mid;
+    hg_addr_t target_addr;
+};
+
+void* pthread_client_fn(void* _arg)
+{
+    struct pthread_client_fn_args *pargs = _arg;
+    hg_handle_t handle;
+    int ret;
+    int i;
+
+    /* do margo stuff */
+    ret = margo_create(pargs->mid, pargs->target_addr, noop_id, &handle);
+    assert(ret == 0);
+
+    for(i=0; i<ITERS; i++)
+    {
+        ret = margo_forward(handle, NULL);
+        assert(ret == 0);
+    }
+
+    margo_destroy(handle);
+
+    return(NULL);
+}
 
 int main(int argc, char **argv)
 {
@@ -127,25 +158,25 @@ int main(int argc, char **argv)
     if(my_mpi_rank == 1)
     {
         /* rank 1 runs client code */
-        hg_handle_t handle;
-        hg_addr_t target_addr;
         int i;
         int ret;
+        pthread_t tid_array[NTHREADS];
+        struct pthread_client_fn_args pargs;
 
-        target_addr = ssg_get_group_member_addr(gid, ssg_get_group_member_id_from_rank(gid, 0));
-        assert(target_addr != HG_ADDR_NULL);
+        pargs.mid = mid;
+        pargs.target_addr = ssg_get_group_member_addr(gid, ssg_get_group_member_id_from_rank(gid, 0));
+        assert(pargs.target_addr != HG_ADDR_NULL);
 
-        /* do margo stuff */
-        ret = margo_create(mid, target_addr, noop_id, &handle);
-        assert(ret == 0);
-
-        for(i=0; i<10; i++)
+        for(i=0; i<NTHREADS; i++)
         {
-            ret = margo_forward(handle, NULL);
+            ret = pthread_create(&tid_array[i], NULL, pthread_client_fn, &pargs);
             assert(ret == 0);
         }
 
-        margo_destroy(handle);
+        for(i=0; i<NTHREADS; i++)
+        {
+            ret = pthread_join(tid_array[i], NULL);
+        }
 
         ret = ssg_group_unobserve(gid);
         assert(ret == SSG_SUCCESS);
@@ -158,7 +189,7 @@ int main(int argc, char **argv)
 
         /* wait for for margo service stuff to finish */
         ABT_eventual_wait(rpcs_serviced_eventual, NULL);
-        assert(rpcs_serviced == (10));
+        assert(rpcs_serviced == (ITERS*NTHREADS));
 
         /* wait a little for client to finish */
         margo_thread_sleep(mid, 2000);
@@ -222,7 +253,7 @@ static void noop_ult(hg_handle_t handle)
     margo_destroy(handle);
 
     rpcs_serviced++;
-    if(rpcs_serviced == 10)
+    if(rpcs_serviced == ITERS*NTHREADS)
         ABT_eventual_set(rpcs_serviced_eventual, NULL, 0);
 
     return;
