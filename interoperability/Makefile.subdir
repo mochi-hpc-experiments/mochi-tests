@@ -1,5 +1,5 @@
 if HAVE_MARGO
-bin_PROGRAMS += interoperability/margo-plus-non-margo
+bin_PROGRAMS += interoperability/margo-plus-non-margo interoperability/margo-calls-from-pthreads
 endif
 
 interoperability_margo_plus_non_margo_SOURCES = interoperability/margo-plus-non-margo.c interoperability/lib-nm.c
