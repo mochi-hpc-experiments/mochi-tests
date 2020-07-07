@@ -25,6 +25,7 @@ struct options
     char* diag_file_name;
     char* na_transport;
     int warmup_iterations;
+    int disable_swim;
 };
 
 static int parse_args(int argc, char **argv, struct options *opts);
@@ -56,6 +57,7 @@ int main(int argc, char **argv)
     struct hg_init_info hii;
     int group_size;
     int ret;
+    ssg_group_config_t ssg_conf = SSG_GROUP_CONFIG_INITIALIZER;
 
     MPI_Init(&argc, &argv);
 
@@ -116,8 +118,10 @@ int main(int argc, char **argv)
 
     if(my_mpi_rank == 0)
     {
+        ssg_conf.swim_disabled = g_opts.disable_swim;
+
         /* set up server "group" on rank 0 */
-        gid = ssg_group_create_mpi(mid, "margo-p2p-latency", MPI_COMM_SELF, NULL, NULL, NULL);
+        gid = ssg_group_create_mpi(mid, "margo-p2p-latency", MPI_COMM_SELF, &ssg_conf, NULL, NULL);
         assert(gid != SSG_GROUP_ID_INVALID);
 
         /* load group info into a buffer */
@@ -211,10 +215,13 @@ static int parse_args(int argc, char **argv, struct options *opts)
     /* unless otherwise specified, do 100 iterations before timing */
     opts->warmup_iterations = 100;
 
-    while((opt = getopt(argc, argv, "n:i:d:t:w:")) != -1)
+    while((opt = getopt(argc, argv, "n:i:d:t:w:S")) != -1)
     {
         switch(opt)
         {
+            case 'S':
+                opts->disable_swim = 1;
+                break;
             case 'd':
                 opts->diag_file_name = strdup(optarg);
                 if(!opts->diag_file_name)
@@ -267,6 +274,7 @@ static void usage(void)
         "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
         "\t[-w <warmup_iterations>] - number of warmup iterations before measurement (defaults to 100)\n"
+        "\t[-S] - disable SWIM protocol in SSG\n"
         "\t\texample: mpiexec -n 2 ./margo-p2p-latency -i 10000 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
     
