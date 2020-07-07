@@ -126,9 +126,15 @@ void* nm_run_client(void* _arg)
 
     printf("# (non-margo) client progress_fn tid: %lu\n", tid);
 
+    /* By creating handle in this context, we ensure that the callback from
+     * the *forward* call happens in the local progress thread.  It does not
+     * dictate what context will be used on the server, though.  We use
+     * HG_Set_target_id() to specify that.
+     */
     ret = HG_Create(pargs.context, nm_args->target_addr,
             nm_noop_id, &handle);
     assert(ret == HG_SUCCESS);
+    HG_Set_target_id(handle, NM_ID);
 
     ret = HG_Forward(handle, nm_noop_forward_cb, NULL, NULL);
     assert(ret == 0);
