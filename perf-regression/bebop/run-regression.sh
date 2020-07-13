@@ -37,11 +37,7 @@ cp $ORIGIN/mobject-regression.sbatch $JOBDIR
 # set up build environment
 cd $SANDBOX
 git clone -q https://github.com/spack/spack.git
-(cd spack && git checkout -b spack-0.15.0 v0.15.0)
-# 0.15.0 bugfix: https://github.com/spack/spack/issues/17371 : Intel-MPI vs Intel-Mpi)
-# 0.15.0 bugfix:   plus a fix data structure changed in 0.15 )
-(cd spack && git cherry-pick e9e3e88f637dcaa8e3d7a463c6af03ce77c49ce1 &&
-             git cherry-pick bb15addad5226fd64a4bfe824669376e270e9db8)
+(cd spack && git checkout -b spack-0.15.1 v0.15.1)
 git clone -q https://xgitlab.cels.anl.gov/sds/sds-repo.git
 git clone -q https://xgitlab.cels.anl.gov/sds/sds-tests.git
 
