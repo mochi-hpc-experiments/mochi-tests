@@ -52,6 +52,7 @@ int main(int argc, char **argv)
     int group_size;
     int ret;
     pthread_t tid;
+    struct hg_init_info hii;
 
     MPI_Init(&argc, &argv);
 
@@ -80,7 +81,10 @@ int main(int argc, char **argv)
     /* note: enabling progress thread to make sure margo rpcs remain
      * responsive even if we block in pthread calls (for example)
      */
-    mid = margo_init(g_opts.na_transport, MARGO_SERVER_MODE, 1, -1);
+    memset(&hii, 0, sizeof(hii));
+    /* we will use one context for margo and one context for non-margo code */
+    hii.na_init_info.max_contexts = 2;
+    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 1, -1);
     assert(mid);
 
     noop_id = MARGO_REGISTER(
