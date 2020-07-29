@@ -1,9 +1,9 @@
 packages:
     all:
-        compiler: [gcc@7.3.0]
+        compiler: [gcc@9.3.0]
         providers:
             mpi: [mpich]
-        target: ["x86_64"]
+        target: ["mic_knl"]
     mpich:
         modules:
 	    mpich@7.7.14 arch=cray-cnl7-mic_knl: cray-mpich/7.7.14
