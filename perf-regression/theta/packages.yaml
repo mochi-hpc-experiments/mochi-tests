@@ -5,8 +5,8 @@ packages:
             mpi: [mpich]
         target: ["x86_64"]
     mpich:
-        modules: 
-            mpich@7.7.3 arch=cray-cnl6-mic_knl: cray-mpich/7.7.3
+        modules:
+	    mpich@7.7.14 arch=cray-cnl7-mic_knl: cray-mpich/7.7.14
         buildable: False
     autoconf:
         paths:
@@ -14,43 +14,43 @@ packages:
         buildable: False
     m4:
         paths:
-            m4@1.4.16: /usr
+            m4@1.4.18: /usr
         buildable: False
     automake:
         paths:
-            automake@1.13.4: /usr
+            automake@1.15.1: /usr
         buildable: False
     pkg-config:
         paths:
-            pkg-config@0.29: /usr
+            pkg-config@0.29.2: /usr
         buildable: False
     libtool:
         paths:
-            libtool@2.4.2: /usr
+            libtool@2.4.6: /usr
         buildable: False
     perl:
         paths:
-            perl@5.18.2: /usr
+            perl@5.26.1: /usr
         buildable: False
     cmake:
         modules:
-            cmake@3.14.5: cmake/3.14.5
+            cmake@3.16.2: cmake/3.16.2
         buildable: False
     libuuid:
         paths:
-            libuuid@2.2.9.2: /usr
+            libuuid@2.33.1: /usr
         buildable: False
     zlib:
         paths:
-            zlib@1.2.8: /usr
+            zlib@1.2.11: /usr
         buildable: False
     ncurses:
         paths:
-            ncurses@5.9: /usr
+            ncurses@6.1: /usr
         buildable: False
     openssl:
         paths:
-            openssl@1.0.2: /usr
+            openssl@1.1.0i: /usr
         buildable: False
     mochi-ssg:
         variants: +mpi
