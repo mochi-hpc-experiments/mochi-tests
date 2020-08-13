@@ -59,7 +59,8 @@ spack repo list
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury rdma-core libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@master +mobject
+# TODO: commented out on 2020-08-13 due to build problem
+# spack install ior@master +mobject
 spack install mochi-ssg
 spack install mochi-bake
 # deliberately repeat setup-env step after building modules to ensure
@@ -106,8 +107,9 @@ JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`
 cqwait $JOBID2
 JOBID3=`qsub --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
 cqwait $JOBID3
-JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
-cqwait $JOBID4
+# TODO: commented out on 2020-08-13 due to build problem
+# JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
+# cqwait $JOBID4
 # JOBID5=`qsub --env SANDBOX=$SANDBOX ./bake-kove.qsub`
 # cqwait $JOBID5
 JOBID6=`qsub --env SANDBOX=$SANDBOX ./margo-vector-regression.qsub`
@@ -115,7 +117,7 @@ cqwait $JOBID6
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID6.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID6.* > combined.$JOBID.txt
 dos2unix combined.$JOBID.txt
 mailx -s "mochi-regression (cooley)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 
