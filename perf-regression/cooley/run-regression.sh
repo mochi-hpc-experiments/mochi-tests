@@ -62,17 +62,13 @@ spack uninstall -R -y argobots mercury rdma-core libfabric || true
 spack install ior@master +mobject
 spack install mochi-ssg
 spack install mochi-bake
-# check what stable version of bake we got
-BAKE_STABLE_VER=`spack find mochi-bake |grep mochi-bake |grep -v file-backend`
-# load an additional version of bake that uses a file backend
-spack install mochi-bake@dev-file-backend
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 # load ssg and bake because they are needed by things compiled outside of
 # spack later in this script
 spack load -r mochi-ssg
-spack load -r $BAKE_STABLE_VER
+spack load -r mochi-bake
 
 # sds-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
@@ -82,17 +78,6 @@ libtoolize
 mkdir build
 cd build
 ../configure --prefix=$PREFIX CC=mpicc
-make -j 3
-make install
-
-# switch bake versions and build another copy with file backend
-echo "=== BUILDING SDS TEST PROGRAMS WITH FILE BACKEND ==="
-spack unload $BAKE_STABLE_VER
-spack load -r mochi-bake@dev-file-backend
-cd $SANDBOX/sds-tests
-mkdir build-file
-cd build-file
-../configure --prefix=${PREFIX}-file CC=mpicc
 make -j 3
 make install
 
@@ -111,7 +96,6 @@ cp $PREFIX/bin/margo-p2p-latency $JOBDIR
 cp $PREFIX/bin/margo-p2p-bw $JOBDIR
 cp $PREFIX/bin/margo-p2p-vector $JOBDIR
 cp $PREFIX/bin/bake-p2p-bw $JOBDIR
-cp ${PREFIX}-file/bin/bake-p2p-bw $JOBDIR/bake-p2p-bw-file
 cp $PREFIX/bin/pmdk-bw $JOBDIR
 # cp $PREFIX/bin/mercury-runner $JOBDIR
 cd $JOBDIR
