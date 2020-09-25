@@ -169,9 +169,17 @@ int main(int argc, char **argv)
 
     /* adjust mercury timeout in Margo if requested */
     if(my_mpi_rank == 0 && g_opts.mercury_timeout_server != UINT_MAX)
-        margo_set_param(mid, MARGO_PARAM_PROGRESS_TIMEOUT_UB, &g_opts.mercury_timeout_server);
+    {
+        char timeout_s[64];
+        snprintf(timeout_s, 64, "%u", g_opts.mercury_timeout_server);
+        margo_set_param(mid, "progress_timeout_ub_msec", timeout_s);
+    }
     if(my_mpi_rank == 1 && g_opts.mercury_timeout_client != UINT_MAX)
-        margo_set_param(mid, MARGO_PARAM_PROGRESS_TIMEOUT_UB, &g_opts.mercury_timeout_client);
+    {
+        char timeout_s[64];
+        snprintf(timeout_s, 64, "%u", g_opts.mercury_timeout_client);
+        margo_set_param(mid, "progress_timeout_ub_msec", timeout_s);
+    }
 
     g_bw_id = MARGO_REGISTER(
         mid, 
