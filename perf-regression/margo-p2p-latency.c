@@ -25,12 +25,13 @@ struct options
     char* diag_file_name;
     char* na_transport;
     int warmup_iterations;
+    int margo_forward_timed_flag;
 };
 
 static int parse_args(int argc, char **argv, struct options *opts);
 static void usage(void);
-static int run_benchmark(int warmup_iterations, int iterations, hg_id_t id, ssg_member_id_t target, 
-    ssg_group_id_t gid, margo_instance_id mid, double *measurement_array);
+static int run_benchmark(int warmup_iterations, int iterations, hg_id_t id, ssg_member_id_t target,
+    ssg_group_id_t gid, margo_instance_id mid, double *measurement_array, int margo_forward_timed_flag);
 static void bench_routine_print(const char* op, int size, int iterations,
     int warmup_iterations, double* measurement_array);
 static int measurement_cmp(const void* a, const void *b);
@@ -169,7 +170,7 @@ int main(int argc, char **argv)
         assert(measurement_array);
 
         ret = run_benchmark(g_opts.warmup_iterations, g_opts.iterations, noop_id,
-            ssg_get_group_member_id_from_rank(gid, 0), gid, mid, measurement_array);
+            ssg_get_group_member_id_from_rank(gid, 0), gid, mid, measurement_array, g_opts.margo_forward_timed_flag);
         assert(ret == 0);
 
         printf("# <op> <iterations> <warmup_iterations> <size> <min> <q1> <med> <avg> <q3> <max>\n");
@@ -216,15 +217,18 @@ static int parse_args(int argc, char **argv, struct options *opts)
 
     /* default to using whatever the standard timeout is in margo */
     opts->mercury_timeout_client = UINT_MAX;
-    opts->mercury_timeout_server = UINT_MAX; 
+    opts->mercury_timeout_server = UINT_MAX;
 
     /* unless otherwise specified, do 100 iterations before timing */
     opts->warmup_iterations = 100;
 
-    while((opt = getopt(argc, argv, "n:i:d:t:w:")) != -1)
+    while((opt = getopt(argc, argv, "n:i:d:t:w:T")) != -1)
     {
         switch(opt)
         {
+            case 'T':
+                opts->margo_forward_timed_flag = 1;
+                break;
             case 'd':
                 opts->diag_file_name = strdup(optarg);
                 if(!opts->diag_file_name)
@@ -277,9 +281,9 @@ static void usage(void)
         "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t 0,0\" to busy spin\n"
         "\t[-w <warmup_iterations>] - number of warmup iterations before measurement (defaults to 100)\n"
+        "\t[-T] - use _timed() variant of margo_forward functions\n"
         "\t\texample: mpiexec -n 2 ./margo-p2p-latency -i 10000 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
-    
     return;
 }
 
@@ -300,8 +304,8 @@ static void noop_ult(hg_handle_t handle)
 }
 DEFINE_MARGO_RPC_HANDLER(noop_ult)
 
-static int run_benchmark(int warmup_iterations, int iterations, hg_id_t id, ssg_member_id_t target, 
-    ssg_group_id_t gid, margo_instance_id mid, double *measurement_array)
+static int run_benchmark(int warmup_iterations, int iterations, hg_id_t id, ssg_member_id_t target,
+    ssg_group_id_t gid, margo_instance_id mid, double *measurement_array, int margo_forward_timed_flag)
 {
     hg_handle_t handle;
     hg_addr_t target_addr;
@@ -324,7 +328,10 @@ static int run_benchmark(int warmup_iterations, int iterations, hg_id_t id, ssg_
     for(i=0; i<iterations; i++)
     {
         tm1 = ABT_get_wtime();
-        ret = margo_forward(handle, NULL);
+        if(margo_forward_timed_flag)
+            ret = margo_forward_timed(handle, NULL, 2000);
+        else
+            ret = margo_forward(handle, NULL);
         tm2 = ABT_get_wtime();
         assert(ret == 0);
         measurement_array[i] = tm2-tm1;
