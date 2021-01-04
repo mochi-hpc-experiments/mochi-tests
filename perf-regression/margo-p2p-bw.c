@@ -102,6 +102,7 @@ int main(int argc, char **argv)
     int i;
     ABT_xstream *bw_worker_xstreams = NULL;
     ABT_sched *bw_worker_scheds = NULL;
+    struct margo_init_info mii;
     struct hg_init_info hii;
     int group_size;
     int ret;
@@ -150,11 +151,12 @@ int main(int argc, char **argv)
         return(-1);
     }
 
+    memset(&mii, 0, sizeof(mii));
     memset(&hii, 0, sizeof(hii));
+    mii.hg_init_info = &hii;
     if((my_mpi_rank == 0 && g_opts.mercury_timeout_server == 0) ||
        (my_mpi_rank == 1 && g_opts.mercury_timeout_client == 0))
     {
-        
         /* If mercury timeout of zero is requested, then set
          * init option to NO_BLOCK.  This allows some transports to go
          * faster because they do not have to set up or maintain the data
@@ -165,7 +167,7 @@ int main(int argc, char **argv)
     }
 
     /* actually start margo */
-    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 0, -1);
+    mid = margo_init_ext(g_opts.na_transport, MARGO_SERVER_MODE, &mii);
     assert(mid);
 
     if(g_opts.diag_file_name)
