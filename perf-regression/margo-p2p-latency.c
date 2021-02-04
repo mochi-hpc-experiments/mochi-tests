@@ -16,6 +16,7 @@
 #include <abt.h>
 #include <ssg.h>
 #include <ssg-mpi.h>
+#include <mercury_proc_string.h>
 
 struct options {
     int          iterations;
@@ -25,12 +26,17 @@ struct options {
     char*        na_transport;
     int          warmup_iterations;
     int          margo_forward_timed_flag;
+    int          xfer_size;
 };
+
+MERCURY_GEN_PROC(noop_in_t, ((hg_string_t)(payload)))
+MERCURY_GEN_PROC(noop_out_t, ((hg_string_t)(payload)))
 
 static int  parse_args(int argc, char** argv, struct options* opts);
 static void usage(void);
 static int  run_benchmark(int               warmup_iterations,
                           int               iterations,
+                          int               payload_size,
                           hg_id_t           id,
                           ssg_member_id_t   target,
                           ssg_group_id_t    gid,
@@ -116,7 +122,7 @@ int main(int argc, char** argv)
         margo_set_param(mid, "progress_timeout_ub_msec", timeout_s);
     }
 
-    noop_id = MARGO_REGISTER(mid, "noop_rpc", void, void, noop_ult);
+    noop_id = MARGO_REGISTER(mid, "noop_rpc", noop_in_t, noop_out_t, noop_ult);
 
     ret = ssg_init();
     assert(ret == SSG_SUCCESS);
@@ -164,15 +170,15 @@ int main(int argc, char** argv)
         assert(measurement_array);
 
         ret = run_benchmark(g_opts.warmup_iterations, g_opts.iterations,
-                            noop_id, ssg_get_group_member_id_from_rank(gid, 0),
-                            gid, mid, measurement_array,
-                            g_opts.margo_forward_timed_flag);
+                            g_opts.xfer_size, noop_id,
+                            ssg_get_group_member_id_from_rank(gid, 0), gid, mid,
+                            measurement_array, g_opts.margo_forward_timed_flag);
         assert(ret == 0);
 
         printf(
             "# <op> <iterations> <warmup_iterations> <size> <min> <q1> <med> "
             "<avg> <q3> <max>\n");
-        bench_routine_print("noop", 0, g_opts.iterations,
+        bench_routine_print("noop", g_opts.xfer_size, g_opts.iterations,
                             g_opts.warmup_iterations, measurement_array);
         free(measurement_array);
 
@@ -219,7 +225,7 @@ static int parse_args(int argc, char** argv, struct options* opts)
     /* unless otherwise specified, do 100 iterations before timing */
     opts->warmup_iterations = 100;
 
-    while ((opt = getopt(argc, argv, "n:i:d:t:w:T")) != -1) {
+    while ((opt = getopt(argc, argv, "n:i:d:t:w:Tx:")) != -1) {
         switch (opt) {
         case 'T':
             opts->margo_forward_timed_flag = 1;
@@ -251,13 +257,17 @@ static int parse_args(int argc, char** argv, struct options* opts)
                 return (-1);
             }
             break;
+        case 'x':
+            ret = sscanf(optarg, "%d", &opts->xfer_size);
+            if (ret != 1) return (-1);
+            break;
         default:
             return (-1);
         }
     }
 
     if (opts->iterations < 1 || opts->warmup_iterations < 0
-        || !opts->na_transport)
+        || !opts->na_transport || opts->xfer_size < 0)
         return (-1);
 
     return (0);
@@ -271,6 +281,8 @@ static void usage(void)
         "margo-p2p-latency -i <iterations> -n <na>\n"
         "\t-i <iterations> - number of RPC iterations\n"
         "\t-n <na> - na transport\n"
+        "\t[-x <xfer_size>] - size of req/resp payload in bytes (defaults to "
+        "0)\n"
         "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t "
         "0,0\" to busy spin\n"
@@ -285,7 +297,17 @@ static void usage(void)
 /* service a remote RPC for a no-op */
 static void noop_ult(hg_handle_t handle)
 {
-    margo_respond(handle, NULL);
+    int        ret;
+    noop_in_t  in;
+    noop_out_t out;
+
+    ret = margo_get_input(handle, &in);
+    assert(ret == 0);
+
+    out.payload = in.payload;
+
+    margo_respond(handle, &out);
+    margo_free_input(handle, &in);
     margo_destroy(handle);
 
     rpcs_serviced++;
@@ -299,6 +321,7 @@ DEFINE_MARGO_RPC_HANDLER(noop_ult)
 
 static int run_benchmark(int               warmup_iterations,
                          int               iterations,
+                         int               payload_size,
                          hg_id_t           id,
                          ssg_member_id_t   target,
                          ssg_group_id_t    gid,
@@ -311,6 +334,8 @@ static int run_benchmark(int               warmup_iterations,
     int         i;
     int         ret;
     double      tm1, tm2;
+    noop_in_t   in;
+    noop_out_t  out;
 
     target_addr = ssg_get_group_member_addr(gid, target);
     assert(target_addr != HG_ADDR_NULL);
@@ -318,21 +343,43 @@ static int run_benchmark(int               warmup_iterations,
     ret = margo_create(mid, target_addr, id, &handle);
     assert(ret == 0);
 
+    if (payload_size == 0)
+        in.payload = NULL;
+    else {
+        in.payload = calloc(payload_size, 1);
+        assert(in.payload);
+        /* put a character into every element of payload except last one
+         * (null terminator for HG string encoder)
+         */
+        for (i = 0; i < (payload_size - 1); i++) in.payload[i] = 'a';
+    }
+
     for (i = 0; i < warmup_iterations; i++) {
-        ret = margo_forward(handle, NULL);
+        ret = margo_forward(handle, &in);
         assert(ret == 0);
+
+        ret = margo_get_output(handle, &out);
+        assert(ret == 0);
+        margo_free_output(handle, &out);
     }
 
     for (i = 0; i < iterations; i++) {
         tm1 = ABT_get_wtime();
         if (margo_forward_timed_flag)
-            ret = margo_forward_timed(handle, NULL, 2000);
+            ret = margo_forward_timed(handle, &in, 2000);
         else
-            ret = margo_forward(handle, NULL);
-        tm2 = ABT_get_wtime();
+            ret = margo_forward(handle, &in);
         assert(ret == 0);
+
+        ret = margo_get_output(handle, &out);
+        assert(ret == 0);
+        margo_free_output(handle, &out);
+
+        tm2                  = ABT_get_wtime();
         measurement_array[i] = tm2 - tm1;
     }
+
+    if (in.payload) free(in.payload);
 
     margo_destroy(handle);
 
