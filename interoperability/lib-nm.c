@@ -28,40 +28,37 @@
 
 static int shutdown_flag = 0;
 
-struct progress_fn_args
-{
-    hg_context_t *context;
+struct progress_fn_args {
+    hg_context_t* context;
 };
 
 void* progress_fn(void* _arg)
 {
-    struct progress_fn_args *pargs = _arg;
-    int ret;
-    unsigned int actual_count;
+    struct progress_fn_args* pargs = _arg;
+    int                      ret;
+    unsigned int             actual_count;
 
-    while(!shutdown_flag)
-    {
-        do{
+    while (!shutdown_flag) {
+        do {
             ret = HG_Trigger(pargs->context, 0, 1, &actual_count);
-        }while((ret == HG_SUCCESS) && actual_count);
+        } while ((ret == HG_SUCCESS) && actual_count);
 
-        if(!shutdown_flag)
-            ret = HG_Progress(pargs->context, 10);
+        if (!shutdown_flag) ret = HG_Progress(pargs->context, 10);
 
-        if(ret != HG_SUCCESS && ret != HG_TIMEOUT)
-        {
-            fprintf(stderr, "Error: unexpected HG_Progress() error code %d\n", ret);
+        if (ret != HG_SUCCESS && ret != HG_TIMEOUT) {
+            fprintf(stderr, "Error: unexpected HG_Progress() error code %d\n",
+                    ret);
             assert(0);
         }
     }
 
-    return(NULL);
+    return (NULL);
 }
 
 static hg_return_t nm_noop_rpc_cb(hg_handle_t handle)
 {
     hg_return_t ret = HG_SUCCESS;
-    pthread_t tid;
+    pthread_t   tid;
 
     tid = pthread_self();
     printf("# (non-margo) nm_noop_rpc_cb tid: %lu\n", tid);
@@ -76,12 +73,11 @@ static hg_return_t nm_noop_rpc_cb(hg_handle_t handle)
     return ret;
 }
 
-static int client_done_count = 0;
-pthread_cond_t client_done_cond = PTHREAD_COND_INITIALIZER;
+static int      client_done_count = 0;
+pthread_cond_t  client_done_cond  = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t client_done_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static hg_return_t
-nm_noop_forward_cb(const struct hg_cb_info *callback_info)
+static hg_return_t nm_noop_forward_cb(const struct hg_cb_info* callback_info)
 {
     int ret;
 
@@ -89,36 +85,35 @@ nm_noop_forward_cb(const struct hg_cb_info *callback_info)
 
     pthread_mutex_lock(&client_done_mutex);
     client_done_count++;
-    if(client_done_count == 10)
-    {
+    if (client_done_count == 10) {
         pthread_cond_signal(&client_done_cond);
         pthread_mutex_unlock(&client_done_mutex);
-        return(HG_SUCCESS);
+        return (HG_SUCCESS);
     }
     pthread_mutex_unlock(&client_done_mutex);
 
     /* keep forwarding until we hit the desired count */
-    ret = HG_Forward(callback_info->info.forward.handle, nm_noop_forward_cb, NULL, NULL);
+    ret = HG_Forward(callback_info->info.forward.handle, nm_noop_forward_cb,
+                     NULL, NULL);
     assert(ret == 0);
 
-    return(HG_SUCCESS);
+    return (HG_SUCCESS);
 }
 
 void* nm_run_client(void* _arg)
 {
-    struct nm_client_args *nm_args = _arg;
+    struct nm_client_args*  nm_args = _arg;
     struct progress_fn_args pargs;
-    pthread_t tid;
-    int ret;
-    hg_id_t nm_noop_id;
-    hg_handle_t handle;
+    pthread_t               tid;
+    int                     ret;
+    hg_id_t                 nm_noop_id;
+    hg_handle_t             handle;
 
     /* create separate context for this component */
     pargs.context = HG_Context_create_id(nm_args->class, NM_ID);
     assert(pargs.context);
 
-    nm_noop_id = MERCURY_REGISTER(nm_args->class, "nm_noop",
-            void, void, NULL);
+    nm_noop_id = MERCURY_REGISTER(nm_args->class, "nm_noop", void, void, NULL);
 
     /* create thread to drive progress */
     ret = pthread_create(&tid, NULL, progress_fn, &pargs);
@@ -131,8 +126,7 @@ void* nm_run_client(void* _arg)
      * dictate what context will be used on the server, though.  We use
      * HG_Set_target_id() to specify that.
      */
-    ret = HG_Create(pargs.context, nm_args->target_addr,
-            nm_noop_id, &handle);
+    ret = HG_Create(pargs.context, nm_args->target_addr, nm_noop_id, &handle);
     assert(ret == HG_SUCCESS);
     HG_Set_target_id(handle, NM_ID);
 
@@ -140,7 +134,7 @@ void* nm_run_client(void* _arg)
     assert(ret == 0);
 
     pthread_mutex_lock(&client_done_mutex);
-    while(client_done_count < 10)
+    while (client_done_count < 10)
         pthread_cond_wait(&client_done_cond, &client_done_mutex);
     pthread_mutex_unlock(&client_done_mutex);
 
@@ -151,15 +145,15 @@ void* nm_run_client(void* _arg)
 
     HG_Context_destroy(pargs.context);
 
-    return(NULL);
+    return (NULL);
 }
 
 void* nm_run_server(void* _arg)
 {
-    struct nm_server_args *nm_args = _arg;
+    struct nm_server_args*  nm_args = _arg;
     struct progress_fn_args pargs;
-    pthread_t tid;
-    int ret;
+    pthread_t               tid;
+    int                     ret;
 
     /* create separate context for this component */
     pargs.context = HG_Context_create_id(nm_args->class, NM_ID);
@@ -180,5 +174,5 @@ void* nm_run_server(void* _arg)
 
     HG_Context_destroy(pargs.context);
 
-    return(NULL);
+    return (NULL);
 }

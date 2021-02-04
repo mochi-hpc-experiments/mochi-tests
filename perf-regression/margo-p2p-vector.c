@@ -41,119 +41,115 @@
 #include <ssg.h>
 #include <ssg-mpi.h>
 
-struct options
-{
+struct options {
     long unsigned xfer_size;
-    int duration_seconds;
-    int concurrency;
-    int threads;
-    unsigned int mercury_timeout_client;
-    unsigned int mercury_timeout_server;
-    char* diag_file_name;
-    char* na_transport;
-    int align_buffer;
-    int warmup_seconds;
-    int vector_len;
+    int           duration_seconds;
+    int           concurrency;
+    int           threads;
+    unsigned int  mercury_timeout_client;
+    unsigned int  mercury_timeout_server;
+    char*         diag_file_name;
+    char*         na_transport;
+    int           align_buffer;
+    int           warmup_seconds;
+    int           vector_len;
 };
 
-static int parse_args(int argc, char **argv, struct options *opts);
+static int  parse_args(int argc, char** argv, struct options* opts);
 static void usage(void);
 
 MERCURY_GEN_PROC(bw_rpc_in_t,
-        ((hg_bulk_t)(bulk_handle))\
-        ((int32_t)(op))\
-        ((int32_t)(shutdown))\
-        ((int32_t)(duration)))
-MERCURY_GEN_PROC(bw_rpc_out_t,
-        ((hg_size_t)(bytes_moved)))
+                 ((hg_bulk_t)(bulk_handle))((int32_t)(op))((int32_t)(shutdown))(
+                     (int32_t)(duration)))
+MERCURY_GEN_PROC(bw_rpc_out_t, ((hg_size_t)(bytes_moved)))
 DECLARE_MARGO_RPC_HANDLER(bw_ult);
 
-static int run_benchmark(hg_id_t id, ssg_member_id_t target,
-    ssg_group_id_t gid, margo_instance_id mid, int shutdown_flag, int duration, int print_flag);
+static int run_benchmark(hg_id_t           id,
+                         ssg_member_id_t   target,
+                         ssg_group_id_t    gid,
+                         margo_instance_id mid,
+                         int               shutdown_flag,
+                         int               duration,
+                         int               print_flag);
 
-struct bw_worker_arg
-{
-    double start_tm;
+struct bw_worker_arg {
+    double            start_tm;
     margo_instance_id mid;
-    ABT_mutex *cur_off_mutex;
-    size_t *cur_off;
-    hg_bulk_t *client_bulk_handle;
-    const hg_addr_t *target_addr;
-    hg_size_t bytes_moved;
-    hg_bulk_op_t op;
-    int duration;
+    ABT_mutex*        cur_off_mutex;
+    size_t*           cur_off;
+    hg_bulk_t*        client_bulk_handle;
+    const hg_addr_t*  target_addr;
+    hg_size_t         bytes_moved;
+    hg_bulk_op_t      op;
+    int               duration;
 };
 
-static void bw_worker(void *_arg);
+static void bw_worker(void* _arg);
 
-static hg_id_t g_bw_id;
-static ABT_pool g_transfer_pool;
-static ABT_eventual g_bw_done_eventual;
+static hg_id_t        g_bw_id;
+static ABT_pool       g_transfer_pool;
+static ABT_eventual   g_bw_done_eventual;
 static struct options g_opts;
-static char *g_buffer = NULL;
-static hg_bulk_t g_bulk_handle = HG_BULK_NULL;
+static char*          g_buffer      = NULL;
+static hg_bulk_t      g_bulk_handle = HG_BULK_NULL;
 
-int main(int argc, char **argv) 
+int main(int argc, char** argv)
 {
-    margo_instance_id mid;
-    int nranks;
-    int my_mpi_rank;
-    ssg_group_id_t gid;
-    char *gid_buffer;
-    size_t gid_buffer_size;
-    int gid_buffer_size_int;
-    int namelen;
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
-    int i;
-    ABT_xstream *bw_worker_xstreams = NULL;
-    ABT_sched *bw_worker_scheds = NULL;
+    margo_instance_id      mid;
+    int                    nranks;
+    int                    my_mpi_rank;
+    ssg_group_id_t         gid;
+    char*                  gid_buffer;
+    size_t                 gid_buffer_size;
+    int                    gid_buffer_size_int;
+    int                    namelen;
+    char                   processor_name[MPI_MAX_PROCESSOR_NAME];
+    int                    i;
+    ABT_xstream*           bw_worker_xstreams = NULL;
+    ABT_sched*             bw_worker_scheds   = NULL;
     struct margo_init_info mii;
-    struct hg_init_info hii;
-    int group_size;
-    int ret;
+    struct hg_init_info    hii;
+    int                    group_size;
+    int                    ret;
 
     MPI_Init(&argc, &argv);
 
     /* 2 process one-way bandwidth measurement only */
     MPI_Comm_size(MPI_COMM_WORLD, &nranks);
-    if(nranks != 2)
-    {
+    if (nranks != 2) {
         usage();
         exit(EXIT_FAILURE);
     }
     MPI_Comm_rank(MPI_COMM_WORLD, &my_mpi_rank);
-    MPI_Get_processor_name(processor_name,&namelen);
+    MPI_Get_processor_name(processor_name, &namelen);
 
     ret = parse_args(argc, argv, &g_opts);
-    if(ret < 0)
-    {
-        if(my_mpi_rank == 0)
-            usage();
+    if (ret < 0) {
+        if (my_mpi_rank == 0) usage();
         exit(EXIT_FAILURE);
     }
 
     /* allocate one big buffer for rdma transfers */
     g_buffer = NULL;
-    if(g_opts.align_buffer) {
+    if (g_opts.align_buffer) {
         ret = posix_memalign((void**)(&g_buffer), 4096, g_opts.xfer_size);
-        if (ret != 0) fprintf(stderr, "Error in posix_memalign: %s\n", strerror(ret));
-    }
-    else
+        if (ret != 0)
+            fprintf(stderr, "Error in posix_memalign: %s\n", strerror(ret));
+    } else
         g_buffer = calloc(g_opts.xfer_size, 1);
 
-    if(!g_buffer)
-    {
-        fprintf(stderr, "Error: unable to allocate %lu byte buffer.\n", g_opts.xfer_size);
-        return(-1);
+    if (!g_buffer) {
+        fprintf(stderr, "Error: unable to allocate %lu byte buffer.\n",
+                g_opts.xfer_size);
+        return (-1);
     }
 
     memset(&mii, 0, sizeof(mii));
     memset(&hii, 0, sizeof(hii));
     mii.hg_init_info = &hii;
-    if((my_mpi_rank == 0 && g_opts.mercury_timeout_server == 0) ||
-       (my_mpi_rank == 1 && g_opts.mercury_timeout_client == 0))
-    {
-        
+    if ((my_mpi_rank == 0 && g_opts.mercury_timeout_server == 0)
+        || (my_mpi_rank == 1 && g_opts.mercury_timeout_client == 0)) {
+
         /* If mercury timeout of zero is requested, then set
          * init option to NO_BLOCK.  This allows some transports to go
          * faster because they do not have to set up or maintain the data
@@ -167,50 +163,41 @@ int main(int argc, char **argv)
     mid = margo_init_ext(g_opts.na_transport, MARGO_SERVER_MODE, &mii);
     assert(mid);
 
-    if(g_opts.diag_file_name)
-        margo_diag_start(mid);
+    if (g_opts.diag_file_name) margo_diag_start(mid);
 
     /* adjust mercury timeout in Margo if requested */
-    if(my_mpi_rank == 0 && g_opts.mercury_timeout_server != UINT_MAX)
-    {
+    if (my_mpi_rank == 0 && g_opts.mercury_timeout_server != UINT_MAX) {
         char timeout_s[64];
         snprintf(timeout_s, 64, "%u", g_opts.mercury_timeout_server);
         margo_set_param(mid, "progress_timeout_ub_msec", timeout_s);
     }
-    if(my_mpi_rank == 1 && g_opts.mercury_timeout_client != UINT_MAX)
-    {
+    if (my_mpi_rank == 1 && g_opts.mercury_timeout_client != UINT_MAX) {
         char timeout_s[64];
         snprintf(timeout_s, 64, "%u", g_opts.mercury_timeout_client);
         margo_set_param(mid, "progress_timeout_ub_msec", timeout_s);
     }
 
-    g_bw_id = MARGO_REGISTER(
-        mid, 
-        "bw_rpc", 
-        bw_rpc_in_t,
-        bw_rpc_out_t,
-        bw_ult);
+    g_bw_id = MARGO_REGISTER(mid, "bw_rpc", bw_rpc_in_t, bw_rpc_out_t, bw_ult);
 
     /* set up group */
     ret = ssg_init();
     assert(ret == SSG_SUCCESS);
 
-    if(my_mpi_rank == 0)
-    {
+    if (my_mpi_rank == 0) {
         /* set up server "group" on rank 0 */
-        gid = ssg_group_create_mpi(mid, "margo-p2p-bw", MPI_COMM_SELF, NULL, NULL, NULL);
+        gid = ssg_group_create_mpi(mid, "margo-p2p-bw", MPI_COMM_SELF, NULL,
+                                   NULL, NULL);
         assert(gid != SSG_GROUP_ID_INVALID);
 
         /* load group info into a buffer */
-        ssg_group_id_serialize(gid,1,  &gid_buffer, &gid_buffer_size);
+        ssg_group_id_serialize(gid, 1, &gid_buffer, &gid_buffer_size);
         assert(gid_buffer && (gid_buffer_size > 0));
         gid_buffer_size_int = (int)gid_buffer_size;
     }
 
     /* broadcast server group info to clients */
     MPI_Bcast(&gid_buffer_size_int, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    if (my_mpi_rank == 1)
-    {
+    if (my_mpi_rank == 1) {
         /* client ranks allocate a buffer for receiving GID buffer */
         gid_buffer = calloc((size_t)gid_buffer_size_int, 1);
         assert(gid_buffer);
@@ -218,9 +205,8 @@ int main(int argc, char **argv)
     MPI_Bcast(gid_buffer, gid_buffer_size_int, MPI_CHAR, 0, MPI_COMM_WORLD);
 
     /* client observes server group */
-    if (my_mpi_rank == 1)
-    {
-        int count=1;
+    if (my_mpi_rank == 1) {
+        int count = 1;
         ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &count, &gid);
         assert(gid != SSG_GROUP_ID_INVALID);
 
@@ -232,15 +218,14 @@ int main(int argc, char **argv)
     group_size = ssg_get_group_size(gid);
     assert(group_size == 1);
 
-    if(my_mpi_rank == 0)
-    {
+    if (my_mpi_rank == 0) {
         /* server side: prep everything before letting the client initiate
          * benchmark
          */
-        void* buffer = g_buffer;
-        void **buf_ptrs;
-        hg_size_t *buf_sizes;
-        int i;
+        void*      buffer = g_buffer;
+        void**     buf_ptrs;
+        hg_size_t* buf_sizes;
+        int        i;
 
         buf_ptrs = malloc(g_opts.vector_len * sizeof(*buf_ptrs));
         assert(buf_ptrs);
@@ -248,25 +233,24 @@ int main(int argc, char **argv)
         assert(buf_sizes);
 
         /* express as a vector of contiguous regions */
-        for(i=0; i<g_opts.vector_len; i++)
-        {
+        for (i = 0; i < g_opts.vector_len; i++) {
             buf_sizes[i] = g_opts.xfer_size / g_opts.vector_len;
-            buf_ptrs[i] = buffer + (buf_sizes[0] * i);
+            buf_ptrs[i]  = buffer + (buf_sizes[0] * i);
         }
 
         /* register memory for xfer */
-        ret = margo_bulk_create(mid, g_opts.vector_len, buf_ptrs, buf_sizes, HG_BULK_READWRITE, &g_bulk_handle);
+        ret = margo_bulk_create(mid, g_opts.vector_len, buf_ptrs, buf_sizes,
+                                HG_BULK_READWRITE, &g_bulk_handle);
         assert(ret == 0);
 
         free(buf_ptrs);
         free(buf_sizes);
 
         /* set up abt pool */
-        if(g_opts.threads == 0)
-        {
-            ABT_pool pool;
+        if (g_opts.threads == 0) {
+            ABT_pool    pool;
             ABT_xstream xstream;
-            
+
             /* run bulk transfers from primary pool on server */
 
             ret = ABT_xstream_self(&xstream);
@@ -276,25 +260,25 @@ int main(int argc, char **argv)
             assert(ret == 0);
 
             g_transfer_pool = pool;
-        }
-        else
-        {
+        } else {
             /* run bulk transfers from a dedicated pool */
-            bw_worker_xstreams = malloc(
-                    g_opts.threads * sizeof(*bw_worker_xstreams));
-            bw_worker_scheds = malloc(
-                    g_opts.threads * sizeof(*bw_worker_scheds));
+            bw_worker_xstreams
+                = malloc(g_opts.threads * sizeof(*bw_worker_xstreams));
+            bw_worker_scheds
+                = malloc(g_opts.threads * sizeof(*bw_worker_scheds));
             assert(bw_worker_xstreams && bw_worker_scheds);
 
-            ret = ABT_pool_create_basic(ABT_POOL_FIFO_WAIT, ABT_POOL_ACCESS_MPMC,
-                    ABT_TRUE, &g_transfer_pool);
+            ret = ABT_pool_create_basic(ABT_POOL_FIFO_WAIT,
+                                        ABT_POOL_ACCESS_MPMC, ABT_TRUE,
+                                        &g_transfer_pool);
             assert(ret == ABT_SUCCESS);
-            for(i = 0; i < g_opts.threads; i++)
-            {
-                ret = ABT_sched_create_basic(ABT_SCHED_BASIC_WAIT, 1, &g_transfer_pool,
-                        ABT_SCHED_CONFIG_NULL, &bw_worker_scheds[i]);
+            for (i = 0; i < g_opts.threads; i++) {
+                ret = ABT_sched_create_basic(
+                    ABT_SCHED_BASIC_WAIT, 1, &g_transfer_pool,
+                    ABT_SCHED_CONFIG_NULL, &bw_worker_scheds[i]);
                 assert(ret == ABT_SUCCESS);
-                ret = ABT_xstream_create(bw_worker_scheds[i], &bw_worker_xstreams[i]);
+                ret = ABT_xstream_create(bw_worker_scheds[i],
+                                         &bw_worker_xstreams[i]);
                 assert(ret == ABT_SUCCESS);
             }
         }
@@ -304,8 +288,7 @@ int main(int argc, char **argv)
         assert(ret == 0);
     }
 
-    if(my_mpi_rank == 1)
-    {
+    if (my_mpi_rank == 1) {
         /* TODO: this is a hack; we need a better way to wait for services
          * to be ready.  MPI Barriers aren't safe without setting aside
          * threads to make sure that servers can answer RPCs.
@@ -316,20 +299,19 @@ int main(int argc, char **argv)
         /* rank 1 (client) initiates benchmark */
 
         /* warmup */
-        if(g_opts.warmup_seconds)
-            ret = run_benchmark(g_bw_id, ssg_get_group_member_id_from_rank(gid, 0),
-                gid, mid, 0, g_opts.warmup_seconds, 0);
+        if (g_opts.warmup_seconds)
+            ret = run_benchmark(g_bw_id,
+                                ssg_get_group_member_id_from_rank(gid, 0), gid,
+                                mid, 0, g_opts.warmup_seconds, 0);
         assert(ret == 0);
 
         ret = run_benchmark(g_bw_id, ssg_get_group_member_id_from_rank(gid, 0),
-            gid, mid, 1, g_opts.duration_seconds, 1);
+                            gid, mid, 1, g_opts.duration_seconds, 1);
         assert(ret == 0);
 
         ret = ssg_group_unobserve(gid);
         assert(ret == SSG_SUCCESS);
-    }
-    else
-    {
+    } else {
         /* rank 0 (server) waits for test RPC to complete */
 
         ABT_eventual_wait(g_bw_done_eventual, NULL);
@@ -339,11 +321,9 @@ int main(int argc, char **argv)
             ABT_xstream_join(bw_worker_xstreams[i]);
             ABT_xstream_free(&bw_worker_xstreams[i]);
         }
-        if(bw_worker_xstreams)
-            free(bw_worker_xstreams);
-        if(bw_worker_scheds)
-            free(bw_worker_scheds);
-    
+        if (bw_worker_xstreams) free(bw_worker_xstreams);
+        if (bw_worker_scheds) free(bw_worker_scheds);
+
         margo_bulk_free(g_bulk_handle);
 
         ret = ssg_group_destroy(gid);
@@ -352,8 +332,7 @@ int main(int argc, char **argv)
 
     ssg_finalize();
 
-    if(g_opts.diag_file_name)
-        margo_diag_dump(mid, g_opts.diag_file_name, 1);
+    if (g_opts.diag_file_name) margo_diag_dump(mid, g_opts.diag_file_name, 1);
 
     free(gid_buffer);
 
@@ -365,7 +344,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-static int parse_args(int argc, char **argv, struct options *opts)
+static int parse_args(int argc, char** argv, struct options* opts)
 {
     int opt;
     int ret;
@@ -373,7 +352,7 @@ static int parse_args(int argc, char **argv, struct options *opts)
     memset(opts, 0, sizeof(*opts));
 
     opts->concurrency = 1;
-    opts->vector_len = 1;
+    opts->vector_len  = 1;
 
     /* default to using whatever the standard timeout is in margo */
     opts->mercury_timeout_client = UINT_MAX;
@@ -381,120 +360,115 @@ static int parse_args(int argc, char **argv, struct options *opts)
     /* warm up for 1 second by default */
     opts->warmup_seconds = 1;
 
-    while((opt = getopt(argc, argv, "n:x:c:T:d:t:D:aw:v:")) != -1)
-    {
-        switch(opt)
-        {
-            case 'd':
-                opts->diag_file_name = strdup(optarg);
-                if(!opts->diag_file_name)
-                {
-                    perror("strdup");
-                    return(-1);
-                }
-                break;
-            case 'x':
-                ret = sscanf(optarg, "%lu", &opts->xfer_size);
-                if(ret != 1)
-                    return(-1);
-                break;
-            case 'v':
-                ret = sscanf(optarg, "%d", &opts->vector_len);
-                if(ret != 1)
-                    return(-1);
-                break;
-            case 'w':
-                ret = sscanf(optarg, "%d", &opts->warmup_seconds);
-                if(ret != 1)
-                    return(-1);
-                break;
-            case 'c':
-                ret = sscanf(optarg, "%d", &opts->concurrency);
-                if(ret != 1)
-                    return(-1);
-                break;
-            case 'T':
-                ret = sscanf(optarg, "%d", &opts->threads);
-                if(ret != 1)
-                    return(-1);
-                break;
-            case 'D':
-                ret = sscanf(optarg, "%d", &opts->duration_seconds);
-                if(ret != 1)
-                    return(-1);
-                break;
-            case 't':
-                ret = sscanf(optarg, "%u,%u", &opts->mercury_timeout_client, &opts->mercury_timeout_server);
-                if(ret != 2)
-                    return(-1);
-                break;
-            case 'n':
-                opts->na_transport = strdup(optarg);
-                if(!opts->na_transport)
-                {
-                    perror("strdup");
-                    return(-1);
-                }
-                break;
-            case 'a':
-                opts->align_buffer = 1;
-                break;
-            default:
-                return(-1);
+    while ((opt = getopt(argc, argv, "n:x:c:T:d:t:D:aw:v:")) != -1) {
+        switch (opt) {
+        case 'd':
+            opts->diag_file_name = strdup(optarg);
+            if (!opts->diag_file_name) {
+                perror("strdup");
+                return (-1);
+            }
+            break;
+        case 'x':
+            ret = sscanf(optarg, "%lu", &opts->xfer_size);
+            if (ret != 1) return (-1);
+            break;
+        case 'v':
+            ret = sscanf(optarg, "%d", &opts->vector_len);
+            if (ret != 1) return (-1);
+            break;
+        case 'w':
+            ret = sscanf(optarg, "%d", &opts->warmup_seconds);
+            if (ret != 1) return (-1);
+            break;
+        case 'c':
+            ret = sscanf(optarg, "%d", &opts->concurrency);
+            if (ret != 1) return (-1);
+            break;
+        case 'T':
+            ret = sscanf(optarg, "%d", &opts->threads);
+            if (ret != 1) return (-1);
+            break;
+        case 'D':
+            ret = sscanf(optarg, "%d", &opts->duration_seconds);
+            if (ret != 1) return (-1);
+            break;
+        case 't':
+            ret = sscanf(optarg, "%u,%u", &opts->mercury_timeout_client,
+                         &opts->mercury_timeout_server);
+            if (ret != 2) return (-1);
+            break;
+        case 'n':
+            opts->na_transport = strdup(optarg);
+            if (!opts->na_transport) {
+                perror("strdup");
+                return (-1);
+            }
+            break;
+        case 'a':
+            opts->align_buffer = 1;
+            break;
+        default:
+            return (-1);
         }
     }
 
-    if(opts->xfer_size % opts->vector_len)
-        return(-1);
+    if (opts->xfer_size % opts->vector_len) return (-1);
 
-    if(opts->xfer_size < 1 || opts->concurrency < 1 || opts->duration_seconds < 1 || !opts->na_transport || opts->warmup_seconds < 0)
-    {
-        return(-1);
+    if (opts->xfer_size < 1 || opts->concurrency < 1
+        || opts->duration_seconds < 1 || !opts->na_transport
+        || opts->warmup_seconds < 0) {
+        return (-1);
     }
 
-    return(0);
+    return (0);
 }
 
 static void usage(void)
 {
-    fprintf(stderr,
+    fprintf(
+        stderr,
         "Usage: "
         "margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
-        "\t-x <xfer_size> - size of each bulk tranfer in bytes, must be evenly divisible by vector len\n"
+        "\t-x <xfer_size> - size of each bulk tranfer in bytes, must be evenly "
+        "divisible by vector len\n"
         "\t-D <duration> - duration of test in seconds\n"
         "\t-n <na> - na transport\n"
         "\t-v <vector len> - number of discrete regions per transfer\n"
-        "\t[-c <concurrency>] - number of concurrent operations to issue with ULTs\n"
-        "\t[-T <os threads>] - number of dedicated operating system threads to run ULTs on\n"
+        "\t[-c <concurrency>] - number of concurrent operations to issue with "
+        "ULTs\n"
+        "\t[-T <os threads>] - number of dedicated operating system threads to "
+        "run ULTs on\n"
         "\t[-d <filename>] - enable diagnostics output\n"
-        "\t[-t <client_progress_timeout,server_progress_timeout>] # use \"-t 0,0\" to busy spin\n"
+        "\t[-t <client_progress_timeout,server_progress_timeout>] # use \"-t "
+        "0,0\" to busy spin\n"
         "\t[-a] - explicitly align memory buffer to page size\n"
         "\t[-w] - number of seconds to warm up before benchmark measurement\n"
         "\t\texample: mpiexec -n 2 ./margo-p2p-bw -x 4096 -D 30 -n verbs://\n"
         "\t\t(must be run with exactly 2 processes\n");
-    
+
     return;
 }
 
 /* service an RPC that runs the bandwidth test */
 static void bw_ult(hg_handle_t handle)
 {
-    int i;
-    bw_rpc_in_t in;
-    bw_rpc_out_t out;
-    ABT_thread *tid_array;
-    struct bw_worker_arg *arg_array;
-    int ret;
-    double start_time;
-    margo_instance_id mid;
-    const struct hg_info *hgi;
-    size_t cur_off = 0;
-    ABT_mutex cur_off_mutex;
-    unsigned long bytes_to_check = 0;
-    hg_size_t x;
+    int                   i;
+    bw_rpc_in_t           in;
+    bw_rpc_out_t          out;
+    ABT_thread*           tid_array;
+    struct bw_worker_arg* arg_array;
+    int                   ret;
+    double                start_time;
+    margo_instance_id     mid;
+    const struct hg_info* hgi;
+    size_t                cur_off = 0;
+    ABT_mutex             cur_off_mutex;
+    unsigned long         bytes_to_check = 0;
+    hg_size_t             x;
 
     ABT_mutex_create(&cur_off_mutex);
-    
+
     /* get handle info and margo instance */
     hgi = margo_get_info(handle);
     assert(hgi);
@@ -502,7 +476,7 @@ static void bw_ult(hg_handle_t handle)
     assert(mid != MARGO_INSTANCE_NULL);
 
     ret = margo_get_input(handle, &in);
-        assert(ret == HG_SUCCESS);
+    assert(ret == HG_SUCCESS);
 
     tid_array = malloc(g_opts.concurrency * sizeof(*tid_array));
     assert(tid_array);
@@ -511,52 +485,48 @@ static void bw_ult(hg_handle_t handle)
 
     start_time = ABT_get_wtime();
     /* create requested number of workers to run transfer */
-    for(i=0; i<g_opts.concurrency; i++)
-    {
-        arg_array[i].start_tm = start_time;
-        arg_array[i].mid = mid;
-        arg_array[i].cur_off = &cur_off;
-        arg_array[i].cur_off_mutex = &cur_off_mutex;
+    for (i = 0; i < g_opts.concurrency; i++) {
+        arg_array[i].start_tm           = start_time;
+        arg_array[i].mid                = mid;
+        arg_array[i].cur_off            = &cur_off;
+        arg_array[i].cur_off_mutex      = &cur_off_mutex;
         arg_array[i].client_bulk_handle = &in.bulk_handle;
-        arg_array[i].target_addr = &hgi->addr;
-        arg_array[i].op = in.op;
-        arg_array[i].duration = in.duration;
+        arg_array[i].target_addr        = &hgi->addr;
+        arg_array[i].op                 = in.op;
+        arg_array[i].duration           = in.duration;
 
-        ret = ABT_thread_create(g_transfer_pool, bw_worker, &arg_array[i], ABT_THREAD_ATTR_NULL, &tid_array[i]);
+        ret = ABT_thread_create(g_transfer_pool, bw_worker, &arg_array[i],
+                                ABT_THREAD_ATTR_NULL, &tid_array[i]);
         assert(ret == 0);
     }
 
     out.bytes_moved = 0;
-    for(i=0; i<g_opts.concurrency; i++)
-    {
+    for (i = 0; i < g_opts.concurrency; i++) {
         ABT_thread_join(tid_array[i]);
         ABT_thread_free(&tid_array[i]);
-        
+
         out.bytes_moved += arg_array[i].bytes_moved;
     }
-    
+
     margo_respond(handle, &out);
 
-    if(in.op == HG_BULK_PULL)
-    {
+    if (in.op == HG_BULK_PULL) {
         /* calculate how many bytes of the buffer have been transferred */
         bytes_to_check = g_opts.xfer_size;
-        if(out.bytes_moved < bytes_to_check)
-            bytes_to_check = out.bytes_moved;
+        if (out.bytes_moved < bytes_to_check) bytes_to_check = out.bytes_moved;
 
         /* check integrity of fill pattern.  Note that this isn't as strong as
          * checking every RDMA transfer separately since we are looping around
          * and overwriting in a ring-buffer style.  We could corrupt early and
          * but then overwrite it with correct results on a later pass.
          */
-        for(x=0; x<(bytes_to_check/sizeof(x)); x++)
-        {
+        for (x = 0; x < (bytes_to_check / sizeof(x)); x++) {
             assert(((hg_size_t*)g_buffer)[x] == x);
         }
 
         /* fill pattern for return trip, increment each value by 1 */
-        for(x=0; x<(g_opts.xfer_size/sizeof(x)); x++)
-            ((hg_size_t*)g_buffer)[x] = x+1;
+        for (x = 0; x < (g_opts.xfer_size / sizeof(x)); x++)
+            ((hg_size_t*)g_buffer)[x] = x + 1;
     }
 
     margo_free_input(handle, &in);
@@ -565,9 +535,8 @@ static void bw_ult(hg_handle_t handle)
     free(tid_array);
 
     ABT_mutex_free(&cur_off_mutex);
-    
-    if(in.shutdown)
-        ABT_eventual_set(g_bw_done_eventual, NULL, 0);
+
+    if (in.shutdown) ABT_eventual_set(g_bw_done_eventual, NULL, 0);
 
     free(arg_array);
 
@@ -575,23 +544,28 @@ static void bw_ult(hg_handle_t handle)
 }
 DEFINE_MARGO_RPC_HANDLER(bw_ult)
 
-static int run_benchmark(hg_id_t id, ssg_member_id_t target,
-    ssg_group_id_t gid, margo_instance_id mid, int shutdown, int duration, int print_flag)
+static int run_benchmark(hg_id_t           id,
+                         ssg_member_id_t   target,
+                         ssg_group_id_t    gid,
+                         margo_instance_id mid,
+                         int               shutdown,
+                         int               duration,
+                         int               print_flag)
 {
-    hg_handle_t handle;
-    hg_addr_t target_addr;
-    int ret;
-    bw_rpc_in_t in;
+    hg_handle_t  handle;
+    hg_addr_t    target_addr;
+    int          ret;
+    bw_rpc_in_t  in;
     bw_rpc_out_t out;
-    void* buffer = g_buffer;
-    hg_size_t i;
-    hg_size_t bytes_to_check;
-    double start_ts, end_ts;
-    void **buf_ptrs;
-    hg_size_t *buf_sizes;
+    void*        buffer = g_buffer;
+    hg_size_t    i;
+    hg_size_t    bytes_to_check;
+    double       start_ts, end_ts;
+    void**       buf_ptrs;
+    hg_size_t*   buf_sizes;
 
     /* fill pattern in origin buffer */
-    for(i=0; i<(g_opts.xfer_size/sizeof(i)); i++)
+    for (i = 0; i < (g_opts.xfer_size / sizeof(i)); i++)
         ((hg_size_t*)buffer)[i] = i;
 
     target_addr = ssg_get_group_member_addr(gid, target);
@@ -606,44 +580,43 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     assert(buf_sizes);
 
     /* express as a vector of contiguous regions */
-    for(i=0; i<g_opts.vector_len; i++)
-    {
+    for (i = 0; i < g_opts.vector_len; i++) {
         buf_sizes[i] = g_opts.xfer_size / g_opts.vector_len;
-        buf_ptrs[i] = buffer + (buf_sizes[0] * i);
+        buf_ptrs[i]  = buffer + (buf_sizes[0] * i);
     }
 
     /* register memory for xfer */
-    ret = margo_bulk_create(mid, g_opts.vector_len, buf_ptrs, buf_sizes, HG_BULK_READWRITE, &in.bulk_handle);
+    ret = margo_bulk_create(mid, g_opts.vector_len, buf_ptrs, buf_sizes,
+                            HG_BULK_READWRITE, &in.bulk_handle);
     assert(ret == 0);
 
     free(buf_ptrs);
     free(buf_sizes);
 
-    in.op = HG_BULK_PULL;
+    in.op       = HG_BULK_PULL;
     in.shutdown = 0;
     in.duration = duration;
 
     start_ts = ABT_get_wtime();
-    ret = margo_forward(handle, &in);
-    end_ts = ABT_get_wtime();
+    ret      = margo_forward(handle, &in);
+    end_ts   = ABT_get_wtime();
     assert(ret == 0);
 
     ret = margo_get_output(handle, &out);
     assert(ret == HG_SUCCESS);
 
-    if(print_flag)
-    {
-        printf("<op>\t<warmup_seconds>\t<concurrency>\t<threads>\t<xfer_size>\t<total_bytes>\t<seconds>\t<MiB/s>\t<xfer_memory>\t<align_buffer>\n");
+    if (print_flag) {
+        printf(
+            "<op>\t<warmup_seconds>\t<concurrency>\t<threads>\t<xfer_size>\t<"
+            "total_bytes>\t<seconds>\t<MiB/"
+            "s>\t<xfer_memory>\t<align_buffer>\n");
 
         printf("PULL\t%d\t%d\t%d\t%lu\t%lu\t%f\t%f\t%d\n",
-            g_opts.warmup_seconds,
-            g_opts.concurrency,
-            g_opts.threads,
-            g_opts.xfer_size,
-            out.bytes_moved,
-            (end_ts-start_ts),
-            ((double)out.bytes_moved/(end_ts-start_ts))/(1024.0*1024.0),
-            g_opts.align_buffer);
+               g_opts.warmup_seconds, g_opts.concurrency, g_opts.threads,
+               g_opts.xfer_size, out.bytes_moved, (end_ts - start_ts),
+               ((double)out.bytes_moved / (end_ts - start_ts))
+                   / (1024.0 * 1024.0),
+               g_opts.align_buffer);
     }
 
     margo_free_output(handle, &out);
@@ -651,62 +624,55 @@ static int run_benchmark(hg_id_t id, ssg_member_id_t target,
     /* pause a moment */
     margo_thread_sleep(mid, 100);
 
-    in.op = HG_BULK_PUSH;
+    in.op       = HG_BULK_PUSH;
     in.shutdown = shutdown;
     in.duration = duration;
 
     start_ts = ABT_get_wtime();
-    ret = margo_forward(handle, &in);
-    end_ts = ABT_get_wtime();
+    ret      = margo_forward(handle, &in);
+    end_ts   = ABT_get_wtime();
     assert(ret == 0);
 
     ret = margo_get_output(handle, &out);
     assert(ret == HG_SUCCESS);
 
-    if(print_flag)
-    {
+    if (print_flag) {
         printf("PUSH\t%d\t%d\t%d\t%lu\t%lu\t%f\t%f\t%d\n",
-            g_opts.warmup_seconds,
-            g_opts.concurrency,
-            g_opts.threads,
-            g_opts.xfer_size,
-            out.bytes_moved,
-            (end_ts-start_ts),
-            ((double)out.bytes_moved/(end_ts-start_ts))/(1024.0*1024.0),
-            g_opts.align_buffer);
+               g_opts.warmup_seconds, g_opts.concurrency, g_opts.threads,
+               g_opts.xfer_size, out.bytes_moved, (end_ts - start_ts),
+               ((double)out.bytes_moved / (end_ts - start_ts))
+                   / (1024.0 * 1024.0),
+               g_opts.align_buffer);
     }
 
     /* calculate how many bytes of the buffer have been transferred */
     bytes_to_check = g_opts.xfer_size;
-    if(out.bytes_moved < bytes_to_check)
-        bytes_to_check = out.bytes_moved;
+    if (out.bytes_moved < bytes_to_check) bytes_to_check = out.bytes_moved;
     /* check fill pattern we got back; should be what we set plus one */
-    for(i=0; i<(bytes_to_check/sizeof(i)); i++)
-    {
-        assert(((hg_size_t*)g_buffer)[i] == i+1);
+    for (i = 0; i < (bytes_to_check / sizeof(i)); i++) {
+        assert(((hg_size_t*)g_buffer)[i] == i + 1);
     }
 
     margo_free_output(handle, &out);
     margo_bulk_free(in.bulk_handle);
     margo_destroy(handle);
 
-    return(0);
+    return (0);
 }
 
 /* function that assists in transferring data until end condition is met */
-static void bw_worker(void *_arg)
+static void bw_worker(void* _arg)
 {
-    struct bw_worker_arg *arg = _arg;
-    double now;
-    size_t my_off;
-    int ret;
+    struct bw_worker_arg* arg = _arg;
+    double                now;
+    size_t                my_off;
+    int                   ret;
 
     // printf("# DBG: worker started.\n");
 
     now = ABT_get_wtime();
 
-    while((now - arg->start_tm) < arg->duration)
-    {
+    while ((now - arg->start_tm) < arg->duration) {
         /* find the offset for this transfer and then increment for next
          * one
          */
@@ -716,13 +682,14 @@ static void bw_worker(void *_arg)
         *arg->cur_off = 0;
         ABT_mutex_unlock(*arg->cur_off_mutex);
 
-        ret = margo_bulk_transfer(arg->mid, arg->op,
-                *arg->target_addr, *arg->client_bulk_handle, my_off, g_bulk_handle, my_off, g_opts.xfer_size);
+        ret = margo_bulk_transfer(arg->mid, arg->op, *arg->target_addr,
+                                  *arg->client_bulk_handle, my_off,
+                                  g_bulk_handle, my_off, g_opts.xfer_size);
         assert(ret == 0);
 
         arg->bytes_moved += g_opts.xfer_size;
         now = ABT_get_wtime();
-        //printf("now: %f\n", now);
+        // printf("now: %f\n", now);
     }
 
     // printf("# DBG: worker stopped.\n");
