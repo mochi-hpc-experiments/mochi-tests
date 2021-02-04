@@ -3,3 +3,5 @@ bin_PROGRAMS += interoperability/margo-plus-non-margo interoperability/margo-cal
 endif
 
 interoperability_margo_plus_non_margo_SOURCES = interoperability/margo-plus-non-margo.c interoperability/lib-nm.c
+interoperability_margo_plus_non_margo_LDADD = -lpthread
+interoperability_margo_calls_from_pthreads_LDADD = -lpthread
