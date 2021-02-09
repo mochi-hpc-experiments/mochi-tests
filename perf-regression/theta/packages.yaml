@@ -52,6 +52,9 @@ packages:
         paths:
             openssl@1.1.0i: /usr
         buildable: False
+    rdma-credentials:
+        modules:
+            rdma-credentials@1.2.25: rdma-credentials/1.2.25-7.0.2.1_2.74__g1542270.ari
     mochi-ssg:
         variants: +mpi
     libfabric:
