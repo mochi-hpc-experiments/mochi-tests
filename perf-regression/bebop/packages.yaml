@@ -80,6 +80,6 @@ packages:
     mochi-ssg:
         variants: +mpi
     mercury:
-        variants: ~boostsys
+        variants: ~boostsys ~checksum
     libfabric:
         variants: fabrics=psm2,sockets

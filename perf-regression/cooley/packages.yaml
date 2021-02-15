@@ -96,7 +96,7 @@ packages:
             mvapich2@2.2: /soft/libraries/mpi/mvapich2/gcc/
         buildable: False
     mercury:
-        variants: ~boostsys
+        variants: ~boostsys ~checksum
     libxml2:
         paths:
             libxml2@2.9.1: /usr/

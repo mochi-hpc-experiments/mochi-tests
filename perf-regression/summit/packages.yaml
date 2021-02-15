@@ -45,7 +45,7 @@ packages:
     mochi-ssg:
         variants: +mpi
     mercury:
-        variants: ~boostsys
+        variants: ~boostsys ~checksum
     # the 'mlx' provider for libfabric is not maintained
     # https://github.com/ofiwg/libfabric/issues/4806#issuecomment-461678426
     libfabric:

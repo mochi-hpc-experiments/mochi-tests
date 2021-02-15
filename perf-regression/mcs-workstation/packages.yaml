@@ -51,7 +51,7 @@ packages:
       m4@1.4.17: /usr
     buildable: False
   mercury:
-    variants: ~boostsys
+    variants: ~boostsys ~checksum
   openssl:
     paths:
       openssl@1.0.1f: /usr
