@@ -60,10 +60,10 @@ spack uninstall -R -y argobots mercury opa-psm2 mochi-bake || true
 # spack install ior@master+mobject ^margo@develop ^mercury@develop ^mobject@develop ^bake@develop ^remi@develop ^thallium@develop ^sdskeyval@develop ^ssg@develop
 
 # ior acts as our "apex" package here, causing several other packages to build
-spack install ior@master +mobject
+spack install ior@master +mobject ^mercury@master
 
-spack install mochi-bake
-spack install mochi-ssg
+spack install mochi-bake ^mercury@master
+spack install mochi-ssg ^mercury@master
 
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
