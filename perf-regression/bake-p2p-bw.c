@@ -68,18 +68,20 @@ static void         bench_worker(void* _arg);
 
 int main(int argc, char** argv)
 {
-    margo_instance_id   mid;
-    int                 nranks;
-    int                 my_mpi_rank;
-    ssg_group_id_t      gid;
-    char*               gid_buffer;
-    size_t              gid_buffer_size;
-    int                 gid_buffer_size_int;
-    int                 namelen;
-    char                processor_name[MPI_MAX_PROCESSOR_NAME];
-    int                 group_size;
-    struct hg_init_info hii;
-    int                 ret;
+    margo_instance_id      mid;
+    int                    nranks;
+    int                    my_mpi_rank;
+    ssg_group_id_t         gid;
+    char*                  gid_buffer;
+    size_t                 gid_buffer_size;
+    int                    gid_buffer_size_int;
+    int                    namelen;
+    char                   processor_name[MPI_MAX_PROCESSOR_NAME];
+    int                    group_size;
+    struct margo_init_info mii;
+    struct hg_init_info    hii;
+    int                    ret;
+    char                   margo_json[256] = {0};
 
     MPI_Init(&argc, &argv);
 
@@ -109,7 +111,9 @@ int main(int argc, char** argv)
         }
     }
 
+    memset(&mii, 0, sizeof(mii));
     memset(&hii, 0, sizeof(hii));
+    mii.hg_init_info = &hii;
     if ((my_mpi_rank > 0 && g_opts.mercury_timeout_client == 0)
         || (my_mpi_rank == 0 && g_opts.mercury_timeout_server == 0)) {
         /* If mercury timeout of zero is requested, then set
@@ -121,9 +125,13 @@ int main(int argc, char** argv)
         hii.na_init_info.progress_mode = NA_NO_BLOCK;
     }
 
+    snprintf(margo_json, 256,
+             "{\"use_progress_thread\":true,\"rpc_thread_count\":%d}",
+             g_opts.rpc_xstreams);
+    mii.json_config = margo_json;
+
     /* actually start margo */
-    mid = margo_init_opt(g_opts.na_transport, MARGO_SERVER_MODE, &hii, 1,
-                         g_opts.rpc_xstreams);
+    mid = margo_init_ext(g_opts.na_transport, MARGO_SERVER_MODE, &mii);
     assert(mid);
 
     if (g_opts.diag_file_name) margo_diag_start(mid);
@@ -182,19 +190,19 @@ int main(int argc, char** argv)
     assert(group_size == 1);
 
     if (my_mpi_rank == 0) {
-        bake_provider_t  provider;
-        bake_target_id_t tid;
+        bake_provider_t                provider;
+        bake_target_id_t               tid;
+        struct bake_provider_init_info bpii = {0};
 
         /* server side */
 
-        ret = bake_provider_register(mid, 1, BAKE_ABT_POOL_DEFAULT, &provider);
+        if (g_opts.pipeline_enabled)
+            bpii.json_config = "{\"pipeline_enable\":true}";
+
+        ret = bake_provider_register(mid, 1, &bpii, &provider);
         assert(ret == 0);
 
-        if (g_opts.pipeline_enabled)
-            bake_provider_set_conf(provider, "pipeline_enabled", "1");
-
-        ret = bake_provider_add_storage_target(provider, g_opts.bake_pool,
-                                               &tid);
+        ret = bake_provider_attach_target(provider, g_opts.bake_pool, &tid);
         if (ret != 0) {
             fprintf(stderr, "Error: failed to add bake pool %s\n",
                     g_opts.bake_pool);
