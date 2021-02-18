@@ -126,7 +126,7 @@ int main(int argc, char** argv)
     }
 
     snprintf(margo_json, 256,
-             "{\"use_progress_thread\":1,\"rpc_thread_count\":%d}",
+             "{\"use_progress_thread\":true,\"rpc_thread_count\":%d}",
              g_opts.rpc_xstreams);
     mii.json_config = margo_json;
 
@@ -190,19 +190,19 @@ int main(int argc, char** argv)
     assert(group_size == 1);
 
     if (my_mpi_rank == 0) {
-        bake_provider_t  provider;
-        bake_target_id_t tid;
+        bake_provider_t                provider;
+        bake_target_id_t               tid;
+        struct bake_provider_init_info bpii = {0};
 
         /* server side */
 
-        ret = bake_provider_register(mid, 1, BAKE_ABT_POOL_DEFAULT, &provider);
+        if (g_opts.pipeline_enabled)
+            bpii.json_config = "{\"pipeline_enable\":true}";
+
+        ret = bake_provider_register(mid, 1, &bpii, &provider);
         assert(ret == 0);
 
-        if (g_opts.pipeline_enabled)
-            bake_provider_set_conf(provider, "pipeline_enabled", "1");
-
-        ret = bake_provider_add_storage_target(provider, g_opts.bake_pool,
-                                               &tid);
+        ret = bake_provider_attach_target(provider, g_opts.bake_pool, &tid);
         if (ret != 0) {
             fprintf(stderr, "Error: failed to add bake pool %s\n",
                     g_opts.bake_pool);
