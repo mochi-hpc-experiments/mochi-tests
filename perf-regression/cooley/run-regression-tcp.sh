@@ -39,7 +39,7 @@ cd $SANDBOX
 git clone -q https://github.com/spack/spack.git
 (cd spack && git checkout -b spack-0.15.3 v0.15.3)
 git clone -q https://xgitlab.cels.anl.gov/sds/sds-repo.git
-git clone -q https://xgitlab.cels.anl.gov/sds/sds-tests.git
+git clone -q https://github.com/mochi-hpc-experiments/mochi-tests.git
 
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
 . $SANDBOX/spack/share/spack/setup-env.sh
@@ -64,9 +64,9 @@ spack install mochi-ssg
 # spack later in this script
 spack load -r mochi-ssg
 
-# sds-tests
+# mochi-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
-cd $SANDBOX/sds-tests
+cd $SANDBOX/mochi-tests
 libtoolize
 ./prepare.sh
 mkdir build

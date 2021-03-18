@@ -13,7 +13,7 @@ module swap PrgEnv-intel PrgEnv-gnu
 #spack load -r ssg/lfdi2fo
 
 spack load -r mochi-ssg
-# ssg doesn't need bake, but these ssg tests were built as part of sds-tests, which does
+# ssg doesn't need bake, but these ssg tests were built as part of mochi-tests, which does
 spack load -r mochi-bake
 
 spack find --loaded
