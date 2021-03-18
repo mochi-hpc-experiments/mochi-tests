@@ -45,9 +45,6 @@ mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "
 sleep 1 
 
 echo "## Margo OFI/VERBS (round trip, Hg busy spin):"
-# see https://xgitlab.cels.anl.gov/sds/margo/issues/54 : 100000 iterations
-# takes longer than 20 minutes, so cut that down a bit until we figure out
-# what's going on.
 mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-latency -i 10000 -n "ofi+verbs;ofi_rxm://mlx5_0:3339" -t 0,0
 echo "## Margo OFI/VERBS (bw, 1MiB, Hg busy spin):"
 mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-bw -x 1048576 -n "ofi+verbs;ofi_rxm://mlx5_0:3339" -c 1 -D 20 -t 0,0
