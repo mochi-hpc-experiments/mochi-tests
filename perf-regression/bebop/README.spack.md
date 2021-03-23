@@ -13,7 +13,8 @@ git clone https://github.com/spack/spack.git
 cd spack
 . share/spack/setup-env.sh
 
-git clone git@xgitlab.cels.anl.gov:sds/sds-repo
+git clone https://github.com/mochi-hpc/mochi-spack-packages
+cd mochi-spack-packages
 spack repo add .
 ```
 This directory contains a packages.yaml that should be copied to one of the spack

@@ -1,85 +1,106 @@
 packages:
-    all:
-        compiler: [gcc,intel]
-        providers:
-            mpi: [intel-mpi]
-    m4:
-        paths:
-            m4@1.4.16: /usr
-        buildable: False
-    libtool:
-        paths:
-            libtool@2.4.2: /usr
-        buildable: False
+  all:
+    compiler: [gcc, intel]
+    providers:
+      mpi: [intel-mpi]
+  m4:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: m4@1.4.16
+  libtool:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: libtool@2.4.2
     # spack should build pkg-config, or else spack's use of CPATH
     # confuses pkg-config (requires use of 'PKG_CONFIG_ALLOW_SYSTEM_*' env vars
-    cmake:
-        modules:
-            cmake@3.12.2: cmake/3.12.2-4zllpyo
-        buildable: False
-    numactl:
-        modules:
-            numactl@2.0.11: numactl/2.0.11-tggunqu
-        buildable: False
-    openssl:
-        paths:
-            openssl@1.0.2k: /usr
-        buildable: False
-    bzip2:
-        paths:
-            bzip2@1.0.6: /
-        buildable: False
-    bison:
-        paths:
-            bison@3.0.4: /
-        buildable: False
-    flex:
-        paths:
-            flex@2.5.37: /
-        buildable: False
-    coreutils:
-        paths:
-            coreutils@8.22: /usr
-        buildable: False
-    zlib:
-        paths:
-            zlib@1.2.7: /usr
-        buildable: False
-    tar:
-        paths:
-            tar@1.26: /
-        buildable: False
-    gettext:
-        paths:
-            gettext@0.19: /usr
-        buildable: False
-    tcl:
-        paths:
-            tcl@8.5.13: /usr
-        buildable: False
-    perl:
-        paths:
-            perl@5.16.3: /usr
-        buildable: False
-    autoconf:
-        paths:
-            autoconf@2.69: /usr
-        buildable: False
-    automake:
-        paths:
-            automake@1.13.4: /usr
-        buildable: False
-    ncurses:
-        paths:
-            ncurses@5.9: /usr
-        buildable: False
-    intel-mpi:
-        modules:
-            intel-mpi@2017.3%gcc@7.3.0: intel-mpi/2017.3-dfphq6k
-        buildable: False
-    mochi-ssg:
-        variants: +mpi
-    mercury:
-        variants: ~boostsys ~checksum
-    libfabric:
-        variants: fabrics=psm2,sockets
+  cmake:
+    buildable: false
+    externals:
+    - modules:
+      - cmake/3.12.2-4zllpyo
+      spec: cmake@3.12.2
+  numactl:
+    buildable: false
+    externals:
+    - modules:
+      - numactl/2.0.11-tggunqu
+      spec: numactl@2.0.11
+  openssl:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: openssl@1.0.2k
+  bzip2:
+    buildable: false
+    externals:
+    - prefix: /
+      spec: bzip2@1.0.6
+  bison:
+    buildable: false
+    externals:
+    - prefix: /
+      spec: bison@3.0.4
+  flex:
+    buildable: false
+    externals:
+    - prefix: /
+      spec: flex@2.5.37
+  coreutils:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: coreutils@8.22
+  zlib:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: zlib@1.2.7
+  tar:
+    buildable: false
+    externals:
+    - prefix: /
+      spec: tar@1.26
+  gettext:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: gettext@0.19
+  tcl:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: tcl@8.5.13
+  perl:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: perl@5.16.3
+  autoconf:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: autoconf@2.69
+  automake:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: automake@1.13.4
+  ncurses:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: ncurses@5.9
+  intel-mpi:
+    buildable: false
+    externals:
+    - modules:
+      - intel-mpi/2017.3-dfphq6k
+      spec: intel-mpi@2017.3%gcc@7.3.0
+  ssg:
+    variants: +mpi
+  mercury:
+    variants: ~boostsys~checksum
+  libfabric:
+    variants: fabrics=psm2
