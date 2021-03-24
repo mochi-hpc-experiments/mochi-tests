@@ -1,63 +1,79 @@
 packages:
-    all:
-        compiler: [gcc@9.3.0]
-        providers:
-            mpi: [mpich]
-        target: ["mic_knl"]
-    mpich:
-        modules:
-            mpich@7.7.14 arch=cray-cnl7-mic_knl: cray-mpich/7.7.14
-        buildable: False
-    autoconf:
-        paths:
-            autoconf@2.69: /usr
-        buildable: False
-    m4:
-        paths:
-            m4@1.4.18: /usr
-        buildable: False
-    automake:
-        paths:
-            automake@1.15.1: /usr
-        buildable: False
-    pkg-config:
-        paths:
-            pkg-config@0.29.2: /usr
-        buildable: False
-    libtool:
-        paths:
-            libtool@2.4.6: /usr
-        buildable: False
-    perl:
-        paths:
-            perl@5.26.1: /usr
-        buildable: False
-    cmake:
-        modules:
-            cmake@3.16.2: cmake/3.16.2
-        buildable: False
-    libuuid:
-        paths:
-            libuuid@2.33.1: /usr
-        buildable: False
-    zlib:
-        paths:
-            zlib@1.2.11: /usr
-        buildable: False
-    ncurses:
-        paths:
-            ncurses@6.1: /usr
-        buildable: False
-    openssl:
-        paths:
-            openssl@1.1.0i: /usr
-        buildable: False
-    rdma-credentials:
-        modules:
-            rdma-credentials@1.2.25: rdma-credentials/1.2.25-7.0.2.1_2.74__g1542270.ari
-    mochi-ssg:
-        variants: +mpi
-    libfabric:
-        variants: fabrics=gni
-    mercury:
-        variants: +udreg ~boostsys ~checksum
+  all:
+    compiler: [gcc@9.3.0]
+    providers:
+      mpi: [mpich]
+    target: [mic_knl]
+  mpich:
+    buildable: false
+    externals:
+    - spec: mpich@7.7.14 arch=cray-cnl7-mic_knl
+      modules:
+      - cray-mpich/7.7.14
+  autoconf:
+    buildable: false
+    externals:
+    - spec: autoconf@2.69
+      prefix: /usr
+  m4:
+    buildable: false
+    externals:
+    - spec: m4@1.4.18
+      prefix: /usr
+  automake:
+    buildable: false
+    externals:
+    - spec: automake@1.15.1
+      prefix: /usr
+  pkg-config:
+    buildable: false
+    externals:
+    - spec: pkg-config@0.29.2
+      prefix: /usr
+  libtool:
+    buildable: false
+    externals:
+    - spec: libtool@2.4.6
+      prefix: /usr
+  perl:
+    buildable: false
+    externals:
+    - spec: perl@5.26.1
+      prefix: /usr
+  cmake:
+    buildable: false
+    externals:
+    - spec: cmake@3.16.2
+      modules:
+      - cmake/3.16.2
+  libuuid:
+    buildable: false
+    externals:
+    - spec: libuuid@2.33.1
+      prefix: /usr
+  zlib:
+    buildable: false
+    externals:
+    - spec: zlib@1.2.11
+      prefix: /usr
+  ncurses:
+    buildable: false
+    externals:
+    - spec: ncurses@6.1
+      prefix: /usr
+  openssl:
+    buildable: false
+    externals:
+    - spec: openssl@1.1.0i
+      prefix: /usr
+  rdma-credentials:
+    externals:
+    - spec: rdma-credentials@1.2.25
+      modules:
+      - rdma-credentials/1.2.25-7.0.2.1_2.74__g1542270.ari
+  mochi-ssg:
+    variants: +mpi
+  libfabric:
+    variants: fabrics=gni
+  mercury:
+    variants: +udreg ~boostsys ~checksum

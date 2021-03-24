@@ -19,7 +19,7 @@ export CRAYPE_LINK_TYPE=dynamic
 # location of this script
 ORIGIN=$PWD
 # scratch area for builds
-SANDBOX=$PWD/mochi-regression-sandbox-$$
+SANDBOX=$PWD/sandbox-$$
 # install destination
 PREFIX=$PWD/mochi-regression-install-$$
 # job submission dir
@@ -37,8 +37,10 @@ cp ${ORIGIN}/*.qsub ${JOBDIR}
 # set up build environment
 cd $SANDBOX
 git clone -q https://github.com/spack/spack.git
-(cd spack && git checkout -b spack-0.15.3 v0.15.3)
-git clone -q https://xgitlab.cels.anl.gov/sds/sds-repo.git
+# Using origin/develop of spack as of 3-22-2021.  The current release (0.16.1)
+# will not return an error code if spack install fails.
+# (cd spack && git checkout -b spack-0.16.1 v0.16.1)
+git clone -q https://github.com/mochi-hpc/mochi-spack-packages.git
 git clone -q https://github.com/mochi-hpc-experiments/mochi-tests.git
 
 echo "=== BUILD SPACK PACKAGES AND LOAD ==="
@@ -51,27 +53,21 @@ cp $ORIGIN/packages.yaml $SPACK_ROOT/etc/spack
 cp $ORIGIN/config.yaml $SPACK_ROOT/etc/spack
 # add external repo for mochi.  Note that this will not modify the 
 # user's ~/.spack/ files because we modified $HOME above
-spack repo add ${SANDBOX}/sds-repo
+spack repo add ${SANDBOX}/mochi-spack-packages
 # sanity check
 spack repo list
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-spack spec ior@master +mobject
-spack install ior@master +mobject
-spack spec mochi-bake
-spack spec mochi-ssg ^mpich
-spack install mochi-bake
-spack install mochi-ssg ^mpich
-
+spack spec ior@master +mobject ^mochi-ssg@main^mpich
+spack install ior@master +mobject ^mochi-ssg@main^mpich
 
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 # load ssg and bake because they are needed by things compiled outside of
 # spack later in this script
-spack load -r mochi-ssg
-spack load -r mochi-bake
+spack load -r ior
 
 # mochi-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
