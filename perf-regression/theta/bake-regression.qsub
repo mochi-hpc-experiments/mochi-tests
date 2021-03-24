@@ -21,6 +21,9 @@ spack load -r mochi-bake
 
 spack find --loaded
 
+# workaround for missing library paths on Cray as of 2021-03-24
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBRARY_PATH"
+
 # find nodes in job.  We have to do this so that we can manually specify 
 # in each aprun so that server ranks consitently run on node where we
 # set up storage space

@@ -19,7 +19,7 @@ export CRAYPE_LINK_TYPE=dynamic
 # location of this script
 ORIGIN=$PWD
 # scratch area for builds
-SANDBOX=$PWD/sandbox-$$
+SANDBOX=$PWD/sb-$$
 # install destination
 PREFIX=$PWD/mochi-regression-install-$$
 # job submission dir

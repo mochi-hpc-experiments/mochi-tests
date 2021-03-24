@@ -18,6 +18,9 @@ spack load -r mochi-bake
 
 spack find --loaded
 
+# workaround for missing library paths on Cray as of 2021-03-24
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBRARY_PATH"
+
 export MPICH_GNI_NDREG_ENTRIES=1024
 
 SSG_PDOMAIN="sds-nightly"

@@ -24,6 +24,9 @@ spack load -r mochi-bake
 
 spack find --loaded
 
+# workaround for missing library paths on Cray as of 2021-03-24
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBRARY_PATH"
+
 echo "### NOTE: all benchmarks are using aprun -cc none to allow processes to run on all available cores; the default aprun settings limit processes to one core and produce poor performance because of contention between internal threads"
 echo "### NOTE: all benchmarks are using numactl to keep processes on socket 0"
 

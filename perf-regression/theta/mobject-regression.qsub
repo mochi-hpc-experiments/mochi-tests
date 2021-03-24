@@ -13,6 +13,9 @@ spack load -r ior@master +mobject
 
 spack find --loaded
 
+# workaround for missing library paths on Cray as of 2021-03-24
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBRARY_PATH"
+
 
 MOBJECT_PDOMAIN="sds-nightly"
 apstat -P | grep $MOBJECT_PDOMAIN || apmgr pdomain -c -u $MOBJECT_PDOMAIN
