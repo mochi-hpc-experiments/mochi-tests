@@ -37,9 +37,13 @@ cp ${ORIGIN}/*.qsub ${JOBDIR}
 # set up build environment
 cd $SANDBOX
 git clone -q https://github.com/spack/spack.git
-# Using origin/develop of spack as of 3-22-2021.  The current release (0.16.1)
-# will not return an error code if spack install fails.
-# (cd spack && git checkout -b spack-0.16.1 v0.16.1)
+# reverting to particular spack release as of 3-22-2021.  Some releases have
+# some combination of problems, either a) inability to correctly set library
+# paths at runtime b) does not report installation failures with return
+# codes or c) does not understand @main as a version string.  Many newer
+# versions also d) fail to install packages if the path is too deep in the
+# regression test environment
+(cd spack && git checkout -b spack-0.16.0 v0.16.0)
 git clone -q https://github.com/mochi-hpc/mochi-spack-packages.git
 git clone -q https://github.com/mochi-hpc-experiments/mochi-tests.git
 
