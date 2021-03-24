@@ -37,7 +37,9 @@ cp $ORIGIN/mobject-regression.sbatch $JOBDIR
 # set up build environment
 cd $SANDBOX
 git clone -q https://github.com/spack/spack.git
-(cd spack && git checkout -b spack-0.16.1 v0.16.1)
+# Using origin/develop of spack as of 3-22-2021.  The current release (0.16.1)
+# will not return an error code if spack install fails.
+# (cd spack && git checkout -b spack-0.16.1 v0.16.1)
 git clone -q https://github.com/mochi-hpc/mochi-spack-packages.git
 git clone -q https://github.com/mochi-hpc-experiments/mochi-tests.git
 
