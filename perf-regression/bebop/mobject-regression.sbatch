@@ -23,8 +23,7 @@ export MOBJECT_CLUSTER_FILE=mobject-cluster.gid
 echo " ==== running server"
 # clean up from any prior runs
 srun -n 1 --exclusive rm -f /dev/shm/mobject.dat
-# 'sockets' seems to work well, but we are debugging why 'psm2' is a problem
-srun -n 1 --exclusive mobject-server-daemon sockets:// $MOBJECT_CLUSTER_FILE &
+srun -n 1 --exclusive mobject-server-daemon ofi+psm2:// $MOBJECT_CLUSTER_FILE &
 # backgrounding the 'mobject-server-daemon' means we need to wait just a bit before the cluster is setup
 sleep 5
 # ... then this confirms the cluster is ready
