@@ -18,21 +18,32 @@ export CRAYPE_LINK_TYPE=dynamic
 
 # location of this script
 ORIGIN=$PWD
+
 # scratch area for builds
-SANDBOX=$PWD/sb-$$
+if [ -z "$WORKSPACE_TMP" ]; then
+    SANDBOX=$PWD/sb-$$
+else
+    # if that variable is set and not empty, then we are in a Jenkins
+    # environment.  Put the sandbox within the temp dir specified by Jenkins
+    # as a workaround to the long path problem described in
+    # https://github.com/spack/spack/issues/22548
+    SANDBOX=$WORKSPACE_TMP/sb-$$
+fi
+
 # install destination
 PREFIX=$PWD/mochi-regression-install-$$
 # job submission dir
 JOBDIR=$PWD/mochi-regression-job-$$
-# modify HOME env variable so that we don't perturb ~/.spack/ files for the 
-# users calling this script
-export HOME=$SANDBOX
 
-mkdir $SANDBOX
+mkdir -p $SANDBOX
 mkdir $PREFIX
 mkdir $JOBDIR
 ls *.qsub
 cp ${ORIGIN}/*.qsub ${JOBDIR}
+
+# modify HOME env variable so that we don't perturb ~/.spack/ files for the 
+# users calling this script
+export HOME=$SANDBOX
 
 # set up build environment
 cd $SANDBOX
