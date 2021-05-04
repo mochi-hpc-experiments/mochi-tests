@@ -37,13 +37,8 @@ cp ${ORIGIN}/*.qsub ${JOBDIR}
 # set up build environment
 cd $SANDBOX
 git clone -q https://github.com/spack/spack.git
-# reverting to particular spack release as of 3-22-2021.  Some releases have
-# some combination of problems, either a) inability to correctly set library
-# paths at runtime b) does not report installation failures with return
-# codes or c) does not understand @main as a version string.  Many newer
-# versions also d) fail to install packages if the path is too deep in the
-# regression test environment
-(cd spack && git checkout -b spack-0.16.0 v0.16.0)
+# Using origin/develop as of 2021-05-03
+# (cd spack && git checkout -b spack-0.16.0 v0.16.0)
 git clone -q https://github.com/mochi-hpc/mochi-spack-packages.git
 git clone -q https://github.com/mochi-hpc-experiments/mochi-tests.git
 
@@ -54,6 +49,9 @@ spack compilers
 
 # use our own configuration file for theta-specific preferences
 cp $ORIGIN/packages.yaml $SPACK_ROOT/etc/spack
+# note: the following is a workaround to make sure that LD_LIBRARY_PATH is
+# set on Cray platforms, see https://github.com/spack/spack/issues/23228
+cp $ORIGIN/modules.yaml $SPACK_ROOT/etc/spack
 cp $ORIGIN/config.yaml $SPACK_ROOT/etc/spack
 # add external repo for mochi.  Note that this will not modify the 
 # user's ~/.spack/ files because we modified $HOME above
