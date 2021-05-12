@@ -89,6 +89,7 @@ AM_CONDITIONAL([HAVE_MARGO], [test "x${have_mpi}" = x1 && test "x${have_margo}" 
 AM_CONDITIONAL([HAVE_BAKE], [test "x${have_mpi}" = x1 && test "x${have_bake_client}" = x1 && test "x${have_bake_server}" = x1 && test "x${have_ssg}" = x1 && test "x${have_ssg_mpi}" = x1])
 AM_CONDITIONAL([HAVE_PMDK], [test "x${have_libpmemobj}" = x1 && test "x${have_argobots}" = x1])
 AM_CONDITIONAL([HAVE_SSG], [test "x${have_ssg}" = x1 && test "x${have_ssg_mpi}" = x1])
+AM_CONDITIONAL([HAVE_MPI], [test "x${have_mpi}" = x1])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

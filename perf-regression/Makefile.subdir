@@ -14,3 +14,7 @@ endif
 if HAVE_PMDK
 bin_PROGRAMS += perf-regression/pmdk-bw
 endif
+
+if HAVE_MPI
+bin_PROGRAMS += perf-regression/node-microbench
+endif
