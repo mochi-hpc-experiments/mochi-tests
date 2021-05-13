@@ -30,11 +30,14 @@ static void test_fn_call_normal(long unsigned iters);
 static void test_fn_call_inline(long unsigned iters);
 static void test_fn_call_x_obj(long unsigned iters);
 
+static void test_mpi_wtime(long unsigned iters);
+
 static struct options   g_opts;
 static struct test_case g_test_cases[]
     = {{"fn_call_normal", test_fn_call_normal},
        {"fn_call_inline", test_fn_call_inline},
        {"fn_call_cross_object", test_fn_call_x_obj},
+       {"mpi_wtime", test_mpi_wtime},
        {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -161,6 +164,17 @@ static void test_fn_call_x_obj(long unsigned iters)
     int           tmp = 1;
 
     for (i = 0; i < iters; i++) { tmp = fn_call_x_obj(tmp); }
+
+    return;
+}
+
+/* how expensive is MPI_Wtime()? */
+static void test_mpi_wtime(long unsigned iters)
+{
+    long unsigned i;
+    double        tm __attribute__((unused));
+
+    for (i = 0; i < iters; i++) { tm = MPI_Wtime(); }
 
     return;
 }
