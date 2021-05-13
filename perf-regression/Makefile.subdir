@@ -16,5 +16,8 @@ bin_PROGRAMS += perf-regression/pmdk-bw
 endif
 
 if HAVE_MPI
+perf_regression_node_microbench_SOURCES = \
+ perf-regression/node-microbench.c \
+ perf-regression/node-microbench-util.c
 bin_PROGRAMS += perf-regression/node-microbench
 endif
