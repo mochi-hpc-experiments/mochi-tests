@@ -9,6 +9,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include <mpi.h>
 
@@ -31,6 +32,7 @@ static void test_fn_call_inline(long unsigned iters);
 static void test_fn_call_x_obj(long unsigned iters);
 
 static void test_mpi_wtime(long unsigned iters);
+static void test_gettimeofday(long unsigned iters);
 
 static struct options   g_opts;
 static struct test_case g_test_cases[]
@@ -38,6 +40,7 @@ static struct test_case g_test_cases[]
        {"fn_call_inline", test_fn_call_inline},
        {"fn_call_cross_object", test_fn_call_x_obj},
        {"mpi_wtime", test_mpi_wtime},
+       {"gettimeofday", test_gettimeofday},
        {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -175,6 +178,17 @@ static void test_mpi_wtime(long unsigned iters)
     double        tm __attribute__((unused));
 
     for (i = 0; i < iters; i++) { tm = MPI_Wtime(); }
+
+    return;
+}
+
+/* how expensive is gettimeofday()? */
+static void test_gettimeofday(long unsigned iters)
+{
+    long unsigned  i;
+    struct timeval tv __attribute__((unused));
+
+    for (i = 0; i < iters; i++) { gettimeofday(&tv, NULL); }
 
     return;
 }
