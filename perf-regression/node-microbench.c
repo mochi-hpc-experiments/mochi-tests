@@ -16,17 +16,27 @@ struct options {
     long unsigned million_iterations;
 };
 
+struct test_case {
+    char* name;
+    void (*fn)(long unsigned);
+};
+
 static int  parse_args(int argc, char** argv, struct options* opts);
 static void usage(void);
+static void test_fn_call_normal(long unsigned iters);
 
-static struct options g_opts;
+static struct options   g_opts;
+static struct test_case g_test_cases[]
+    = {{"fn_call_normal", test_fn_call_normal}, {NULL, NULL}};
 
 int main(int argc, char** argv)
 {
-    int  nranks;
-    int  namelen;
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
-    int  ret;
+    int    nranks;
+    int    namelen;
+    char   processor_name[MPI_MAX_PROCESSOR_NAME];
+    int    ret;
+    int    test_idx = 0;
+    double tm1, tm2;
 
     MPI_Init(&argc, &argv);
 
@@ -45,6 +55,23 @@ int main(int argc, char** argv)
     if (ret < 0) {
         usage();
         exit(EXIT_FAILURE);
+    }
+
+    /* loop through however many test cases are defined */
+    printf("#<test case>\t<m_ops>\t<total s>\t<m_ops/s>\t<ns/op>\n");
+    while (g_test_cases[test_idx].fn) {
+        sleep(1);
+        printf("%s\t", g_test_cases[test_idx].name);
+
+        tm1 = MPI_Wtime();
+        g_test_cases[test_idx].fn(g_opts.million_iterations * 1000000);
+        tm2 = MPI_Wtime();
+
+        printf("%lu\t%f\t%f\t%f\n", g_opts.million_iterations, tm2 - tm1,
+               (double)(g_opts.million_iterations) / (tm2 - tm1),
+               (tm2 - tm1) / ((double)(g_opts.million_iterations)));
+
+        test_idx++;
     }
 
     MPI_Finalize();
@@ -81,5 +108,23 @@ static void usage(void)
             "Usage: "
             "node-microbench -m <iterations (millions)>\n"
             "\t\t(must be run with exactly 1 process)\n");
+    return;
+}
+
+static int fn_call_normal(int i)
+{
+    int j = i + i;
+
+    return (j);
+}
+
+/* how long does it take to issue a "normal" function call */
+static void test_fn_call_normal(long unsigned iters)
+{
+    long unsigned i;
+    int           tmp = 1;
+
+    for (i = 0; i < iters; i++) { tmp = fn_call_normal(tmp); }
+
     return;
 }
