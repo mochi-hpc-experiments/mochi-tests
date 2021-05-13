@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <time.h>
 
 #include <mpi.h>
 
@@ -33,6 +34,10 @@ static void test_fn_call_x_obj(long unsigned iters);
 
 static void test_mpi_wtime(long unsigned iters);
 static void test_gettimeofday(long unsigned iters);
+static void test_clock_gettime_realtime(long unsigned iters);
+static void test_clock_gettime_realtime_coarse(long unsigned iters);
+static void test_clock_gettime_monotonic(long unsigned iters);
+static void test_clock_gettime_monotonic_coarse(long unsigned iters);
 
 static struct options   g_opts;
 static struct test_case g_test_cases[]
@@ -41,6 +46,10 @@ static struct test_case g_test_cases[]
        {"fn_call_cross_object", test_fn_call_x_obj},
        {"mpi_wtime", test_mpi_wtime},
        {"gettimeofday", test_gettimeofday},
+       {"clock_gettime(REALTIME)", test_clock_gettime_realtime},
+       {"clock_gettime(REALTIME_COARSE)", test_clock_gettime_realtime_coarse},
+       {"clock_gettime(MONOTONIC)", test_clock_gettime_monotonic},
+       {"clock_gettime(MONOTONIC_COARSE)", test_clock_gettime_monotonic_coarse},
        {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -189,6 +198,50 @@ static void test_gettimeofday(long unsigned iters)
     struct timeval tv __attribute__((unused));
 
     for (i = 0; i < iters; i++) { gettimeofday(&tv, NULL); }
+
+    return;
+}
+
+/* how expensive is clock_gettime()? */
+static void test_clock_gettime_realtime(long unsigned iters)
+{
+    long unsigned   i;
+    struct timespec tp __attribute__((unused));
+
+    for (i = 0; i < iters; i++) { clock_gettime(CLOCK_REALTIME, &tp); }
+
+    return;
+}
+
+/* how expensive is clock_gettime()? */
+static void test_clock_gettime_realtime_coarse(long unsigned iters)
+{
+    long unsigned   i;
+    struct timespec tp __attribute__((unused));
+
+    for (i = 0; i < iters; i++) { clock_gettime(CLOCK_REALTIME_COARSE, &tp); }
+
+    return;
+}
+
+/* how expensive is clock_gettime()? */
+static void test_clock_gettime_monotonic(long unsigned iters)
+{
+    long unsigned   i;
+    struct timespec tp __attribute__((unused));
+
+    for (i = 0; i < iters; i++) { clock_gettime(CLOCK_MONOTONIC, &tp); }
+
+    return;
+}
+
+/* how expensive is clock_gettime()? */
+static void test_clock_gettime_monotonic_coarse(long unsigned iters)
+{
+    long unsigned   i;
+    struct timespec tp __attribute__((unused));
+
+    for (i = 0; i < iters; i++) { clock_gettime(CLOCK_MONOTONIC_COARSE, &tp); }
 
     return;
 }
