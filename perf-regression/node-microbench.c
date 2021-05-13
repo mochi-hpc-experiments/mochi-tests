@@ -23,11 +23,15 @@ struct test_case {
 
 static int  parse_args(int argc, char** argv, struct options* opts);
 static void usage(void);
+
 static void test_fn_call_normal(long unsigned iters);
+static void test_fn_call_inline(long unsigned iters);
 
 static struct options   g_opts;
 static struct test_case g_test_cases[]
-    = {{"fn_call_normal", test_fn_call_normal}, {NULL, NULL}};
+    = {{"fn_call_normal", test_fn_call_normal},
+       {"fn_call_inline", test_fn_call_inline},
+       {NULL, NULL}};
 
 int main(int argc, char** argv)
 {
@@ -111,6 +115,23 @@ static void usage(void)
     return;
 }
 
+static inline int fn_call_inline(int i)
+{
+    int j = i + i;
+
+    return (j);
+}
+
+/* how long does it take to issue an inline function call */
+static void test_fn_call_inline(long unsigned iters)
+{
+    long unsigned i;
+    int           tmp = 1;
+
+    for (i = 0; i < iters; i++) { tmp = fn_call_inline(tmp); }
+
+    return;
+}
 static int fn_call_normal(int i)
 {
     int j = i + i;
