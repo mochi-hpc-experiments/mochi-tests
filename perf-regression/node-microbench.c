@@ -4,6 +4,8 @@
  * See COPYRIGHT in top-level directory.
  */
 
+#define _GNU_SOURCE
+
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
@@ -11,6 +13,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
+#include <pthread.h>
+#include <stdatomic.h>
 
 #include <mpi.h>
 
@@ -38,19 +42,27 @@ static void test_clock_gettime_realtime(long unsigned iters);
 static void test_clock_gettime_realtime_coarse(long unsigned iters);
 static void test_clock_gettime_monotonic(long unsigned iters);
 static void test_clock_gettime_monotonic_coarse(long unsigned iters);
+static void test_pthread_mutex_lock(long unsigned iters);
+static void test_pthread_recursive_mutex_lock(long unsigned iters);
+static void test_pthread_spin_lock(long unsigned iters);
+static void test_stdatomic_lock(long unsigned iters);
 
 static struct options   g_opts;
-static struct test_case g_test_cases[]
-    = {{"fn_call_normal", test_fn_call_normal},
-       {"fn_call_inline", test_fn_call_inline},
-       {"fn_call_cross_object", test_fn_call_x_obj},
-       {"mpi_wtime", test_mpi_wtime},
-       {"gettimeofday", test_gettimeofday},
-       {"clock_gettime(REALTIME)", test_clock_gettime_realtime},
-       {"clock_gettime(REALTIME_COARSE)", test_clock_gettime_realtime_coarse},
-       {"clock_gettime(MONOTONIC)", test_clock_gettime_monotonic},
-       {"clock_gettime(MONOTONIC_COARSE)", test_clock_gettime_monotonic_coarse},
-       {NULL, NULL}};
+static struct test_case g_test_cases[] = {
+    {"fn_call_normal", test_fn_call_normal},
+    {"fn_call_inline", test_fn_call_inline},
+    {"fn_call_cross_object", test_fn_call_x_obj},
+    {"mpi_wtime", test_mpi_wtime},
+    {"gettimeofday", test_gettimeofday},
+    {"clock_gettime(REALTIME)", test_clock_gettime_realtime},
+    {"clock_gettime(REALTIME_COARSE)", test_clock_gettime_realtime_coarse},
+    {"clock_gettime(MONOTONIC)", test_clock_gettime_monotonic},
+    {"clock_gettime(MONOTONIC_COARSE)", test_clock_gettime_monotonic_coarse},
+    {"pthread_mutex_lock/unlock", test_pthread_mutex_lock},
+    {"pthread_mutex_recursive_lock/unlock", test_pthread_recursive_mutex_lock},
+    {"pthread_spin_lock/unlock", test_pthread_spin_lock},
+    {"stdatomic lock/unlock", test_stdatomic_lock},
+    {NULL, NULL}};
 
 int main(int argc, char** argv)
 {
@@ -242,6 +254,63 @@ static void test_clock_gettime_monotonic_coarse(long unsigned iters)
     struct timespec tp __attribute__((unused));
 
     for (i = 0; i < iters; i++) { clock_gettime(CLOCK_MONOTONIC_COARSE, &tp); }
+
+    return;
+}
+
+/* how expensive is pthread mutex lock/unlock? */
+static void test_pthread_mutex_lock(long unsigned iters)
+{
+    pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+    long unsigned   i;
+
+    for (i = 0; i < iters; i++) {
+        pthread_mutex_lock(&mtx);
+        pthread_mutex_unlock(&mtx);
+    }
+
+    return;
+}
+
+static void test_pthread_recursive_mutex_lock(long unsigned iters)
+{
+    pthread_mutex_t mtx = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+    long unsigned   i;
+
+    for (i = 0; i < iters; i++) {
+        pthread_mutex_lock(&mtx);
+        pthread_mutex_unlock(&mtx);
+    }
+
+    return;
+}
+
+static void test_pthread_spin_lock(long unsigned iters)
+{
+    pthread_spinlock_t sl;
+    long unsigned      i;
+
+    pthread_spin_init(&sl, PTHREAD_PROCESS_PRIVATE);
+
+    for (i = 0; i < iters; i++) {
+        pthread_spin_lock(&sl);
+        pthread_spin_unlock(&sl);
+    }
+
+    pthread_spin_destroy(&sl);
+    return;
+}
+
+static void test_stdatomic_lock(long unsigned iters)
+{
+    atomic_flag   m = ATOMIC_FLAG_INIT;
+    long unsigned i;
+
+    for (i = 0; i < iters; i++) {
+        while (atomic_flag_test_and_set(&m))
+            ;
+        atomic_flag_clear(&m);
+    }
 
     return;
 }
