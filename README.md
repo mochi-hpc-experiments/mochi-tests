@@ -1,4 +1,4 @@
-# sds-tests
+# mochi-tests
 
 This repository contains a collection of test programs that exercise various
 Mochi components (http://www.mcs.anl.gov/research/projects/mochi/).
