@@ -72,15 +72,18 @@ spack repo list
 # clean out any stray packages from previous runs, just in case
 spack uninstall -R -y argobots mercury libfabric || true
 # ior acts as our "apex" package here, causing several other packages to build
-spack spec ior@master +mobject ^mochi-ssg@main^mpich
-spack install ior@master +mobject ^mochi-ssg@main^mpich
+# TODO: temporarily disabling mobject tests, 2021-05-28
+# spack spec ior@master +mobject ^mochi-ssg@main^mpich
+# spack install ior@master +mobject ^mochi-ssg@main^mpich
+spack install mochi-bake
 
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
 # load ssg and bake because they are needed by things compiled outside of
 # spack later in this script
-spack load -r ior
+# spack load -r ior
+spack load -r mochi-bake
 
 # mochi-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="
@@ -109,8 +112,8 @@ JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`
 cqwait $JOBID2
 JOBID3=`qsub --env SANDBOX=$SANDBOX ./pmdk-regression.qsub`
 cqwait $JOBID3
-JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
-cqwait $JOBID4
+# JOBID4=`qsub --env SANDBOX=$SANDBOX ./mobject-regression.qsub`
+# cqwait $JOBID4
 JOBID5=`qsub --env SANDBOX=$SANDBOX ./separate-ssg.qsub`
 cqwait $JOBID5
 JOBID6=`qsub --env SANDBOX=$SANDBOX ./margo-vector-regression.qsub`
@@ -118,7 +121,8 @@ cqwait $JOBID6
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* $JOBID6.* > combined.$JOBID.txt
+# cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* $JOBID6.* > combined.$JOBID.txt
+cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID5.* $JOBID6.* > combined.$JOBID.txt
 #dos2unix combined.$JOBID.txt
 mailx -r sds-commits@mcs.anl.gov -s "mochi-regression (theta)" sds-commits@mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
