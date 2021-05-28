@@ -64,11 +64,11 @@ spack uninstall -R -y argobots mercury rdma-core libfabric || true
 # as of 2021-03-22 this isn't building right for some reason; skip the
 # mobject tests
 # spack install ior@master +mobject ^mochi-ssg@main
-spack install mochi-bake mochi-ssg
+spack install mochi-bake
 # deliberately repeat setup-env step after building modules to ensure
 #   that we pick up the right module paths
 . $SANDBOX/spack/share/spack/setup-env.sh
-spack load -r mochi-bake mochi-ssg
+spack load -r mochi-bake
 
 # mochi-tests
 echo "=== BUILDING SDS TEST PROGRAMS ==="

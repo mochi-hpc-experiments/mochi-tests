@@ -17,8 +17,8 @@ packages:
   cmake:
     buildable: false
     externals:
-    - spec: cmake@3.9.1
-      prefix: /soft/buildtools/cmake/3.9.1
+    - spec: cmake@3.17.3
+      prefix: /soft/buildtools/cmake/3.17.3
   autoconf:
     buildable: false
     externals:
