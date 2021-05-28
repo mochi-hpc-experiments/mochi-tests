@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 
         printf("%lu\t%f\t%f\t%f\n", g_opts.million_iterations, tm2 - tm1,
                (double)(g_opts.million_iterations) / (tm2 - tm1),
-               (tm2 - tm1) / ((double)(g_opts.million_iterations)));
+               ((tm2 - tm1) * 1000.0) / ((double)(g_opts.million_iterations)));
 
         test_idx++;
     }
