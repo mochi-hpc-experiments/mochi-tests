@@ -14,7 +14,6 @@ module load numactl boost cmake
 
 . $SANDBOX/spack/share/spack/setup-env.sh
 
-spack load -r mochi-ssg
 spack load -r mochi-bake
 
 spack find --loaded
