@@ -10,8 +10,8 @@
 # exit on any error
 set -e
 
-# load newer gcc up front
-module load gcc_new/7.3.0
+# load gcc up front
+module load gcc
 
 # location of this script
 ORIGIN=$PWD

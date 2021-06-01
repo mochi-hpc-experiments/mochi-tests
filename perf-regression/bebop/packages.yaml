@@ -19,8 +19,8 @@ packages:
     buildable: false
     externals:
     - modules:
-      - cmake/3.12.2-4zllpyo
-      spec: cmake@3.12.2
+      - cmake/3.18.4-fygx2f7
+      spec: cmake@3.18.4
   numactl:
     buildable: false
     externals:
@@ -96,8 +96,8 @@ packages:
     buildable: false
     externals:
     - modules:
-      - intel-mpi/2017.3-dfphq6k
-      spec: intel-mpi@2017.3%gcc@7.3.0
+      - intel-mpi/2019.8.254-hviu7j6
+      spec: intel-mpi@2019.8%gcc@10.2.0
   ssg:
     variants: +mpi
   mercury:
