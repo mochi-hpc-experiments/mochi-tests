@@ -53,6 +53,10 @@ spack compilers
 
 # use our own packages.yaml for cooley-specific preferences
 cp $ORIGIN/packages.yaml $SPACK_ROOT/etc/spack
+# make sure that LD_LIBRARY_PATH will be set
+cp $ORIGIN/modules.yaml $SPACK_ROOT/etc/spack
+# build in /tmp
+cp $ORIGIN/config.yaml $SPACK_ROOT/etc/spack
 # add external repo for mochi.  Note that this will not modify the
 # user's ~/.spack/ files because we modified $HOME above
 spack repo add ${SANDBOX}/mochi-spack-packages
