@@ -8,8 +8,6 @@
 export HOME=$SANDBOX
 # example of running benchmarks with spack-compiled software stack
 
-export LMOD_PAGER=none
-
 . $SANDBOX/spack/share/spack/setup-env.sh
 
 spack load -r ior
