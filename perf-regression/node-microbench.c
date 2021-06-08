@@ -46,7 +46,6 @@ static void test_pthread_mutex_lock(long unsigned iters);
 static void test_pthread_recursive_mutex_lock(long unsigned iters);
 static void test_pthread_spin_lock(long unsigned iters);
 static void test_stdatomic_lock(long unsigned iters);
-static void test_rdtsc(long unsigned iters);
 
 static struct options   g_opts;
 static struct test_case g_test_cases[] = {
@@ -63,7 +62,6 @@ static struct test_case g_test_cases[] = {
     {"pthread_mutex_recursive_lock/unlock", test_pthread_recursive_mutex_lock},
     {"pthread_spin_lock/unlock", test_pthread_spin_lock},
     {"stdatomic lock/unlock", test_stdatomic_lock},
-    {"rdtsc", test_rdtsc},
     {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -314,20 +312,5 @@ static void test_stdatomic_lock(long unsigned iters)
         atomic_flag_clear(&m);
     }
 
-    return;
-}
-
-static void test_rdtsc(long unsigned iters)
-{
-    unsigned long long i, rval;
-    for (i = 0; i< iters; i++) {
-#ifdef __PPC__
-        /* powerpc does not have rdtsc */
-        __asm__ __volatile__("mfspr %%r3, 268": "=r" (rval));
-#endif
-#ifdef __i386__
-        rval = __rdtscp();
-#endif
-    }
     return;
 }
