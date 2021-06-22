@@ -15,6 +15,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <stdatomic.h>
+#include <x86intrin.h>
 
 #include <mpi.h>
 
@@ -46,7 +47,7 @@ static void test_pthread_mutex_lock(long unsigned iters);
 static void test_pthread_recursive_mutex_lock(long unsigned iters);
 static void test_pthread_spin_lock(long unsigned iters);
 static void test_stdatomic_lock(long unsigned iters);
-static void test_rdtsc(long unsigned iters);
+static void test_rdtscp(long unsigned iters);
 
 static struct options   g_opts;
 static struct test_case g_test_cases[] = {
@@ -63,7 +64,7 @@ static struct test_case g_test_cases[] = {
     {"pthread_mutex_recursive_lock/unlock", test_pthread_recursive_mutex_lock},
     {"pthread_spin_lock/unlock", test_pthread_spin_lock},
     {"stdatomic lock/unlock", test_stdatomic_lock},
-    {"rdtsc", test_rdtsc},
+    {"rdtscp", test_rdtscp},
     {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -317,17 +318,21 @@ static void test_stdatomic_lock(long unsigned iters)
     return;
 }
 
-static void test_rdtsc(long unsigned iters)
+/* NOTE: in practice the BASE_FREQ is CPU-specific.  We just choose a
+ * hard-coded example value so the required math conversion
+ * is included in cost measurement.
+ */
+#define __EXAMPLE_BASE_FREQ 1300000000.0
+static void test_rdtscp(long unsigned iters)
 {
-    unsigned long long i, rval;
-    for (i = 0; i< iters; i++) {
-#ifdef __PPC__
-        /* powerpc does not have rdtsc */
-        __asm__ __volatile__("mfspr %%r3, 268": "=r" (rval));
-#endif
-#ifdef __i386__
-        rval = __rdtscp();
-#endif
+    unsigned long long rval;
+    long unsigned      i;
+    unsigned           flag;
+    double             ts __attribute__((unused));
+
+    for (i = 0; i < iters; i++) {
+        rval = __rdtscp(&flag);
+        ts   = (double)rval / __EXAMPLE_BASE_FREQ;
     }
     return;
 }
