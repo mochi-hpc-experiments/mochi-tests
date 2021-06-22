@@ -83,6 +83,29 @@ AC_LINK_IFELSE(
      AC_MSG_RESULT([yes])],
     [AC_MSG_WARN([Unable to compile MPI programs, try CC=mpicc])])
 
+# Checks for header files.
+AC_CHECK_HEADERS([x86intrin.h])
+
+# Check support for -mrdseed
+AS_IF([test "$ac_cv_header_x86intrin_h" = "yes"], [
+  XXX_PROGRAM="
+#ifdef HAVE_X86INTRIN_H
+#include <x86intrin.h>
+#endif
+int main(void) {
+    unsigned int flag;
+    return __rdtscp(&flag);
+}
+"
+  AC_MSG_CHECKING([if __rdtscp() intrinsic is supported])
+  AC_COMPILE_IFELSE(
+    [AC_LANG_SOURCE([$XXX_PROGRAM])],
+    AC_MSG_RESULT([yes])
+    AC_DEFINE(HAVE_RDTSCP_INTRINSIC, 1, Define if __rdtscp() intrinsic is available),
+    [AC_MSG_RESULT([no])]
+  )
+])
+
 # enable or disable test programs that depend on different combinations of
 # functionality
 AM_CONDITIONAL([HAVE_MARGO], [test "x${have_mpi}" = x1 && test "x${have_margo}" = x1 && test "x${have_ssg}" = x1 && test "x${have_ssg_mpi}" = x1])
@@ -93,4 +116,3 @@ AM_CONDITIONAL([HAVE_MPI], [test "x${have_mpi}" = x1])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
- 

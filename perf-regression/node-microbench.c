@@ -6,6 +6,8 @@
 
 #define _GNU_SOURCE
 
+#include "sds-tests-config.h"
+
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,7 +17,9 @@
 #include <time.h>
 #include <pthread.h>
 #include <stdatomic.h>
-#include <x86intrin.h>
+#ifdef HAVE_X86INTRIN_H
+    #include <x86intrin.h>
+#endif
 
 #include <mpi.h>
 
@@ -47,7 +51,9 @@ static void test_pthread_mutex_lock(long unsigned iters);
 static void test_pthread_recursive_mutex_lock(long unsigned iters);
 static void test_pthread_spin_lock(long unsigned iters);
 static void test_stdatomic_lock(long unsigned iters);
+#ifdef HAVE_RDTSCP_INTRINSIC
 static void test_rdtscp(long unsigned iters);
+#endif
 
 static struct options   g_opts;
 static struct test_case g_test_cases[] = {
@@ -64,7 +70,9 @@ static struct test_case g_test_cases[] = {
     {"pthread_mutex_recursive_lock/unlock", test_pthread_recursive_mutex_lock},
     {"pthread_spin_lock/unlock", test_pthread_spin_lock},
     {"stdatomic lock/unlock", test_stdatomic_lock},
+#ifdef HAVE_RDTSCP_INTRINSIC
     {"rdtscp", test_rdtscp},
+#endif
     {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -318,11 +326,13 @@ static void test_stdatomic_lock(long unsigned iters)
     return;
 }
 
-/* NOTE: in practice the BASE_FREQ is CPU-specific.  We just choose a
- * hard-coded example value so the required math conversion
- * is included in cost measurement.
- */
-#define __EXAMPLE_BASE_FREQ 1300000000.0
+#ifdef HAVE_RDTSCP_INTRINSIC
+
+    /* NOTE: in practice the BASE_FREQ is CPU-specific.  We just choose a
+     * hard-coded example value so the required math conversion
+     * is included in cost measurement.
+     */
+    #define __EXAMPLE_BASE_FREQ 1300000000.0
 static void test_rdtscp(long unsigned iters)
 {
     unsigned long long rval;
@@ -336,3 +346,4 @@ static void test_rdtscp(long unsigned iters)
     }
     return;
 }
+#endif /* HAVE_RDTSCP_INTRINSIC */
