@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <errno.h>
 
@@ -608,12 +609,13 @@ static int run_benchmark(hg_id_t           id,
     if (print_flag) {
         printf(
             "<op>\t<warmup_seconds>\t<concurrency>\t<threads>\t<xfer_size>\t<"
+            "vector_count>\t<"
             "total_bytes>\t<seconds>\t<MiB/"
             "s>\t<xfer_memory>\t<align_buffer>\n");
 
-        printf("PULL\t%d\t%d\t%d\t%lu\t%lu\t%f\t%f\t%d\n",
+        printf("PULL\t%d\t%d\t%d\t%lu\t%d\t%lu\t%f\t%f\t%d\n",
                g_opts.warmup_seconds, g_opts.concurrency, g_opts.threads,
-               g_opts.xfer_size, out.bytes_moved, (end_ts - start_ts),
+               g_opts.xfer_size, g_opts.vector_len, out.bytes_moved, (end_ts - start_ts),
                ((double)out.bytes_moved / (end_ts - start_ts))
                    / (1024.0 * 1024.0),
                g_opts.align_buffer);
@@ -637,9 +639,9 @@ static int run_benchmark(hg_id_t           id,
     assert(ret == HG_SUCCESS);
 
     if (print_flag) {
-        printf("PUSH\t%d\t%d\t%d\t%lu\t%lu\t%f\t%f\t%d\n",
+        printf("PUSH\t%d\t%d\t%d\t%lu\t%d\t%lu\t%f\t%f\t%d\n",
                g_opts.warmup_seconds, g_opts.concurrency, g_opts.threads,
-               g_opts.xfer_size, out.bytes_moved, (end_ts - start_ts),
+               g_opts.xfer_size, g_opts.vector_len, out.bytes_moved, (end_ts - start_ts),
                ((double)out.bytes_moved / (end_ts - start_ts))
                    / (1024.0 * 1024.0),
                g_opts.align_buffer);
