@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -N 2
-#SBATCH -A startup-carns
+#SBATCH -A radix-io
 #SBATCH --ntasks-per-node=8
 #SBATCH --time=5:00
 #SBATCH -p bdwall
