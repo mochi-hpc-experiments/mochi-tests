@@ -20,6 +20,9 @@
 #ifdef HAVE_X86INTRIN_H
     #include <x86intrin.h>
 #endif
+#ifdef HAVE_ABT_H
+    #include <abt.h>
+#endif
 
 #include <mpi.h>
 
@@ -54,6 +57,12 @@ static void test_stdatomic_lock(long unsigned iters);
 #ifdef HAVE_RDTSCP_INTRINSIC
 static void test_rdtscp(long unsigned iters);
 #endif
+#ifdef HAVE_ABT_H
+static void test_abt_eventual_dynamic_allocation(long unsigned iters);
+    #ifdef ABT_EVENTUAL_INITIALIZER
+static void test_abt_eventual_static_allocation(long unsigned iters);
+    #endif
+#endif
 
 static struct options   g_opts;
 static struct test_case g_test_cases[] = {
@@ -73,6 +82,12 @@ static struct test_case g_test_cases[] = {
 #ifdef HAVE_RDTSCP_INTRINSIC
     {"rdtscp", test_rdtscp},
 #endif
+#ifdef HAVE_ABT_H
+    {"ABT_eventual dynamic per fn", test_abt_eventual_dynamic_allocation},
+    #ifdef ABT_EVENTUAL_INITIALIZER
+    {"ABT_eventual static per fn", test_abt_eventual_static_allocation},
+    #endif
+#endif
     {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -83,6 +98,10 @@ int main(int argc, char** argv)
     int    ret;
     int    test_idx = 0;
     double tm1, tm2;
+
+#ifdef HAVE_ABT_H
+    ABT_init(0, NULL);
+#endif
 
     MPI_Init(&argc, &argv);
 
@@ -121,6 +140,10 @@ int main(int argc, char** argv)
     }
 
     MPI_Finalize();
+
+#ifdef HAVE_ABT_H
+    ABT_finalize();
+#endif
 
     return 0;
 }
@@ -347,3 +370,59 @@ static void test_rdtscp(long unsigned iters)
     return;
 }
 #endif /* HAVE_RDTSCP_INTRINSIC */
+
+#ifdef HAVE_ABT_H
+
+static void test_abt_eventual_dynamic_allocation_fn(void)
+{
+    int          ret;
+    ABT_eventual eventual;
+
+    ret = ABT_eventual_create(0, &eventual);
+    assert(ret == 0);
+
+    /* use it for something trivial */
+    ABT_eventual_set(eventual, NULL, 0);
+    ABT_eventual_wait(eventual, NULL);
+
+    ABT_eventual_free(&eventual);
+
+    return;
+}
+
+static void test_abt_eventual_dynamic_allocation(long unsigned iters)
+{
+    long unsigned i;
+
+    for (i = 0; i < iters; i++) test_abt_eventual_dynamic_allocation_fn();
+
+    return;
+}
+
+    /* introduced in Argobots > 1.1 */
+    #ifdef ABT_EVENTUAL_INITIALIZER
+
+static void test_abt_eventual_static_allocation_fn(void)
+{
+    ABT_eventual_memory eventual_mem = ABT_EVENTUAL_INITIALIZER;
+    ABT_eventual eventual = ABT_EVENTUAL_MEMORY_GET_HANDLE(&eventual_mem);
+
+    /* use it for something trivial */
+    ABT_eventual_set(eventual, NULL, 0);
+    ABT_eventual_wait(eventual, NULL);
+
+    return;
+}
+
+static void test_abt_eventual_static_allocation(long unsigned iters)
+{
+    long unsigned i;
+
+    for (i = 0; i < iters; i++) test_abt_eventual_static_allocation_fn();
+
+    return;
+}
+
+    #endif /* ABT_EVENTUAL_INITIALIZER */
+
+#endif /* HAVE_ABT_H */

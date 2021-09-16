@@ -70,6 +70,12 @@ LIBS="$ARGOBOTS_LIBS $LIBS"
 CPPFLAGS="$ARGOBOTS_CFLAGS $CPPFLAGS"
 CFLAGS="$ARGOBOTS_CFLAGS $CFLAGS"
 
+# This is technically redundant with the above pkg-config check for
+# Argobots, but it is a straightforward way to also get a config.h #define
+# for the node-microbench utility to compile in optional Argobots tests
+AC_CHECK_HEADERS(abt.h,,
+  [AC_MSG_WARN([Could not find abt.h for Argobots])])
+
 PKG_CHECK_MODULES([LIBPMEMOBJ],[libpmemobj],[have_libpmemobj=1],
    [AC_MSG_WARN([Could not find working libpmemobj installation])])
 LIBS="$LIBPMEMOBJ_LIBS $LIBS"
