@@ -59,6 +59,9 @@ static void test_rdtscp(long unsigned iters);
 #endif
 #ifdef HAVE_ABT_H
 static void test_abt_eventual_dynamic_allocation(long unsigned iters);
+    #ifdef ABT_EVENTUAL_INITIALIZER
+static void test_abt_eventual_static_allocation(long unsigned iters);
+    #endif
 #endif
 
 static struct options   g_opts;
@@ -81,6 +84,9 @@ static struct test_case g_test_cases[] = {
 #endif
 #ifdef HAVE_ABT_H
     {"ABT_eventual dynamic per fn", test_abt_eventual_dynamic_allocation},
+    #ifdef ABT_EVENTUAL_INITIALIZER
+    {"ABT_eventual static per fn", test_abt_eventual_static_allocation},
+    #endif
 #endif
     {NULL, NULL}};
 
@@ -392,5 +398,31 @@ static void test_abt_eventual_dynamic_allocation(long unsigned iters)
 
     return;
 }
+
+    /* introduced in Argobots > 1.1 */
+    #ifdef ABT_EVENTUAL_INITIALIZER
+
+static void test_abt_eventual_static_allocation_fn(void)
+{
+    ABT_eventual_memory eventual_mem = ABT_EVENTUAL_INITIALIZER;
+    ABT_eventual eventual = ABT_EVENTUAL_MEMORY_GET_HANDLE(&eventual_mem);
+
+    /* use it for something trivial */
+    ABT_eventual_set(eventual, NULL, 0);
+    ABT_eventual_wait(eventual, NULL);
+
+    return;
+}
+
+static void test_abt_eventual_static_allocation(long unsigned iters)
+{
+    long unsigned i;
+
+    for (i = 0; i < iters; i++) test_abt_eventual_static_allocation_fn();
+
+    return;
+}
+
+    #endif /* ABT_EVENTUAL_INITIALIZER */
 
 #endif /* HAVE_ABT_H */
