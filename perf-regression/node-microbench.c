@@ -93,6 +93,10 @@ int main(int argc, char** argv)
     int    test_idx = 0;
     double tm1, tm2;
 
+#ifdef HAVE_ABT_H
+    ABT_init(0, NULL);
+#endif
+
     MPI_Init(&argc, &argv);
 
     /* This is an MPI program (so that we can measure the cost of relevant
@@ -130,6 +134,10 @@ int main(int argc, char** argv)
     }
 
     MPI_Finalize();
+
+#ifdef HAVE_ABT_H
+    ABT_finalize();
+#endif
 
     return 0;
 }
