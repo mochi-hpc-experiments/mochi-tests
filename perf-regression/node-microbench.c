@@ -20,6 +20,9 @@
 #ifdef HAVE_X86INTRIN_H
     #include <x86intrin.h>
 #endif
+#ifdef HAVE_ABT_H
+    #include <abt.h>
+#endif
 
 #include <mpi.h>
 
@@ -54,6 +57,9 @@ static void test_stdatomic_lock(long unsigned iters);
 #ifdef HAVE_RDTSCP_INTRINSIC
 static void test_rdtscp(long unsigned iters);
 #endif
+#ifdef HAVE_ABT_H
+static void test_abt_eventual_dynamic_allocation(long unsigned iters);
+#endif
 
 static struct options   g_opts;
 static struct test_case g_test_cases[] = {
@@ -72,6 +78,9 @@ static struct test_case g_test_cases[] = {
     {"stdatomic lock/unlock", test_stdatomic_lock},
 #ifdef HAVE_RDTSCP_INTRINSIC
     {"rdtscp", test_rdtscp},
+#endif
+#ifdef HAVE_ABT_H
+    {"ABT_eventual dynamic per fn", test_abt_eventual_dynamic_allocation},
 #endif
     {NULL, NULL}};
 
@@ -347,3 +356,33 @@ static void test_rdtscp(long unsigned iters)
     return;
 }
 #endif /* HAVE_RDTSCP_INTRINSIC */
+
+#ifdef HAVE_ABT_H
+
+static void test_abt_eventual_dynamic_allocation_fn(void)
+{
+    int          ret;
+    ABT_eventual eventual;
+
+    ret = ABT_eventual_create(0, &eventual);
+    assert(ret == 0);
+
+    /* use it for something trivial */
+    ABT_eventual_set(eventual, NULL, 0);
+    ABT_eventual_wait(eventual, NULL);
+
+    ABT_eventual_free(&eventual);
+
+    return;
+}
+
+static void test_abt_eventual_dynamic_allocation(long unsigned iters)
+{
+    long unsigned i;
+
+    for (i = 0; i < iters; i++) test_abt_eventual_dynamic_allocation_fn();
+
+    return;
+}
+
+#endif /* HAVE_ABT_H */
