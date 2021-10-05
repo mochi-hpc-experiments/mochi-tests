@@ -110,9 +110,9 @@ int main(int argc, char** argv)
 
     if (my_mpi_rank == 0) {
         /* set up server "group" on rank 0 */
-        gid = ssg_group_create_mpi(mid, "margo-p2p-latency", MPI_COMM_SELF,
-                                   NULL, NULL, NULL);
-        assert(gid != SSG_GROUP_ID_INVALID);
+        ret = ssg_group_create_mpi(mid, "margo-p2p-latency", MPI_COMM_SELF,
+                                   NULL, NULL, NULL, &gid);
+        assert(ret == SSG_SUCCESS);
 
         /* load group info into a buffer */
         ssg_group_id_serialize(gid, 1, &gid_buffer, &gid_buffer_size);
@@ -140,8 +140,8 @@ int main(int argc, char** argv)
     }
 
     /* sanity check group size on server/client */
-    group_size = ssg_get_group_size(gid);
-    assert(group_size == 1);
+    ret = ssg_get_group_size(gid, &group_size);
+    assert(ret == SSG_SUCCESS);
 
     if (my_mpi_rank == 1) {
         /* rank 1 runs client code */
@@ -149,11 +149,14 @@ int main(int argc, char** argv)
         int                           ret;
         pthread_t                     tid_array[NTHREADS];
         struct pthread_client_fn_args pargs;
+        ssg_member_id_t               target_id;
 
-        pargs.mid         = mid;
-        pargs.target_addr = ssg_get_group_member_addr(
-            gid, ssg_get_group_member_id_from_rank(gid, 0));
-        assert(pargs.target_addr != HG_ADDR_NULL);
+        ret = ssg_get_group_member_id_from_rank(gid, 0, &target_id);
+        assert(ret == SSG_SUCCESS);
+
+        pargs.mid = mid;
+        ret = ssg_get_group_member_addr(gid, target_id, &pargs.target_addr);
+        assert(ret == SSG_SUCCESS);
 
         for (i = 0; i < NTHREADS; i++) {
             ret = pthread_create(&tid_array[i], NULL, pthread_client_fn,

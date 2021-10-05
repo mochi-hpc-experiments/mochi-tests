@@ -27,6 +27,8 @@
 #include <bake-server.h>
 #include <bake-client.h>
 
+#include "sds-tests-config.h"
+
 struct options {
     unsigned long xfer_size;
     unsigned long total_mem_size;
@@ -156,9 +158,9 @@ int main(int argc, char** argv)
 
     if (my_mpi_rank == 0) {
         /* set up server "group" on rank 0 */
-        gid = ssg_group_create_mpi(mid, "bake-bench", MPI_COMM_SELF, NULL, NULL,
-                                   NULL);
-        assert(gid != SSG_GROUP_ID_INVALID);
+        ret = ssg_group_create_mpi(mid, "bake-bench", MPI_COMM_SELF, NULL, NULL,
+                                   NULL, &gid);
+        assert(ret == SSG_SUCCESS);
 
         /* load group info into a buffer */
         ssg_group_id_serialize(gid, 1, &gid_buffer, &gid_buffer_size);

@@ -19,6 +19,8 @@
 #include <ssg-mpi.h>
 #include <mercury_proc_string.h>
 
+#include "sds-tests-config.h"
+
 struct options {
     int          iterations;
     unsigned int mercury_timeout_client;
@@ -130,9 +132,9 @@ int main(int argc, char** argv)
 
     if (my_mpi_rank == 0) {
         /* set up server "group" on rank 0 */
-        gid = ssg_group_create_mpi(mid, "margo-p2p-latency", MPI_COMM_SELF,
-                                   NULL, NULL, NULL);
-        assert(gid != SSG_GROUP_ID_INVALID);
+        ret = ssg_group_create_mpi(mid, "bake-bench", MPI_COMM_SELF, NULL, NULL,
+                                   NULL, &gid);
+        assert(ret == SSG_SUCCESS);
 
         /* load group info into a buffer */
         ssg_group_id_serialize(gid, 1, &gid_buffer, &gid_buffer_size);
@@ -160,19 +162,21 @@ int main(int argc, char** argv)
     }
 
     /* sanity check group size on server/client */
-    group_size = ssg_get_group_size(gid);
-    assert(group_size == 1);
+    ret = ssg_get_group_size(gid, &group_size);
+    assert(ret == SSG_SUCCESS);
 
     if (my_mpi_rank == 1) {
+        ssg_member_id_t target;
         /* rank 1 runs client benchmark */
 
         measurement_array
             = calloc(g_opts.iterations, sizeof(*measurement_array));
         assert(measurement_array);
 
+        ret = ssg_get_group_member_id_from_rank(gid, 0, &target);
+        assert(ret == SSG_SUCCESS);
         ret = run_benchmark(g_opts.warmup_iterations, g_opts.iterations,
-                            g_opts.xfer_size, noop_id,
-                            ssg_get_group_member_id_from_rank(gid, 0), gid, mid,
+                            g_opts.xfer_size, noop_id, target, gid, mid,
                             measurement_array, g_opts.margo_forward_timed_flag);
         assert(ret == 0);
 
@@ -338,8 +342,8 @@ static int run_benchmark(int               warmup_iterations,
     noop_in_t   in;
     noop_out_t  out;
 
-    target_addr = ssg_get_group_member_addr(gid, target);
-    assert(target_addr != HG_ADDR_NULL);
+    ret = ssg_get_group_member_addr(gid, target, &target_addr);
+    assert(ret == SSG_SUCCESS);
 
     ret = margo_create(mid, target_addr, id, &handle);
     assert(ret == 0);
