@@ -6,13 +6,9 @@
 #SBATCH -p bdwall
 
 export HOME=$SANDBOX
-# example of running benchmarks with spack-compiled software stack
-
 . $SANDBOX/spack/share/spack/setup-env.sh
-
-spack load -r ior
-
-spack find --loaded
+spack env activate mochi-regression
+spack find -vN
 
 # make sure that MPI and libfabric can share PSM2
 export PSM2_MULTI_EP=1
