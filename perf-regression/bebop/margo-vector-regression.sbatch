@@ -5,13 +5,10 @@
 #SBATCH --time=15:00
 #SBATCH -p bdwall
 
-# example of running benchmarks with spack-compiled software stack
-
+export HOME=$SANDBOX
 . $SANDBOX/spack/share/spack/setup-env.sh
-
-spack load -r mochi-bake
-
-spack find --loaded
+spack env activate mochi-regression
+spack find -vN
 
 # make sure that MPI and libfabric can share PSM2
 export PSM2_MULTI_EP=1
