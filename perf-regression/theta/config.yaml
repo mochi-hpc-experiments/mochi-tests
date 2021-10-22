@@ -1,3 +1,0 @@
-config:
-    build_stage:
-        /tmp/$user/build-stage
