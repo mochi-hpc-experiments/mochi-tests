@@ -6,20 +6,9 @@
 #COBALT -q debug-cache-quad
 
 export HOME=$SANDBOX
-source $SANDBOX/spack//share/spack/setup-env.sh
-
-module swap PrgEnv-intel PrgEnv-gnu
-# ssg and libfabric-1.8.0
-#spack load -r ssg/lfdi2fo
-
-spack load -r mochi-ssg
-# ssg doesn't need bake, but these ssg tests were built as part of mochi-tests, which does
-spack load -r mochi-bake
-
-spack find --loaded
-
-# workaround for missing library paths on Cray as of 2021-03-24
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBRARY_PATH"
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack env activate mochi-regression
+spack find -vN
 
 export MPICH_GNI_NDREG_ENTRIES=1024
 

@@ -1,24 +1,23 @@
 #!/bin/bash
 
 # This is a shell script to be run from a login node of the Theta system at
-# the ALCF, that will download, compile, and execute the Mochi performance 
-# regression tests, including any dependencies
+# the ALCF, that will download, compile, and execute the Mochi performance
+# regression tests
 
 # exit on any error
 set -e
 
-# set up environment
 # use gnu compilers
 module swap PrgEnv-intel PrgEnv-gnu
-module load cce
-# default to O3 optimizations unless otherwise specified
-export CFLAGS="-O3"
+module load gcc
+
 # dynamic link everything by default
 export CRAYPE_LINK_TYPE=dynamic
 
+echo "=== CREATE DIRECTORIES AND DOWNLOAD CODE ==="
+
 # location of this script
 ORIGIN=$PWD
-
 # scratch area for builds
 if [ -z "$WORKSPACE_TMP" ]; then
     SANDBOX=$PWD/sb-$$
@@ -30,63 +29,42 @@ else
     SANDBOX=$WORKSPACE_TMP/sb-$$
 fi
 
-# install destination
-PREFIX=$PWD/mochi-regression-install-$$
-# job submission dir
-JOBDIR=$PWD/mochi-regression-job-$$
-
-mkdir -p $SANDBOX
-mkdir $PREFIX
-mkdir $JOBDIR
-ls *.qsub
-cp ${ORIGIN}/*.qsub ${JOBDIR}
-
-# modify HOME env variable so that we don't perturb ~/.spack/ files for the 
+PREFIX=$SANDBOX/install
+# modify HOME env variable so that we don't perturb ~/.spack/ files for the
 # users calling this script
 export HOME=$SANDBOX
+mkdir $SANDBOX
+mkdir $PREFIX
+mkdir $PREFIX/bin
+cp ${ORIGIN}/*.qsub $PREFIX/bin
 
-# set up build environment
+
 cd $SANDBOX
 git clone -q https://github.com/spack/spack.git
-# Using origin/develop as of 2021-05-03
-# (cd spack && git checkout -b spack-0.16.0 v0.16.0)
 git clone -q https://github.com/mochi-hpc/mochi-spack-packages.git
 git clone -q https://github.com/mochi-hpc-experiments/mochi-tests.git
+git clone -q https://github.com/mochi-hpc-experiments/platform-configurations.git
 
-echo "=== BUILD SPACK PACKAGES AND LOAD ==="
+echo "=== SET UP SPACK ENVIRONMENT ==="
 . $SANDBOX/spack/share/spack/setup-env.sh
-spack compiler find
-spack compilers
-
-# use our own configuration file for theta-specific preferences
-cp $ORIGIN/packages.yaml $SPACK_ROOT/etc/spack
-# note: the following is a workaround to make sure that LD_LIBRARY_PATH is
-# set on Cray platforms, see https://github.com/spack/spack/issues/23228
-cp $ORIGIN/modules.yaml $SPACK_ROOT/etc/spack
-cp $ORIGIN/config.yaml $SPACK_ROOT/etc/spack
-# add external repo for mochi.  Note that this will not modify the 
-# user's ~/.spack/ files because we modified $HOME above
-spack repo add ${SANDBOX}/mochi-spack-packages
-# sanity check
-spack repo list
-# clean out any stray packages from previous runs, just in case
-spack uninstall -R -y argobots mercury libfabric || true
-# ior acts as our "apex" package here, causing several other packages to build
-# TODO: temporarily disabling mobject tests, 2021-05-28
-# spack spec ior@master +mobject ^mochi-ssg@main^mpich
-# spack install ior@master +mobject ^mochi-ssg@main^mpich
-spack install mochi-bake
-
-# deliberately repeat setup-env step after building modules to ensure
-#   that we pick up the right module paths
-. $SANDBOX/spack/share/spack/setup-env.sh
-# load ssg and bake because they are needed by things compiled outside of
-# spack later in this script
-# spack load -r ior
-spack load -r mochi-bake
+spack env create mochi-regression $SANDBOX/platform-configurations/ANL/Theta/spack.yaml
+spack env activate mochi-regression
+spack repo rm /path/to/mochi-spack-packages
+spack repo add $SANDBOX/mochi-spack-packages
+# install initial packages specified in bebop environment
+spack install
+# add additional packages needed for performance regression tests and install
+# NOTE: as of 2021-10-20, the Spack concretizer does not produce a correct
+#       solution if we add these before the first spack install
+spack add mochi-ssg+mpi
+spack add mochi-bake
+# as of 2021-05-29 this isn't building right for some reason; skip the
+# mobject tests
+# spack add ior@master +mobject
+spack install
 
 # mochi-tests
-echo "=== BUILDING SDS TEST PROGRAMS ==="
+echo "=== BUILD TEST PROGRAMS ==="
 cd $SANDBOX/mochi-tests
 ./prepare.sh
 mkdir build
@@ -95,17 +73,8 @@ cd build
 make -j 3
 make install
 
-# set up job to run
-echo "=== SUBMITTING AND WAITING FOR JOB ==="
-cp $PREFIX/bin/margo-p2p-latency $JOBDIR
-cp $PREFIX/bin/margo-p2p-bw $JOBDIR
-cp $PREFIX/bin/margo-p2p-vector $JOBDIR
-cp $PREFIX/bin/bake-p2p-bw $JOBDIR
-cp $PREFIX/bin/pmdk-bw $JOBDIR
-cp $PREFIX/bin/ssg-test-separate-group-create $JOBDIR
-cp $PREFIX/bin/ssg-test-separate-group-attach $JOBDIR
-cd $JOBDIR
-
+echo "=== SUBMIT AND WAIT FOR JOBS ==="
+cd $PREFIX/bin
 JOBID=`qsub --env SANDBOX=$SANDBOX ./margo-regression.qsub`
 cqwait $JOBID
 JOBID2=`qsub --env SANDBOX=$SANDBOX ./bake-regression.qsub`
@@ -123,10 +92,10 @@ echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
 # cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID4.* $JOBID5.* $JOBID6.* > combined.$JOBID.txt
 cat $JOBID.* $JOBID2.* $JOBID3.* $JOBID5.* $JOBID6.* > combined.$JOBID.txt
-#dos2unix combined.$JOBID.txt
+dos2unix combined.$JOBID.txt
 mailx -r sds-commits@mcs.anl.gov -s "mochi-regression (theta)" sds-commits@mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
 
 cd /tmp
 rm -rf $SANDBOX
-rm -rf $PREFIX
+

@@ -18,7 +18,8 @@ ORIGIN=$PWD
 SANDBOX=$PWD/sandbox-$$
 # install destination
 PREFIX=$SANDBOX/install
-# job submission dir
+# modify HOME env variable so that we don't perturb ~/.spack/ files for the
+# users calling this script
 export HOME=$SANDBOX
 mkdir $SANDBOX
 mkdir $PREFIX
@@ -44,7 +45,7 @@ spack repo add $SANDBOX/mochi-spack-packages
 # install initial packages specified in bebop environment
 spack install
 # add additional packages needed for performance regression tests and install
-# NOTE: as of 2021-10-20, the Spack concretizer does not produce a correct 
+# NOTE: as of 2021-10-20, the Spack concretizer does not produce a correct
 #       solution if we add these before the first spack install
 spack add mochi-ssg+mpi
 spack add mochi-bake
@@ -59,12 +60,11 @@ cd $SANDBOX/mochi-tests
 ./prepare.sh
 mkdir build
 cd build
-echo ../configure --prefix=$PREFIX CC=mpicc 
+echo ../configure --prefix=$PREFIX CC=mpicc
 ../configure --prefix=$PREFIX CC=mpicc
 make -j 3
 make install
 
-# set up job to run
 echo "=== SUBMIT AND WAIT FOR JOBS ==="
 cd $PREFIX/bin
 export SANDBOX

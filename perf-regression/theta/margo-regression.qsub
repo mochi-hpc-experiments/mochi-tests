@@ -6,25 +6,12 @@
 #COBALT -q debug-cache-quad
 
 export HOME=$SANDBOX
-# XXX xalt module currently eating '-M' flag for mercury-runner...disabling for now
-# module unload xalt
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack env activate mochi-regression
+spack find -vN
 
 # necessary when using the udreg option in Mercury
 export MPICH_GNI_NDREG_ENTRIES=1024
-#export FI_LOG_LEVEL=debug
-#export FI_LOG_PROV=gni
-
-module swap PrgEnv-intel PrgEnv-gnu
-module load cce
-
-. $SANDBOX/spack/share/spack/setup-env.sh
-spack load -r mochi-ssg
-spack load -r mochi-bake
-
-spack find --loaded
-
-# workaround for missing library paths on Cray as of 2021-03-24
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBRARY_PATH"
 
 echo "### NOTE: all benchmarks are using aprun -cc none to allow processes to run on all available cores; the default aprun settings limit processes to one core and produce poor performance because of contention between internal threads"
 echo "### NOTE: all benchmarks are using numactl to keep processes on socket 0"

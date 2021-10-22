@@ -6,23 +6,9 @@
 #COBALT -q debug-cache-quad
 
 export HOME=$SANDBOX
-# XXX xalt module currently eating '-M' flag for mercury-runner...disabling for now
-# module unload xalt
-
-# necessary when using the udreg option in Mercury
-export MPICH_GNI_NDREG_ENTRIES=1024
-
-module swap PrgEnv-intel PrgEnv-gnu
-module load cce
-
 . $SANDBOX/spack/share/spack/setup-env.sh
-spack load -r mochi-ssg
-spack load -r mochi-bake
-
-spack find --loaded
-
-# workaround for missing library paths on Cray as of 2021-03-24
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBRARY_PATH"
+spack env activate mochi-regression
+spack find -vN
 
 # find nodes in job.  We have to do this so that we can manually specify 
 # in each aprun so that server ranks consitently run on node where we
