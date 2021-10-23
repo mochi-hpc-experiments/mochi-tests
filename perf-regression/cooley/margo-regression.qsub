@@ -6,19 +6,15 @@
 #COBALT -q ibleaf3-debug
 
 export HOME=$SANDBOX
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack env activate mochi-regression
+spack find -vN
+
 # note: disable registration cache for verbs provider for now; see
 #       discussion in https://github.com/ofiwg/libfabric/issues/5244
 export FI_MR_CACHE_MAX_COUNT=0
 # use shared recv context in RXM; should improve scalability
 export FI_OFI_RXM_USE_SRX=1
-
-. $SANDBOX/spack/share/spack/setup-env.sh
-BAKE_STABLE_VER=`spack find mochi-bake |grep mochi-bake |grep -v file-backend`
-spack load -r mochi-ssg
-spack load -r $BAKE_STABLE_VER
-spack load -r mvapich2
-
-spack find --loaded
 
 # echo "## MPI (one way, double the latency for round trip):"
 # mpirun -f $COBALT_NODEFILE -n 2 ./osu_latency
@@ -42,7 +38,7 @@ mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "
 echo "## Margo OFI/VERBS (bw, 1MB unaligned, 8x concurrency):"
 mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-bw -x 1000000 -n "verbs://mlx5_0" -c 8 -D 20
 
-sleep 1 
+sleep 1
 
 echo "## Margo OFI/VERBS (round trip, Hg busy spin):"
 mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-latency -i 10000 -n "ofi+verbs;ofi_rxm://mlx5_0:3339" -t 0,0
