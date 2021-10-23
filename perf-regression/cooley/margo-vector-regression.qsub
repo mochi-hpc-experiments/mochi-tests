@@ -6,16 +6,15 @@
 #COBALT -q ibleaf3-debug
 
 export HOME=$SANDBOX
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack env activate mochi-regression
+spack find -vN
+
 # note: disable registration cache for verbs provider for now; see
 #       discussion in https://github.com/ofiwg/libfabric/issues/5244
 export FI_MR_CACHE_MAX_COUNT=0
 # use shared recv context in RXM; should improve scalability
 export FI_OFI_RXM_USE_SRX=1
-
-. ${SANDBOX}/spack/share/spack/setup-env.sh
-spack load -r mochi-bake
-
-spack find --loaded
 
 echo "## Margo OFI/VERBS (vector benchmark with len 1, 512KiB xfers):"
 mpirun -f $COBALT_NODEFILE -n 2 numactl -N 1 -m 1 ./margo-p2p-vector -x 524288 -n "verbs://mlx5_0" -c 1 -D 20

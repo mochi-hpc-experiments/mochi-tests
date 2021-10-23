@@ -5,6 +5,11 @@
 #COBALT -A radix-io
 #COBALT -q ibleaf3-debug
 
+export HOME=$SANDBOX
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack env activate mochi-regression
+spack find -vN
+
 # This job tests bake performance on top of a kove volume, alternatively with either
 # pmdk or the file backend to bake.  Note that it is hard coded to use a specific
 # xpd and volume; this job assumes it has exclusive access.
@@ -15,17 +20,8 @@ export FI_MR_CACHE_MAX_COUNT=0
 # use shared recv context in RXM; should improve scalability
 export FI_OFI_RXM_USE_SRX=1
 
-export HOME=$SANDBOX
 export KDSA_MPIO_MAX_CONN=1
 export PMDK_PATH="/xmem/xpdha"
-
-. $SANDBOX/spack/share/spack/setup-env.sh
-BAKE_STABLE_VER=`spack find mochi-bake |grep mochi-bake |grep -v file-backend`
-spack load -r mochi-ssg
-spack load -r $BAKE_STABLE_VER
-spack load -r mvapich2
-
-spack find --loaded
 
 echo "### NOTE: all results in this output are using Kove XPD volumes"
 echo "### NOTE: ALL BAKE RESULTS BELOW are using 2nd socket on cooley nodes: cores 6-11, also using numactl to constrain memory allocations"
