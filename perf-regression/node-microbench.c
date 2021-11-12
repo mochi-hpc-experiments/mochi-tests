@@ -31,6 +31,7 @@
 
 struct options {
     long unsigned million_iterations;
+    long unsigned thousand_iterations;
 };
 
 struct test_case {
@@ -110,12 +111,13 @@ static struct test_case g_test_cases[] = {
 
 int main(int argc, char** argv)
 {
-    int    nranks;
-    int    namelen;
-    char   processor_name[MPI_MAX_PROCESSOR_NAME];
-    int    ret;
-    int    test_idx = 0;
-    double tm1, tm2;
+    int           nranks;
+    int           namelen;
+    char          processor_name[MPI_MAX_PROCESSOR_NAME];
+    int           ret;
+    int           test_idx = 0;
+    double        tm1, tm2;
+    long unsigned true_iters;
 
 #ifdef HAVE_ABT_H
     ABT_init(0, NULL);
@@ -140,19 +142,24 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
+    if (g_opts.million_iterations)
+        true_iters = g_opts.million_iterations * 1000000UL;
+    else
+        true_iters = g_opts.thousand_iterations * 1000UL;
+
     /* loop through however many test cases are defined */
-    printf("#<test case>\t<m_ops>\t<total s>\t<m_ops/s>\t<ns/op>\n");
+    printf("#<test case>\t<ops>\t<total s>\t<m_ops/s>\t<ns/op>\n");
     while (g_test_cases[test_idx].fn) {
         sleep(1);
         printf("%s\t", g_test_cases[test_idx].name);
 
         tm1 = MPI_Wtime();
-        g_test_cases[test_idx].fn(g_opts.million_iterations * 1000000);
+        g_test_cases[test_idx].fn(true_iters);
         tm2 = MPI_Wtime();
 
-        printf("%lu\t%f\t%f\t%f\n", g_opts.million_iterations, tm2 - tm1,
-               (double)(g_opts.million_iterations) / (tm2 - tm1),
-               ((tm2 - tm1) * 1000.0) / ((double)(g_opts.million_iterations)));
+        printf("%lu\t%f\t%f\t%f\n", true_iters, tm2 - tm1,
+               (double)true_iters / 1e6 / (tm2 - tm1),
+               ((tm2 - tm1) * 1000.0) / ((double)true_iters / 1e6));
 
         test_idx++;
     }
@@ -173,10 +180,14 @@ static int parse_args(int argc, char** argv, struct options* opts)
 
     memset(opts, 0, sizeof(*opts));
 
-    while ((opt = getopt(argc, argv, "m:")) != -1) {
+    while ((opt = getopt(argc, argv, "m:t:")) != -1) {
         switch (opt) {
         case 'm':
             ret = sscanf(optarg, "%lu", &opts->million_iterations);
+            if (ret != 1) return (-1);
+            break;
+        case 't':
+            ret = sscanf(optarg, "%lu", &opts->thousand_iterations);
             if (ret != 1) return (-1);
             break;
         default:
@@ -184,7 +195,10 @@ static int parse_args(int argc, char** argv, struct options* opts)
         }
     }
 
-    if (opts->million_iterations < 1) return (-1);
+    if (opts->million_iterations < 1 && opts->thousand_iterations < 1)
+        return (-1);
+    if (opts->million_iterations > 0 && opts->thousand_iterations > 0)
+        return (-1);
 
     return (0);
 }
