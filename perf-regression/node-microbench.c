@@ -95,11 +95,13 @@ static struct test_case g_test_cases[] = {
     {"ABT_eventual static per fn", test_abt_eventual_static_allocation},
     #endif
 #endif
-    {"mmap(8M)/munmap() with access to first page", test_mmap_access_firstpage_8M},
-    {"mmap(8M)/munmap() with access each MB offset", test_mmap_access_eachMB_8M},
-    /* the following are too slow to run comfortably for 1M iterations on
-     * some systems
-     */
+    {"mmap(8M)/munmap() with access to first page",
+     test_mmap_access_firstpage_8M},
+    {"mmap(8M)/munmap() with access each MB offset",
+     test_mmap_access_eachMB_8M},
+/* the following are too slow to run comfortably for 1M iterations on
+ * some systems
+ */
 #if 0
     {"mmap(8M)/munmap() with access to all pages", test_mmap_accesspages_8M},
     {"mmap(8M,MAP_POPULATE)/munmap()", test_mmap_populate_8M},
@@ -348,16 +350,17 @@ static void test_mmap_accesspages_8M(long unsigned iters)
 /* how expensive is mmap if we access the first page of each MiB? */
 static void test_mmap_access_eachMB_8M(long unsigned iters)
 {
-    long unsigned   i;
-    long unsigned   j;
-    char* buf;
-    char data[] = "Hello world.";
+    long unsigned i;
+    long unsigned j;
+    char*         buf;
+    char          data[] = "Hello world.";
 
     for (i = 0; i < iters; i++) {
-        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
+        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE),
+                   (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
         assert(buf);
-        for(j=0; j<8388608; j += 1048576) {
-            memcpy(&buf[j], data, strlen(data)+1);
+        for (j = 0; j < 8388608; j += 1048576) {
+            memcpy(&buf[j], data, strlen(data) + 1);
         }
         munmap(buf, 8388608);
     }
@@ -368,14 +371,15 @@ static void test_mmap_access_eachMB_8M(long unsigned iters)
 /* how expensive is mmap if we access first page? */
 static void test_mmap_access_firstpage_8M(long unsigned iters)
 {
-    long unsigned   i;
-    void* buf;
-    char data[] = "Hello world.";
+    long unsigned i;
+    void*         buf;
+    char          data[] = "Hello world.";
 
     for (i = 0; i < iters; i++) {
-        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
+        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE),
+                   (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
         assert(buf);
-        memcpy(buf, data, strlen(data)+1);
+        memcpy(buf, data, strlen(data) + 1);
         munmap(buf, 8388608);
     }
 
