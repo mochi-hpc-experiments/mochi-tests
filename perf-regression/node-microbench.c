@@ -23,6 +23,7 @@
 #ifdef HAVE_ABT_H
     #include <abt.h>
 #endif
+#include <sys/mman.h>
 
 #include <mpi.h>
 
@@ -63,6 +64,8 @@ static void test_abt_eventual_dynamic_allocation(long unsigned iters);
 static void test_abt_eventual_static_allocation(long unsigned iters);
     #endif
 #endif
+static void test_mmap_accesspage_8M(long unsigned iters);
+static void test_mmap_populate_8M(long unsigned iters);
 
 static struct options   g_opts;
 static struct test_case g_test_cases[] = {
@@ -88,6 +91,8 @@ static struct test_case g_test_cases[] = {
     {"ABT_eventual static per fn", test_abt_eventual_static_allocation},
     #endif
 #endif
+    {"mmap(8M)/munmap() with access", test_mmap_accesspage_8M},
+    {"mmap(8M,MAP_POPULATE)/munmap()", test_mmap_populate_8M},
     {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -288,6 +293,38 @@ static void test_clock_gettime_monotonic_coarse(long unsigned iters)
     struct timespec tp __attribute__((unused));
 
     for (i = 0; i < iters; i++) { clock_gettime(CLOCK_MONOTONIC_COARSE, &tp); }
+
+    return;
+}
+
+/* how expensive is mmap if we populate region */
+static void test_mmap_populate_8M(long unsigned iters)
+{
+    long unsigned   i;
+    void* buf;
+
+    for (i = 0; i < iters; i++) {
+        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANONYMOUS|MAP_POPULATE), -1, 0);
+        assert(buf);
+        munmap(buf, 8388608);
+    }
+
+    return;
+}
+
+/* how expensive is mmap if we access first page? */
+static void test_mmap_accesspage_8M(long unsigned iters)
+{
+    long unsigned   i;
+    void* buf;
+    char data[] = "Hello world.";
+
+    for (i = 0; i < iters; i++) {
+        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
+        assert(buf);
+        memcpy(buf, data, strlen(data)+1);
+        munmap(buf, 8388608);
+    }
 
     return;
 }
