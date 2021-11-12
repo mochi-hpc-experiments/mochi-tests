@@ -67,6 +67,8 @@ static void test_abt_eventual_static_allocation(long unsigned iters);
 #endif
 static void test_mmap_access_firstpage_8M(long unsigned iters);
 static void test_mmap_access_eachMB_8M(long unsigned iters);
+static void test_malloc_access_eachMB_8M(long unsigned iters);
+static void test_posix_memalign_access_eachMB_8M(long unsigned iters);
 #if 0
 static void test_mmap_accesspages_8M(long unsigned iters);
 static void test_mmap_populate_8M(long unsigned iters);
@@ -100,6 +102,10 @@ static struct test_case g_test_cases[] = {
      test_mmap_access_firstpage_8M},
     {"mmap(8M)/munmap() with access each MB offset",
      test_mmap_access_eachMB_8M},
+    {"malloc(8M)/free() with access each MB offset",
+     test_malloc_access_eachMB_8M},
+    {"posix_memalign(8M)/free() with access each MB offset",
+     test_posix_memalign_access_eachMB_8M},
 /* the following are too slow to run comfortably for 1M iterations on
  * some systems
  */
@@ -360,6 +366,47 @@ static void test_mmap_accesspages_8M(long unsigned iters)
     return;
 }
 #endif
+
+/* how expensive is posix_memalign if we access the first page of each MiB? */
+static void test_posix_memalign_access_eachMB_8M(long unsigned iters)
+{
+    long unsigned i;
+    long unsigned j;
+    char*         buf;
+    char          data[] = "Hello world.";
+    int  ret;
+
+    for (i = 0; i < iters; i++) {
+        ret = posix_memalign((void**)&buf, 4096, 8388608);
+        assert(ret == 0);
+        for (j = 0; j < 8388608; j += 1048576) {
+            memcpy(&buf[j], data, strlen(data) + 1);
+        }
+        free(buf);
+    }
+
+    return;
+}
+
+/* how expensive is malloc if we access the first page of each MiB? */
+static void test_malloc_access_eachMB_8M(long unsigned iters)
+{
+    long unsigned i;
+    long unsigned j;
+    char*         buf;
+    char          data[] = "Hello world.";
+
+    for (i = 0; i < iters; i++) {
+        buf = malloc(8388608);
+        assert(buf);
+        for (j = 0; j < 8388608; j += 1048576) {
+            memcpy(&buf[j], data, strlen(data) + 1);
+        }
+        free(buf);
+    }
+
+    return;
+}
 
 /* how expensive is mmap if we access the first page of each MiB? */
 static void test_mmap_access_eachMB_8M(long unsigned iters)
