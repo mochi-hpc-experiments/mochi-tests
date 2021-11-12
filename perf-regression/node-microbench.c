@@ -65,7 +65,11 @@ static void test_abt_eventual_static_allocation(long unsigned iters);
     #endif
 #endif
 static void test_mmap_accesspage_8M(long unsigned iters);
+static void test_mmap_accesspages_8M(long unsigned iters);
+static void test_mmap_accessMBs_8M(long unsigned iters);
+#if 0
 static void test_mmap_populate_8M(long unsigned iters);
+#endif
 
 static struct options   g_opts;
 static struct test_case g_test_cases[] = {
@@ -92,7 +96,12 @@ static struct test_case g_test_cases[] = {
     #endif
 #endif
     {"mmap(8M)/munmap() with access", test_mmap_accesspage_8M},
+    {"mmap(8M)/munmap() with access each MB offset", test_mmap_accessMBs_8M},
+    {"mmap(8M)/munmap() with access to all pages", test_mmap_accesspages_8M},
+    /* MAP_POPULATE is crazy slow */
+#if 0
     {"mmap(8M,MAP_POPULATE)/munmap()", test_mmap_populate_8M},
+#endif
     {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -297,6 +306,7 @@ static void test_clock_gettime_monotonic_coarse(long unsigned iters)
     return;
 }
 
+#if 0
 /* how expensive is mmap if we populate region */
 static void test_mmap_populate_8M(long unsigned iters)
 {
@@ -306,6 +316,47 @@ static void test_mmap_populate_8M(long unsigned iters)
     for (i = 0; i < iters; i++) {
         buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANONYMOUS|MAP_POPULATE), -1, 0);
         assert(buf);
+        munmap(buf, 8388608);
+    }
+
+    return;
+}
+#endif
+
+/* how expensive is mmap if we access the first page of each MiB? */
+static void test_mmap_accessMBs_8M(long unsigned iters)
+{
+    long unsigned   i;
+    long unsigned   j;
+    char* buf;
+    char data[] = "Hello world.";
+
+    for (i = 0; i < iters; i++) {
+        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
+        assert(buf);
+        for(j=0; j<8388608; j += 1048576) {
+            memcpy(&buf[j], data, strlen(data)+1);
+        }
+        munmap(buf, 8388608);
+    }
+
+    return;
+}
+
+/* how expensive is mmap if we access all pages? */
+static void test_mmap_accesspages_8M(long unsigned iters)
+{
+    long unsigned   i;
+    long unsigned   j;
+    char* buf;
+    char data[] = "Hello world.";
+
+    for (i = 0; i < iters; i++) {
+        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
+        assert(buf);
+        for(j=0; j<8388608; j += 4096) {
+            memcpy(&buf[j], data, strlen(data)+1);
+        }
         munmap(buf, 8388608);
     }
 
