@@ -64,10 +64,10 @@ static void test_abt_eventual_dynamic_allocation(long unsigned iters);
 static void test_abt_eventual_static_allocation(long unsigned iters);
     #endif
 #endif
-static void test_mmap_accesspage_8M(long unsigned iters);
-static void test_mmap_accesspages_8M(long unsigned iters);
-static void test_mmap_accessMBs_8M(long unsigned iters);
+static void test_mmap_access_firstpage_8M(long unsigned iters);
+static void test_mmap_access_eachMB_8M(long unsigned iters);
 #if 0
+static void test_mmap_accesspages_8M(long unsigned iters);
 static void test_mmap_populate_8M(long unsigned iters);
 #endif
 
@@ -95,11 +95,13 @@ static struct test_case g_test_cases[] = {
     {"ABT_eventual static per fn", test_abt_eventual_static_allocation},
     #endif
 #endif
-    {"mmap(8M)/munmap() with access", test_mmap_accesspage_8M},
-    {"mmap(8M)/munmap() with access each MB offset", test_mmap_accessMBs_8M},
-    {"mmap(8M)/munmap() with access to all pages", test_mmap_accesspages_8M},
-    /* MAP_POPULATE is crazy slow */
+    {"mmap(8M)/munmap() with access to first page", test_mmap_access_firstpage_8M},
+    {"mmap(8M)/munmap() with access each MB offset", test_mmap_access_eachMB_8M},
+    /* the following are too slow to run comfortably for 1M iterations on
+     * some systems
+     */
 #if 0
+    {"mmap(8M)/munmap() with access to all pages", test_mmap_accesspages_8M},
     {"mmap(8M,MAP_POPULATE)/munmap()", test_mmap_populate_8M},
 #endif
     {NULL, NULL}};
@@ -321,27 +323,6 @@ static void test_mmap_populate_8M(long unsigned iters)
 
     return;
 }
-#endif
-
-/* how expensive is mmap if we access the first page of each MiB? */
-static void test_mmap_accessMBs_8M(long unsigned iters)
-{
-    long unsigned   i;
-    long unsigned   j;
-    char* buf;
-    char data[] = "Hello world.";
-
-    for (i = 0; i < iters; i++) {
-        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
-        assert(buf);
-        for(j=0; j<8388608; j += 1048576) {
-            memcpy(&buf[j], data, strlen(data)+1);
-        }
-        munmap(buf, 8388608);
-    }
-
-    return;
-}
 
 /* how expensive is mmap if we access all pages? */
 static void test_mmap_accesspages_8M(long unsigned iters)
@@ -362,9 +343,30 @@ static void test_mmap_accesspages_8M(long unsigned iters)
 
     return;
 }
+#endif
+
+/* how expensive is mmap if we access the first page of each MiB? */
+static void test_mmap_access_eachMB_8M(long unsigned iters)
+{
+    long unsigned   i;
+    long unsigned   j;
+    char* buf;
+    char data[] = "Hello world.";
+
+    for (i = 0; i < iters; i++) {
+        buf = mmap(NULL, 8388608, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
+        assert(buf);
+        for(j=0; j<8388608; j += 1048576) {
+            memcpy(&buf[j], data, strlen(data)+1);
+        }
+        munmap(buf, 8388608);
+    }
+
+    return;
+}
 
 /* how expensive is mmap if we access first page? */
-static void test_mmap_accesspage_8M(long unsigned iters)
+static void test_mmap_access_firstpage_8M(long unsigned iters)
 {
     long unsigned   i;
     void* buf;
