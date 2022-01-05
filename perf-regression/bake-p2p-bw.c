@@ -177,13 +177,12 @@ int main(int argc, char** argv)
     }
     MPI_Bcast(gid_buffer, gid_buffer_size_int, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-    /* clients observe server group */
     if (my_mpi_rank > 0) {
         int count = 1;
         ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &count, &gid);
         assert(gid != SSG_GROUP_ID_INVALID);
 
-        ret = ssg_group_observe(mid, gid);
+        ret = ssg_group_refresh(mid, gid);
         assert(ret == SSG_SUCCESS);
     }
 
@@ -257,17 +256,14 @@ int main(int argc, char** argv)
         assert(ret == 0);
         margo_destroy(handle);
 
-        ret = ssg_group_unobserve(gid);
-        assert(ret == SSG_SUCCESS);
     } else {
         /* ssg server services requests until told to stop */
         ABT_eventual_wait(bench_stop_eventual, NULL);
         margo_thread_sleep(mid, 2000);
-
-        ret = ssg_group_destroy(gid);
-        assert(ret == SSG_SUCCESS);
     }
 
+    ret = ssg_group_destroy(gid);
+    assert(ret == SSG_SUCCESS);
     ssg_finalize();
 
     if (g_opts.diag_file_name) margo_diag_dump(mid, g_opts.diag_file_name, 1);

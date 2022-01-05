@@ -151,13 +151,12 @@ int main(int argc, char** argv)
     }
     MPI_Bcast(gid_buffer, gid_buffer_size_int, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-    /* client observes server group */
     if (my_mpi_rank == 1) {
         int count = 1;
         ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &count, &gid);
         assert(gid != SSG_GROUP_ID_INVALID);
 
-        ret = ssg_group_observe(mid, gid);
+        ret = ssg_group_refresh(mid, gid);
         assert(ret == SSG_SUCCESS);
     }
 
@@ -186,9 +185,6 @@ int main(int argc, char** argv)
         bench_routine_print("noop", g_opts.xfer_size, g_opts.iterations,
                             g_opts.warmup_iterations, measurement_array);
         free(measurement_array);
-
-        ret = ssg_group_unobserve(gid);
-        assert(ret == SSG_SUCCESS);
     } else {
         /* rank 0 acts as server, waiting until iterations have been completed
          */
@@ -199,10 +195,10 @@ int main(int argc, char** argv)
         ABT_eventual_wait(rpcs_serviced_eventual, NULL);
         assert(rpcs_serviced == (g_opts.iterations + g_opts.warmup_iterations));
         sleep(3);
-
-        ret = ssg_group_destroy(gid);
-        assert(ret == SSG_SUCCESS);
     }
+
+    ret = ssg_group_destroy(gid);
+    assert(ret == SSG_SUCCESS);
 
     ssg_finalize();
 
@@ -387,6 +383,7 @@ static int run_benchmark(int               warmup_iterations,
     if (in.payload) free(in.payload);
 
     margo_destroy(handle);
+    margo_addr_free(mid, target_addr);
 
     return (0);
 }

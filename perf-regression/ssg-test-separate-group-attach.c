@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     assert(ret == SSG_SUCCESS);
 
     fprintf(stderr, "        attaching...\n");
-    ret = ssg_group_observe(mid, gid);
+    ret = ssg_group_refresh(mid, gid);
     fprintf(stderr, "        attached...\n");
 
     fprintf(stderr, "        dumping...\n");
@@ -37,7 +37,6 @@ int main(int argc, char** argv)
     ret = margo_shutdown_remote_instance(mid, remote_addr);
     assert(ret == HG_SUCCESS);
 
-    ssg_group_unobserve(gid);
     ssg_finalize();
 
     margo_finalize(mid);

@@ -58,8 +58,8 @@ static int  parse_args(int argc, char** argv, struct options* opts);
 static void usage(void);
 
 MERCURY_GEN_PROC(bw_rpc_in_t,
-                 ((hg_bulk_t)(bulk_handle))((int32_t)(op))((
-                     int32_t)(shutdown))((int32_t)(duration)))
+                 ((hg_bulk_t)(bulk_handle))((int32_t)(op))((int32_t)(shutdown))(
+                     (int32_t)(duration)))
 MERCURY_GEN_PROC(bw_rpc_out_t, ((hg_size_t)(bytes_moved)))
 DECLARE_MARGO_RPC_HANDLER(bw_ult);
 
@@ -210,13 +210,12 @@ int main(int argc, char** argv)
     }
     MPI_Bcast(gid_buffer, gid_buffer_size_int, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-    /* client observes server group */
     if (my_mpi_rank == 1) {
         int count = 1;
         ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &count, &gid);
         assert(gid != SSG_GROUP_ID_INVALID);
 
-        ret = ssg_group_observe(mid, gid);
+        ret = ssg_group_refresh(mid, gid);
         assert(ret == SSG_SUCCESS);
     }
 
@@ -301,9 +300,6 @@ int main(int argc, char** argv)
         ret = run_benchmark(g_bw_id, target, gid, mid, 1,
                             g_opts.duration_seconds, 1);
         assert(ret == 0);
-
-        ret = ssg_group_unobserve(gid);
-        assert(ret == SSG_SUCCESS);
     } else {
         /* rank 0 (server) waits for test RPC to complete */
 
@@ -318,11 +314,10 @@ int main(int argc, char** argv)
         if (bw_worker_scheds) free(bw_worker_scheds);
 
         margo_bulk_free(g_bulk_handle);
-
-        ret = ssg_group_destroy(gid);
-        assert(ret == SSG_SUCCESS);
     }
 
+    ret = ssg_group_destroy(gid);
+    assert(ret == SSG_SUCCESS);
     ssg_finalize();
 
     if (g_opts.diag_file_name) margo_diag_dump(mid, g_opts.diag_file_name, 1);
