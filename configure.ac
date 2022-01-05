@@ -43,8 +43,8 @@ LIBS="$MARGO_LIBS $LIBS"
 CPPFLAGS="$MARGO_CFLAGS $CPPFLAGS"
 CFLAGS="$MARGO_CFLAGS $CFLAGS"
 
-PKG_CHECK_MODULES([SSG],[ssg],[have_ssg=1],
-   [AC_MSG_WARN([Could not find working ssg installation])])
+PKG_CHECK_MODULES([SSG],[ssg >= 0.5],[have_ssg=1],
+   [AC_MSG_WARN([Could not find working ssg installation v0.5 or higher])])
 LIBS="$SSG_LIBS $LIBS"
 CPPFLAGS="$SSG_CFLAGS $CPPFLAGS"
 CFLAGS="$SSG_CFLAGS $CFLAGS"

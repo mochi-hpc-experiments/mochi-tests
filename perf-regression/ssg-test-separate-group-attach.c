@@ -2,12 +2,15 @@
 #include <ssg.h>
 #include <assert.h>
 
+#include "sds-tests-config.h"
+
 int main(int argc, char** argv)
 {
     int               ret;
     hg_addr_t         remote_addr = HG_ADDR_NULL;
     ssg_group_id_t    gid;
     margo_instance_id mid;
+    ssg_member_id_t   target;
 
     MPI_Init(&argc, &argv);
 
@@ -19,21 +22,21 @@ int main(int argc, char** argv)
     assert(ret == SSG_SUCCESS);
 
     fprintf(stderr, "        attaching...\n");
-    ret = ssg_group_observe(mid, gid);
+    ret = ssg_group_refresh(mid, gid);
     fprintf(stderr, "        attached...\n");
 
     fprintf(stderr, "        dumping...\n");
     ssg_group_dump(gid);
     fprintf(stderr, "        dumped...\n");
 
-    remote_addr = ssg_get_group_member_addr(
-        gid, ssg_get_group_member_id_from_rank(gid, 0));
-    assert(remote_addr != HG_ADDR_NULL);
+    ret = ssg_get_group_member_id_from_rank(gid, 0, &target);
+    assert(ret == SSG_SUCCESS);
+    ret = ssg_get_group_member_addr(gid, target, &remote_addr);
+    assert(ret == SSG_SUCCESS);
 
     ret = margo_shutdown_remote_instance(mid, remote_addr);
     assert(ret == HG_SUCCESS);
 
-    ssg_group_unobserve(gid);
     ssg_finalize();
 
     margo_finalize(mid);

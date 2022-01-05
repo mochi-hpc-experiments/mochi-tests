@@ -31,6 +31,8 @@
 #include <ssg.h>
 #include <ssg-mpi.h>
 
+#include "sds-tests-config.h"
+
 struct options {
     int           xfer_size;
     int           duration_seconds;
@@ -189,9 +191,9 @@ int main(int argc, char** argv)
 
     if (my_mpi_rank == 0) {
         /* set up server "group" on rank 0 */
-        gid = ssg_group_create_mpi(mid, "margo-p2p-bw", MPI_COMM_SELF, NULL,
-                                   NULL, NULL);
-        assert(gid != SSG_GROUP_ID_INVALID);
+        ret = ssg_group_create_mpi(mid, "margo-p2p-bw", MPI_COMM_SELF, NULL,
+                                   NULL, NULL, &gid);
+        assert(ret == SSG_SUCCESS);
 
         /* load group info into a buffer */
         ssg_group_id_serialize(gid, 1, &gid_buffer, &gid_buffer_size);
@@ -208,18 +210,18 @@ int main(int argc, char** argv)
     }
     MPI_Bcast(gid_buffer, gid_buffer_size_int, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-    /* client observes server group */
     if (my_mpi_rank == 1) {
         int count = 1;
         ssg_group_id_deserialize(gid_buffer, gid_buffer_size_int, &count, &gid);
         assert(gid != SSG_GROUP_ID_INVALID);
 
-        ret = ssg_group_observe(mid, gid);
+        ret = ssg_group_refresh(mid, gid);
         assert(ret == SSG_SUCCESS);
     }
 
     /* sanity check group size on server/client */
-    group_size = ssg_get_group_size(gid);
+    ret = ssg_get_group_size(gid, &group_size);
+    assert(ret == SSG_SUCCESS);
     assert(group_size == 1);
 
     if (my_mpi_rank == 0) {
@@ -276,6 +278,7 @@ int main(int argc, char** argv)
     }
 
     if (my_mpi_rank == 1) {
+        ssg_member_id_t target;
         /* TODO: this is a hack; we need a better way to wait for services
          * to be ready.  MPI Barriers aren't safe without setting aside
          * threads to make sure that servers can answer RPCs.
@@ -285,19 +288,18 @@ int main(int argc, char** argv)
 
         /* rank 1 (client) initiates benchmark */
 
+        ret = ssg_get_group_member_id_from_rank(gid, 0, &target);
+        assert(ret == SSG_SUCCESS);
+
         /* warmup */
         if (g_opts.warmup_seconds)
-            ret = run_benchmark(g_bw_id,
-                                ssg_get_group_member_id_from_rank(gid, 0), gid,
-                                mid, 0, g_opts.warmup_seconds, 0);
+            ret = run_benchmark(g_bw_id, target, gid, mid, 0,
+                                g_opts.warmup_seconds, 0);
         assert(ret == 0);
 
-        ret = run_benchmark(g_bw_id, ssg_get_group_member_id_from_rank(gid, 0),
-                            gid, mid, 1, g_opts.duration_seconds, 1);
+        ret = run_benchmark(g_bw_id, target, gid, mid, 1,
+                            g_opts.duration_seconds, 1);
         assert(ret == 0);
-
-        ret = ssg_group_unobserve(gid);
-        assert(ret == SSG_SUCCESS);
     } else {
         /* rank 0 (server) waits for test RPC to complete */
 
@@ -312,11 +314,10 @@ int main(int argc, char** argv)
         if (bw_worker_scheds) free(bw_worker_scheds);
 
         margo_bulk_free(g_bulk_handle);
-
-        ret = ssg_group_destroy(gid);
-        assert(ret == SSG_SUCCESS);
     }
 
+    ret = ssg_group_destroy(gid);
+    assert(ret == SSG_SUCCESS);
     ssg_finalize();
 
     if (g_opts.diag_file_name) margo_diag_dump(mid, g_opts.diag_file_name, 1);
@@ -566,8 +567,8 @@ static int run_benchmark(hg_id_t           id,
     for (i = 0; i < (g_opts.g_buffer_size / sizeof(i)); i++)
         ((hg_size_t*)buffer)[i] = i;
 
-    target_addr = ssg_get_group_member_addr(gid, target);
-    assert(target_addr != HG_ADDR_NULL);
+    ret = ssg_get_group_member_addr(gid, target, &target_addr);
+    assert(ret == SSG_SUCCESS);
 
     ret = margo_create(mid, target_addr, id, &handle);
     assert(ret == 0);
