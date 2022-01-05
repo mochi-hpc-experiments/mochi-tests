@@ -84,6 +84,7 @@ int main(int argc, char** argv)
     struct hg_init_info    hii;
     int                    ret;
     char                   margo_json[256] = {0};
+    bake_provider_t        provider;
 
     MPI_Init(&argc, &argv);
 
@@ -187,11 +188,11 @@ int main(int argc, char** argv)
     }
 
     /* sanity check group size on server/client */
-    group_size = ssg_get_group_size(gid);
+    ret = ssg_get_group_size(gid, &group_size);
+    assert(ret == SSG_SUCCESS);
     assert(group_size == 1);
 
     if (my_mpi_rank == 0) {
-        bake_provider_t                provider;
         bake_target_id_t               tid;
         struct bake_provider_init_info bpii = {0};
 
@@ -229,10 +230,13 @@ int main(int argc, char** argv)
         bake_provider_handle_t bph;
         bake_target_id_t       bti;
         uint64_t               num_targets = 0;
+        ssg_member_id_t        target;
 
-        target_addr = ssg_get_group_member_addr(
-            gid, ssg_get_group_member_id_from_rank(gid, 0));
-        assert(target_addr != HG_ADDR_NULL);
+        ret = ssg_get_group_member_id_from_rank(gid, 0, &target);
+        assert(ret == SSG_SUCCESS);
+
+        ret = ssg_get_group_member_addr(gid, target, &target_addr);
+        assert(ret == SSG_SUCCESS);
 
         ret = bake_client_init(mid, &bcl);
         assert(ret == 0);
@@ -255,11 +259,13 @@ int main(int argc, char** argv)
         ret = margo_forward(handle, NULL);
         assert(ret == 0);
         margo_destroy(handle);
-
+        margo_addr_free(mid, target_addr);
     } else {
         /* ssg server services requests until told to stop */
         ABT_eventual_wait(bench_stop_eventual, NULL);
         margo_thread_sleep(mid, 2000);
+        bake_provider_detach_all_targets(provider);
+        bake_provider_deregister(provider);
     }
 
     ret = ssg_group_destroy(gid);
@@ -440,6 +446,7 @@ static int run_benchmark(struct options*        opts,
            ((double)g_opts.total_mem_size / (end_tm - start_tm))
                / (1024.0 * 1024.0));
 
+    free(arg_array);
     free(tid_array);
     ABT_mutex_free(&cur_off_mutex);
 
