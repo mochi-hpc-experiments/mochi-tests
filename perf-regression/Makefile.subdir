@@ -1,5 +1,5 @@
 if HAVE_MARGO
-bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/margo-p2p-vector
+bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/margo-p2p-vector perf-regression/abt-eventual-bench
 endif
 
 if HAVE_SSG
