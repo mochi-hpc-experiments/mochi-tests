@@ -1,7 +1,7 @@
 #set data style lines
 #set style data linespoints
 set xlabel 'Number of ULTs'
-set ylabel 'Eventual rate (ops/s)'
+set ylabel 'CPU time (s)'
 set term png medium
 #set term po eps mono dashed "Helvetica" 16
 #set term post eps color "Times-Roman" 20
@@ -15,4 +15,4 @@ OUTFILE=ARG2
 
 set yrange [0:]
 set output OUTFILE
-plot INFILE using 1:4 with lines
+plot INFILE using 1:5 with lines

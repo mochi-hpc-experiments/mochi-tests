@@ -16,6 +16,8 @@
 #include <sys/time.h>
 #include <time.h>
 #include <pthread.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include <abt.h>
 #include <margo.h>
@@ -58,6 +60,8 @@ int main(int argc, char** argv)
     ABT_xstream              xstream;
     ABT_barrier              barrier;
     int                      total_ops = 0;
+    struct rusage            use;
+    double                   user_cpu_seconds1, user_cpu_seconds2;
 
     MPI_Init(&argc, &argv);
 
@@ -104,6 +108,12 @@ int main(int argc, char** argv)
         assert(ret == 0);
     }
 
+    /* start capturing cpu time */
+    ret = getrusage(RUSAGE_SELF, &use);
+    assert(ret == 0);
+    user_cpu_seconds1 = (double)use.ru_utime.tv_sec
+                      + (double)use.ru_utime.tv_usec / 1000000.0;
+
     /* set global start time and release barrier for threads to work */
     g_start_tm = ABT_get_wtime();
     ABT_barrier_wait(barrier);
@@ -114,10 +124,18 @@ int main(int argc, char** argv)
         total_ops += arg_array[i].completed_ops;
     }
 
-    printf("#<num_ults>\t<test_duration_sec>\t<interval_msec>\t<ops/s>\n");
-    printf("%d\t%d\t%d\t%f\n", g_opts.num_ults, g_opts.test_duration_sec,
+    ret = getrusage(RUSAGE_SELF, &use);
+    assert(ret == 0);
+    user_cpu_seconds2 = (double)use.ru_utime.tv_sec
+                      + (double)use.ru_utime.tv_usec / 1000000.0;
+
+    printf(
+        "#<num_ults>\t<test_duration_sec>\t<interval_msec>\t<ops/"
+        "s>\t<cpu_time_sec>\n");
+    printf("%d\t%d\t%d\t%f\t%f\n", g_opts.num_ults, g_opts.test_duration_sec,
            g_opts.interval_msec,
-           ((double)total_ops / (double)g_opts.test_duration_sec));
+           ((double)total_ops / (double)g_opts.test_duration_sec),
+           user_cpu_seconds2 - user_cpu_seconds1);
 
     ABT_barrier_free(&barrier);
     free(arg_array);
