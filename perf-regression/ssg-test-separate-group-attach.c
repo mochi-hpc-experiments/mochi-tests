@@ -10,7 +10,7 @@ int main(int argc, char** argv)
     hg_addr_t         remote_addr = HG_ADDR_NULL;
     ssg_group_id_t    gid;
     margo_instance_id mid;
-    ssg_member_id_t   target;
+    ssg_member_id_t   ssg_target;
 
     MPI_Init(&argc, &argv);
 
@@ -29,9 +29,9 @@ int main(int argc, char** argv)
     ssg_group_dump(gid);
     fprintf(stderr, "        dumped...\n");
 
-    ret = ssg_get_group_member_id_from_rank(gid, 0, &target);
+    ret = ssg_get_group_member_id_from_rank(gid, 0, &ssg_target);
     assert(ret == SSG_SUCCESS);
-    ret = ssg_get_group_member_addr(gid, target, &remote_addr);
+    ret = ssg_get_group_member_addr(gid, ssg_target, &remote_addr);
     assert(ret == SSG_SUCCESS);
 
     ret = margo_shutdown_remote_instance(mid, remote_addr);

@@ -41,7 +41,7 @@ static int  run_benchmark(int               warmup_iterations,
                           int               iterations,
                           int               payload_size,
                           hg_id_t           id,
-                          ssg_member_id_t   target,
+                          ssg_member_id_t   ssg_target,
                           ssg_group_id_t    gid,
                           margo_instance_id mid,
                           double*           measurement_array,
@@ -165,17 +165,17 @@ int main(int argc, char** argv)
     assert(ret == SSG_SUCCESS);
 
     if (my_mpi_rank == 1) {
-        ssg_member_id_t target;
+        ssg_member_id_t ssg_target;
         /* rank 1 runs client benchmark */
 
         measurement_array
             = calloc(g_opts.iterations, sizeof(*measurement_array));
         assert(measurement_array);
 
-        ret = ssg_get_group_member_id_from_rank(gid, 0, &target);
+        ret = ssg_get_group_member_id_from_rank(gid, 0, &ssg_target);
         assert(ret == SSG_SUCCESS);
         ret = run_benchmark(g_opts.warmup_iterations, g_opts.iterations,
-                            g_opts.xfer_size, noop_id, target, gid, mid,
+                            g_opts.xfer_size, noop_id, ssg_target, gid, mid,
                             measurement_array, g_opts.margo_forward_timed_flag);
         assert(ret == 0);
 
@@ -324,7 +324,7 @@ static int run_benchmark(int               warmup_iterations,
                          int               iterations,
                          int               payload_size,
                          hg_id_t           id,
-                         ssg_member_id_t   target,
+                         ssg_member_id_t   ssg_target,
                          ssg_group_id_t    gid,
                          margo_instance_id mid,
                          double*           measurement_array,
@@ -338,7 +338,7 @@ static int run_benchmark(int               warmup_iterations,
     noop_in_t   in;
     noop_out_t  out;
 
-    ret = ssg_get_group_member_addr(gid, target, &target_addr);
+    ret = ssg_get_group_member_addr(gid, ssg_target, &target_addr);
     assert(ret == SSG_SUCCESS);
 
     ret = margo_create(mid, target_addr, id, &handle);
