@@ -9,6 +9,7 @@ set -e
 
 # use modern gcc
 module load gcc
+module load intel-mpi
 
 echo "=== CREATE DIRECTORIES AND DOWNLOAD CODE ==="
 
