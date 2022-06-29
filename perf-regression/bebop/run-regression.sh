@@ -25,6 +25,7 @@ mkdir $SANDBOX
 mkdir $PREFIX
 mkdir $PREFIX/bin
 cp $ORIGIN/margo-regression.sbatch $PREFIX/bin
+cp $ORIGIN/margo-regression-na_psm2.sbatch $PREFIX/bin
 cp $ORIGIN/margo-vector-regression.sbatch $PREFIX/bin
 cp $ORIGIN/bake-regression.sbatch $PREFIX/bin
 cp $ORIGIN/pmdk-regression.sbatch $PREFIX/bin
@@ -69,6 +70,7 @@ echo "=== SUBMIT AND WAIT FOR JOBS ==="
 cd $PREFIX/bin
 export SANDBOX
 sbatch --wait --export=ALL ./margo-regression.sbatch || true
+sbatch --wait --export=ALL ./margo-regression-na_psm2.sbatch || true
 sbatch --wait --export=ALL ./margo-vector-regression.sbatch || true
 sbatch --wait --export=ALL ./bake-regression.sbatch || true
 sbatch --wait --export=ALL ./pmdk-regression.sbatch || true
