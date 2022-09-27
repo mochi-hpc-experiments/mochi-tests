@@ -474,7 +474,7 @@ static void bw_ult(hg_handle_t handle)
     /* get handle info and margo instance */
     hgi = margo_get_info(handle);
     assert(hgi);
-    mid = margo_hg_info_get_instance(hgi);
+    mid = margo_hg_handle_get_instance(handle);
     assert(mid != MARGO_INSTANCE_NULL);
 
     ret = margo_get_input(handle, &in);
