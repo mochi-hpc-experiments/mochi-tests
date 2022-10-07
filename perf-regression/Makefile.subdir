@@ -1,5 +1,12 @@
 if HAVE_MARGO
-bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/margo-p2p-vector
+bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/margo-p2p-vector perf-regression/gpu-margo-p2p-bw
+
+#Remove -pthread doesn't work for nvcc
+CUDA_CFLAGS := $(subst -pthread,,$(CFLAGS))
+
+perf-regression/gpu-margo-p2p-bw: perf-regression/gpu-margo-p2p-bw.cu
+	nvcc -I. $(CUDA_CFLAGS) $(LIBS) -I/lus/theta-fs0/software/thetagpu/openmpi-4.0.5/include -L/lus/theta-fs0/software/thetagpu/openmpi-4.0.5/lib -lmpi $< -o $@
+
 endif
 
 if HAVE_SSG
