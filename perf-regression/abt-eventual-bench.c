@@ -22,8 +22,6 @@
 #include <abt.h>
 #include <margo.h>
 
-#include <mpi.h>
-
 struct options {
     int test_duration_sec;
     int interval_msec;
@@ -49,9 +47,6 @@ static double         g_start_tm;
 
 int main(int argc, char** argv)
 {
-    int                      nranks;
-    int                      namelen;
-    char                     processor_name[MPI_MAX_PROCESSOR_NAME];
     int                      ret;
     margo_instance_id        mid;
     struct bench_thread_arg* arg_array;
@@ -63,24 +58,11 @@ int main(int argc, char** argv)
     struct rusage            use;
     double                   user_cpu_seconds1, user_cpu_seconds2;
 
-    MPI_Init(&argc, &argv);
-
     /* Maybe be more configurable later, but for now just start a simple
      * Margo instances with local sm communication and no extra threads
      */
     mid = margo_init("na+sm://", MARGO_CLIENT_MODE, 0, 0);
     assert(mid);
-
-    /* This is an MPI program (so that we can measure the cost of relevant
-     * MPI functions and so that we can easily launch on compute nodes) but
-     * it only uses one process.
-     */
-    MPI_Comm_size(MPI_COMM_WORLD, &nranks);
-    if (nranks != 1) {
-        usage();
-        exit(EXIT_FAILURE);
-    }
-    MPI_Get_processor_name(processor_name, &namelen);
 
     ret = parse_args(argc, argv, &g_opts);
     if (ret < 0) {
@@ -140,7 +122,6 @@ int main(int argc, char** argv)
     ABT_barrier_free(&barrier);
     free(arg_array);
     margo_finalize(mid);
-    MPI_Finalize();
 
     return 0;
 }
