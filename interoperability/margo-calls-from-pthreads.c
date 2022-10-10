@@ -145,7 +145,6 @@ int main(int argc, char** argv)
     if (my_mpi_rank == 1) {
         /* rank 1 runs client code */
         int                           i;
-        int                           ret;
         pthread_t                     tid_array[NTHREADS];
         struct pthread_client_fn_args pargs;
         ssg_member_id_t               target_id;

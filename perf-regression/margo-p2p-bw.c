@@ -278,7 +278,7 @@ int main(int argc, char** argv)
     }
 
     if (my_mpi_rank == 1) {
-        ssg_member_id_t target;
+        ssg_member_id_t ssg_target;
         /* TODO: this is a hack; we need a better way to wait for services
          * to be ready.  MPI Barriers aren't safe without setting aside
          * threads to make sure that servers can answer RPCs.
@@ -288,7 +288,7 @@ int main(int argc, char** argv)
 
         /* rank 1 (client) initiates benchmark */
 
-        ret = ssg_get_group_member_id_from_rank(gid, 0, &target);
+        ret = ssg_get_group_member_id_from_rank(gid, 0, &ssg_target);
         assert(ret == SSG_SUCCESS);
 
         /* warmup */
@@ -546,7 +546,7 @@ static void bw_ult(hg_handle_t handle)
 DEFINE_MARGO_RPC_HANDLER(bw_ult)
 
 static int run_benchmark(hg_id_t           id,
-                         ssg_member_id_t   target,
+                         ssg_member_id_t   ssg_target,
                          ssg_group_id_t    gid,
                          margo_instance_id mid,
                          int               shutdown,

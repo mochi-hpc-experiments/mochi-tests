@@ -137,8 +137,6 @@ int main(int argc, char** argv)
         hg_handle_t           handle;
         hg_addr_t             target_addr;
         int                   i;
-        int                   ret;
-        pthread_t             tid;
         struct nm_client_args nm_args;
         ssg_member_id_t       target_id;
 
@@ -170,7 +168,6 @@ int main(int argc, char** argv)
         pthread_join(tid, NULL);
     } else {
         /* rank 0 acts as server */
-        pthread_t             tid;
         struct nm_server_args nm_args;
 
         ret = ABT_eventual_create(0, &rpcs_serviced_eventual);
