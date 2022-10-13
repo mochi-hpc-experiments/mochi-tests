@@ -640,6 +640,7 @@ static int run_benchmark(hg_id_t           id,
     margo_free_output(handle, &out);
     margo_bulk_free(in.bulk_handle);
     margo_destroy(handle);
+    margo_addr_free(mid, target_addr);
 
     return (0);
 }
