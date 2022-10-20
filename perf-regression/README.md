@@ -44,7 +44,7 @@ Example execution (requires mpi):
 mpiexec -n 2 ./margo-p2p-bw -x 4096 -n sm:// -c 1 -D 10
 ```
 
--x is the tranfer size per bulk operation
+-x is the transfer size per bulk operation
 -n is transport to use
 -c is the concurrency level
 -D is the duration of the test (for each direction)

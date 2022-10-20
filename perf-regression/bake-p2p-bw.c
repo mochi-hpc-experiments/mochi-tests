@@ -363,7 +363,7 @@ static void usage(void)
     fprintf(stderr,
             "Usage: "
             "bake-p2p-bw -x <xfer_size> -m <total_mem_size> -n <na>\n"
-            "\t-x <xfer_size> - size of each bulk tranfer in bytes\n"
+            "\t-x <xfer_size> - size of each bulk transfer in bytes\n"
             "\t-m <total_mem_size> - total amount of data to write from each "
             "client process\n"
             "\t-n <na> - na transport\n"
