@@ -1,7 +1,7 @@
 This is an example script for executing an automated regression test on the 
 Polaris system at the ALCF.
 
-To build the test application, use (Makefile.polaris)[../../Makefile.polaris]
+To build the test application, use [Makefile.polaris](../../Makefile.polaris)
 
 On Polaris, `mpiexec -n 2` doesn't distribute job to multiple nodes.
 Thus, `mpiexec -n 1 -ppn 1` must be used for each node.
