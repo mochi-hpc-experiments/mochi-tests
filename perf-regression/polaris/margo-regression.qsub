@@ -1,8 +1,8 @@
 #!/bin/sh
 ##
-## Usage: qsub mochi.qsub
+## Usage: qsub margo-regression.qsub
 ## Author: Hyokyung Lee (hyoklee@hdfgroup.org)
-## Last Update: 2022-10-19
+## Last Update: 2022-10-20
 ##
 #PBS -l select=2:system=polaris
 #PBS -l place=scatter
