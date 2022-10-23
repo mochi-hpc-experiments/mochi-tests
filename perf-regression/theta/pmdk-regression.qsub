@@ -4,6 +4,7 @@
 #COBALT --mode script
 #COBALT -A CSC250STDM12
 #COBALT -q debug-cache-quad
+#COBALT --attrs filesystems=home
 
 export HOME=$SANDBOX
 . $SANDBOX/spack/share/spack/setup-env.sh
