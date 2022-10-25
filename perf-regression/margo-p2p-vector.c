@@ -432,7 +432,7 @@ static void usage(void)
         stderr,
         "Usage: "
         "margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
-        "\t-x <xfer_size> - size of each bulk tranfer in bytes, must be evenly "
+        "\t-x <xfer_size> - size of each bulk transfer in bytes, must be evenly "
         "divisible by vector len\n"
         "\t-D <duration> - duration of test in seconds\n"
         "\t-n <na> - na transport\n"
