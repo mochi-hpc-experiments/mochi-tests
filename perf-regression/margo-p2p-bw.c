@@ -428,7 +428,7 @@ static void usage(void)
         stderr,
         "Usage: "
         "margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
-        "\t-x <xfer_size> - size of each bulk tranfer in bytes\n"
+        "\t-x <xfer_size> - size of each bulk transfer in bytes\n"
         "\t-D <duration> - duration of test in seconds\n"
         "\t-n <na> - na transport\n"
         "\t[-c <concurrency>] - number of concurrent operations to issue with "
