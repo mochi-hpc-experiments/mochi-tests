@@ -40,7 +40,7 @@
 
 #include "sds-tests-config.h"
 
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+#define gpuErrchk(a) { gpuAssert((a), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
 {
    if (code != cudaSuccess) 
@@ -492,7 +492,7 @@ static void usage(void)
         stderr,
         "Usage: "
         "margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
-        "\t-x <xfer_size> - size of each bulk tranfer in bytes\n"
+        "\t-x <xfer_size> - size of each bulk transfer in bytes\n"
         "\t-D <duration> - duration of test in seconds\n"
         "\t-n <na> - na transport\n"
         "\t[-c <concurrency>] - number of concurrent operations to issue with "
