@@ -40,16 +40,6 @@
 
 #include "sds-tests-config.h"
 
-#define gpuErrchk(a) { gpuAssert((a), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
-{
-   if (code != cudaSuccess) 
-   {
-      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-      if (abort) exit(code);
-   }
-}
-
 struct options {
     int           xfer_size;
     int           duration_seconds;
@@ -181,12 +171,16 @@ int main(int argc, char** argv)
     }
 
     /* Allocate GPU memory if (GPU to GPU, -j option for rank 0, -k option for rank 1 */
+    fprintf(stderr, "my_mpi_rank=%d, processor_name=%s\n",
+	    my_mpi_rank, processor_name);
+    
     if ((!g_opts.gpu_to_mem && !g_opts.mem_to_gpu) ||
        (my_mpi_rank == 0 && g_opts.gpu_to_mem) || 
        (my_mpi_rank == 1 && g_opts.mem_to_gpu)) {
-        gpuErrchk(cudaMalloc((void **)&c_buffer, g_opts.g_buffer_size));
-
-    	/* cudaMalloc((void **)&c_buffer, g_opts.g_buffer_size); */
+    	cudaError_t err;
+	err = cudaMalloc((void **)&c_buffer, g_opts.g_buffer_size);
+	fprintf(stderr, "cudaError=%s\n",  cudaGetErrorString(err));
+	
     	if (!c_buffer) {
 	
        	    fprintf(stderr, "Error: unable to cudaMalloc %lu byte buffer.\n",
@@ -491,7 +485,7 @@ static void usage(void)
     fprintf(
         stderr,
         "Usage: "
-        "margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
+        "gpu-margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
         "\t-x <xfer_size> - size of each bulk transfer in bytes\n"
         "\t-D <duration> - duration of test in seconds\n"
         "\t-n <na> - na transport\n"
