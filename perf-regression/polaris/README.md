@@ -3,17 +3,4 @@ Polaris system at the ALCF.
 
 To build the test application, use [Makefile.polaris](../../Makefile.polaris)
 
-On Polaris, `mpiexec -n 2` doesn't distribute job to multiple nodes.
-Thus, `mpiexec -n 1 -ppn 1` must be used for each node.
-However, [gpu-margo-p2p-bw](https://github.com/HDFGroup/mochi-tests/blob/main/perf-regression/gpu-margo-p2p-bw.cu) test will fail
-because the argument for `-n` must be exactly 2.
-
-The `-x 4096` option also failed on both debug and debug-scaling queue.
-You may want to try a smaller number like `-x 1`.
-However, you will get cudaMalloc error:
-
-```
-Error: unable to cudaMalloc 2147483648 byte buffer.
-Error: unable to cudaMalloc 2147483648 byte buffer.
-x3001c0s37b0n0.hsn.cm.polaris.alcf.anl.gov: rank 0 exited with code 255
-```
+To test the application, use `qsub [margo-regression.qsub](margo-regression.qsub)`.
