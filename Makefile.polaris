@@ -1598,7 +1598,7 @@ distversion:
 tests: $(check_PROGRAMS)
 
 perf-regression/gpu-margo-p2p-bw: perf-regression/gpu-margo-p2p-bw.cu
-	nvcc -I. $(CUDA_CFLAGS) $(LIBS) -I/opt/cray/pe/mpich/8.1.16/ofi/gnu/9.1/include/ -L/opt/cray/pe/mpich/8.1.16/ofi/gnu/9.1/lib -lmpi $< -o $@
+	nvcc -g -G -I. $(CUDA_CFLAGS) $(LIBS) -I/opt/cray/pe/mpich/8.1.16/ofi/gnu/9.1/include/ -L/opt/cray/pe/mpich/8.1.16/ofi/gnu/9.1/lib -lmpi $< -o $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
