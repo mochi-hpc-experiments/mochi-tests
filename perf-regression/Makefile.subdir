@@ -1,5 +1,9 @@
 if HAVE_MARGO
-bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/margo-p2p-vector
+bin_PROGRAMS += perf-regression/margo-p2p-latency \
+		perf-regression/margo-p2p-bw \
+		perf-regression/margo-p2p-vector \
+		perf-regression/abt-eventual-bench\
+		perf-regression/abt-future-bench
 
 if HAVE_GPU_TESTING
 bin_PROGRAMS += perf-regression/gpu-margo-p2p-bw

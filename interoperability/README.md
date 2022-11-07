@@ -10,7 +10,7 @@ conjunction with other technologies.
     * Note: as of Mercury 2.0rc1, this capability is not uniformly supported
       across all transports.  You can confirm by looking at the output to
       see if the noop_ult and nm_noop_rpc_cb are executed by the same tid or
-      not.  The are intended to execute on differnet tids if the context
+      not.  The are intended to execute on different tids if the context
       functionality is working correctly.
 * margo-calls-from-pthreads
   * Example: a margo program that also spawns pthreads that issue concurrent

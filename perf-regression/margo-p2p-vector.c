@@ -68,7 +68,7 @@ MERCURY_GEN_PROC(bw_rpc_out_t, ((hg_size_t)(bytes_moved)))
 DECLARE_MARGO_RPC_HANDLER(bw_ult);
 
 static int run_benchmark(hg_id_t           id,
-                         ssg_member_id_t   target,
+                         ssg_member_id_t   ssg_target,
                          ssg_group_id_t    gid,
                          margo_instance_id mid,
                          int               shutdown_flag,
@@ -107,7 +107,6 @@ int main(int argc, char** argv)
     int                    gid_buffer_size_int;
     int                    namelen;
     char                   processor_name[MPI_MAX_PROCESSOR_NAME];
-    int                    i;
     ABT_xstream*           bw_worker_xstreams = NULL;
     ABT_sched*             bw_worker_scheds   = NULL;
     struct margo_init_info mii;
@@ -292,7 +291,7 @@ int main(int argc, char** argv)
     }
 
     if (my_mpi_rank == 1) {
-        ssg_member_id_t target;
+        ssg_member_id_t ssg_target;
         /* TODO: this is a hack; we need a better way to wait for services
          * to be ready.  MPI Barriers aren't safe without setting aside
          * threads to make sure that servers can answer RPCs.
@@ -302,19 +301,20 @@ int main(int argc, char** argv)
 
         /* rank 1 (client) initiates benchmark */
 
-        ret = ssg_get_group_member_id_from_rank(gid, 0, &target);
+        ret = ssg_get_group_member_id_from_rank(gid, 0, &ssg_target);
         assert(ret == SSG_SUCCESS);
 
         /* warmup */
         if (g_opts.warmup_seconds)
-            ret = run_benchmark(g_bw_id, target, gid, mid, 0,
+            ret = run_benchmark(g_bw_id, ssg_target, gid, mid, 0,
                                 g_opts.warmup_seconds, 0);
         assert(ret == 0);
 
-        ret = run_benchmark(g_bw_id, target, gid, mid, 1,
+        ret = run_benchmark(g_bw_id, ssg_target, gid, mid, 1,
                             g_opts.duration_seconds, 1);
         assert(ret == 0);
     } else {
+        int i;
         /* rank 0 (server) waits for test RPC to complete */
 
         ABT_eventual_wait(g_bw_done_eventual, NULL);
@@ -432,7 +432,7 @@ static void usage(void)
         stderr,
         "Usage: "
         "margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
-        "\t-x <xfer_size> - size of each bulk tranfer in bytes, must be evenly "
+        "\t-x <xfer_size> - size of each bulk transfer in bytes, must be evenly "
         "divisible by vector len\n"
         "\t-D <duration> - duration of test in seconds\n"
         "\t-n <na> - na transport\n"
@@ -547,7 +547,7 @@ static void bw_ult(hg_handle_t handle)
 DEFINE_MARGO_RPC_HANDLER(bw_ult)
 
 static int run_benchmark(hg_id_t           id,
-                         ssg_member_id_t   target,
+                         ssg_member_id_t   ssg_target,
                          ssg_group_id_t    gid,
                          margo_instance_id mid,
                          int               shutdown,
@@ -570,7 +570,7 @@ static int run_benchmark(hg_id_t           id,
     for (i = 0; i < (g_opts.xfer_size / sizeof(i)); i++)
         ((hg_size_t*)buffer)[i] = i;
 
-    ret = ssg_get_group_member_addr(gid, target, &target_addr);
+    ret = ssg_get_group_member_addr(gid, ssg_target, &target_addr);
     assert(ret == SSG_SUCCESS);
 
     ret = margo_create(mid, target_addr, id, &handle);
@@ -661,6 +661,7 @@ static int run_benchmark(hg_id_t           id,
     margo_free_output(handle, &out);
     margo_bulk_free(in.bulk_handle);
     margo_destroy(handle);
+    margo_addr_free(mid, target_addr);
 
     return (0);
 }

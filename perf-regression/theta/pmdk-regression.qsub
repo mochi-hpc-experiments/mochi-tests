@@ -4,6 +4,7 @@
 #COBALT --mode script
 #COBALT -A CSC250STDM12
 #COBALT -q debug-cache-quad
+#COBALT --attrs filesystems=home
 
 export HOME=$SANDBOX
 . $SANDBOX/spack/share/spack/setup-env.sh
@@ -11,7 +12,7 @@ spack env activate mochi-regression
 spack find -vN
 
 # find nodes in job.  We have to do this so that we can manually specify 
-# in each aprun so that server ranks consitently run on node where we
+# in each aprun so that server ranks consistently run on node where we
 # set up storage space
 declare -a nodes=($(python /home/carns/bin/run_on_all_nids.py));
 
