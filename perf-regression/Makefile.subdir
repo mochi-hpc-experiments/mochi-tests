@@ -1,11 +1,19 @@
 if HAVE_MARGO
-bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/margo-p2p-vector perf-regression/gpu-margo-p2p-bw
+bin_PROGRAMS += perf-regression/margo-p2p-latency perf-regression/margo-p2p-bw perf-regression/margo-p2p-vector
+
+if HAVE_GPU_TESTING
+bin_PROGRAMS += perf-regression/gpu-margo-p2p-bw
 
 #Remove -pthread doesn't work for nvcc
 CUDA_CFLAGS := $(subst -pthread,,$(CFLAGS))
 
+#Set up mpi path for include/lib
+STRIP_LAST = $(patsubst %/,%,$(dir $(MPICC)))
+MPICC_PATH = $(patsubst %/,%,$(dir $(STRIP_LAST)))
+
 perf-regression/gpu-margo-p2p-bw: perf-regression/gpu-margo-p2p-bw.cu
-	nvcc -I. $(CUDA_CFLAGS) $(LIBS) -I/lus/theta-fs0/software/thetagpu/openmpi-4.0.5/include -L/lus/theta-fs0/software/thetagpu/openmpi-4.0.5/lib -lmpi $< -o $@
+	$(NVCC) -I. $(CUDA_CFLAGS) $(LIBS) -I$(MPICC_PATH)/include -L$(MPICC_PATH)/lib -lmpi $< -o $@
+endif
 
 endif
 
