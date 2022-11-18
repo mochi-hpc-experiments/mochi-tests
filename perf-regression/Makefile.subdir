@@ -4,21 +4,6 @@ bin_PROGRAMS += perf-regression/margo-p2p-latency \
 		perf-regression/margo-p2p-vector \
 		perf-regression/abt-eventual-bench\
 		perf-regression/abt-future-bench
-
-if HAVE_GPU_TESTING
-bin_PROGRAMS += perf-regression/gpu-margo-p2p-bw
-
-#Remove -pthread doesn't work for nvcc
-CUDA_CFLAGS := $(subst -pthread,,$(CFLAGS))
-
-#Set up mpi path for include/lib
-STRIP_LAST = $(patsubst %/,%,$(dir $(MPICC)))
-MPICC_PATH = $(patsubst %/,%,$(dir $(STRIP_LAST)))
-
-perf-regression/gpu-margo-p2p-bw: perf-regression/gpu-margo-p2p-bw.cu
-	$(NVCC) -I. $(CUDA_CFLAGS) $(LIBS) -I$(MPICC_PATH)/include -L$(MPICC_PATH)/lib -lmpi $< -o $@
-endif
-
 endif
 
 if HAVE_SSG
