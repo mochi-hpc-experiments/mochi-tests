@@ -35,7 +35,6 @@ struct options {
     int           concurrency;
     unsigned int  mercury_timeout_client;
     unsigned int  mercury_timeout_server;
-    char*         diag_file_name;
     char*         na_transport;
     char*         bake_pool;
     int           rpc_xstreams;
@@ -136,8 +135,6 @@ int main(int argc, char** argv)
     /* actually start margo */
     mid = margo_init_ext(g_opts.na_transport, MARGO_SERVER_MODE, &mii);
     assert(mid);
-
-    if (g_opts.diag_file_name) margo_diag_start(mid);
 
     /* adjust mercury timeout in Margo if requested */
     if (my_mpi_rank > 0 && g_opts.mercury_timeout_client != UINT_MAX) {
@@ -272,8 +269,6 @@ int main(int argc, char** argv)
     assert(ret == SSG_SUCCESS);
     ssg_finalize();
 
-    if (g_opts.diag_file_name) margo_diag_dump(mid, g_opts.diag_file_name, 1);
-
     if (my_mpi_rank > 0) free(g_buffer);
     free(gid_buffer);
 
@@ -299,18 +294,11 @@ static int parse_args(int argc, char** argv, struct options* opts)
     opts->mercury_timeout_client = UINT_MAX;
     opts->mercury_timeout_server = UINT_MAX;
 
-    while ((opt = getopt(argc, argv, "n:x:c:d:t:p:m:r:i")) != -1) {
+    while ((opt = getopt(argc, argv, "n:x:c:t:p:m:r:i")) != -1) {
         switch (opt) {
         case 'p':
             opts->bake_pool = strdup(optarg);
             if (!opts->bake_pool) {
-                perror("strdup");
-                return (-1);
-            }
-            break;
-        case 'd':
-            opts->diag_file_name = strdup(optarg);
-            if (!opts->diag_file_name) {
                 perror("strdup");
                 return (-1);
             }
@@ -370,7 +358,6 @@ static void usage(void)
             "\t-p <bake pool> - existing pool created with bake-mkpool\n"
             "\t[-c concurrency] - number of concurrent operations to issue "
             "with ULTs\n"
-            "\t[-d filename] - enable diagnostics output\n"
             "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t "
             "0,0\" to busy spin\n"
             "\t[-r rpc_execution_streams] - number of ESs Margo should use for "

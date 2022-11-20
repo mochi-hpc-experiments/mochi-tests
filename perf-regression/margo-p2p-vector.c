@@ -51,7 +51,6 @@ struct options {
     int           threads;
     unsigned int  mercury_timeout_client;
     unsigned int  mercury_timeout_server;
-    char*         diag_file_name;
     char*         na_transport;
     int           align_buffer;
     int           warmup_seconds;
@@ -164,8 +163,6 @@ int main(int argc, char** argv)
     /* actually start margo */
     mid = margo_init_ext(g_opts.na_transport, MARGO_SERVER_MODE, &mii);
     assert(mid);
-
-    if (g_opts.diag_file_name) margo_diag_start(mid);
 
     /* adjust mercury timeout in Margo if requested */
     if (my_mpi_rank == 0 && g_opts.mercury_timeout_server != UINT_MAX) {
@@ -334,8 +331,6 @@ int main(int argc, char** argv)
     assert(ret == SSG_SUCCESS);
     ssg_finalize();
 
-    if (g_opts.diag_file_name) margo_diag_dump(mid, g_opts.diag_file_name, 1);
-
     free(gid_buffer);
 
     free(g_buffer);
@@ -362,15 +357,8 @@ static int parse_args(int argc, char** argv, struct options* opts)
     /* warm up for 1 second by default */
     opts->warmup_seconds = 1;
 
-    while ((opt = getopt(argc, argv, "n:x:c:T:d:t:D:aw:v:")) != -1) {
+    while ((opt = getopt(argc, argv, "n:x:c:T:t:D:aw:v:")) != -1) {
         switch (opt) {
-        case 'd':
-            opts->diag_file_name = strdup(optarg);
-            if (!opts->diag_file_name) {
-                perror("strdup");
-                return (-1);
-            }
-            break;
         case 'x':
             ret = sscanf(optarg, "%lu", &opts->xfer_size);
             if (ret != 1) return (-1);
@@ -432,7 +420,8 @@ static void usage(void)
         stderr,
         "Usage: "
         "margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
-        "\t-x <xfer_size> - size of each bulk transfer in bytes, must be evenly "
+        "\t-x <xfer_size> - size of each bulk transfer in bytes, must be "
+        "evenly "
         "divisible by vector len\n"
         "\t-D <duration> - duration of test in seconds\n"
         "\t-n <na> - na transport\n"
@@ -441,7 +430,6 @@ static void usage(void)
         "ULTs\n"
         "\t[-T <os threads>] - number of dedicated operating system threads to "
         "run ULTs on\n"
-        "\t[-d <filename>] - enable diagnostics output\n"
         "\t[-t <client_progress_timeout,server_progress_timeout>] # use \"-t "
         "0,0\" to busy spin\n"
         "\t[-a] - explicitly align memory buffer to page size\n"
