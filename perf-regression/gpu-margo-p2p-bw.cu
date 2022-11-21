@@ -48,7 +48,6 @@ struct options {
     char*         mmap_filename;
     unsigned int  mercury_timeout_client;
     unsigned int  mercury_timeout_server;
-    char*         diag_file_name;
     char*         na_transport;
     unsigned long g_buffer_size;
     int           align_buffer;
@@ -171,6 +170,7 @@ int main(int argc, char** argv)
     }
 
     /* Allocate GPU memory if (GPU to GPU, -j option for rank 0, -k option for rank 1 */
+<<<<<<< HEAD
     fprintf(stderr, "my_mpi_rank=%d, processor_name=%s\n",
 	    my_mpi_rank, processor_name);
     
@@ -183,6 +183,13 @@ int main(int argc, char** argv)
 	
     	if (!c_buffer) {
 	
+=======
+    if ((!g_opts.gpu_to_mem && !g_opts.mem_to_gpu) ||
+       (my_mpi_rank == 0 && g_opts.gpu_to_mem) || 
+       (my_mpi_rank == 1 && g_opts.mem_to_gpu)) {
+    	cudaMalloc((void **)&c_buffer, g_opts.g_buffer_size);
+    	if (!c_buffer) {
+>>>>>>> upstream/main
        	    fprintf(stderr, "Error: unable to cudaMalloc %lu byte buffer.\n",
                     g_opts.g_buffer_size);
             return (-1);
@@ -210,8 +217,6 @@ int main(int argc, char** argv)
     /* actually start margo */
     mid = margo_init_ext(g_opts.na_transport, MARGO_SERVER_MODE, &mii);
     assert(mid);
-
-    if (g_opts.diag_file_name) margo_diag_start(mid);
 
     /* adjust mercury timeout in Margo if requested */
     if (my_mpi_rank == 0 && g_opts.mercury_timeout_server != UINT_MAX) {
@@ -370,8 +375,6 @@ int main(int argc, char** argv)
     assert(ret == SSG_SUCCESS);
     ssg_finalize();
 
-    if (g_opts.diag_file_name) margo_diag_dump(mid, g_opts.diag_file_name, 1);
-
     free(gid_buffer);
 
     if (g_opts.mmap_filename == NULL) {
@@ -403,15 +406,8 @@ static int parse_args(int argc, char** argv, struct options* opts)
     /* warm up for 1 second by default */
     opts->warmup_seconds = 1;
 
-    while ((opt = getopt(argc, argv, "n:x:c:T:d:t:D:m:X:aw:jk")) != -1) {
+    while ((opt = getopt(argc, argv, "n:x:c:T:t:D:m:X:aw:jk")) != -1) {
         switch (opt) {
-        case 'd':
-            opts->diag_file_name = strdup(optarg);
-            if (!opts->diag_file_name) {
-                perror("strdup");
-                return (-1);
-            }
-            break;
         case 'x':
             ret = sscanf(optarg, "%d", &opts->xfer_size);
             if (ret != 1) return (-1);
@@ -485,7 +481,7 @@ static void usage(void)
     fprintf(
         stderr,
         "Usage: "
-        "gpu-margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
+        "margo-p2p-bw -x <xfer_size> -D <duration> -n <na>\n"
         "\t-x <xfer_size> - size of each bulk transfer in bytes\n"
         "\t-D <duration> - duration of test in seconds\n"
         "\t-n <na> - na transport\n"
@@ -493,7 +489,6 @@ static void usage(void)
         "ULTs\n"
         "\t[-T <os threads>] - number of dedicated operating system threads to "
         "run ULTs on\n"
-        "\t[-d <filename>] - enable diagnostics output\n"
         "\t[-t <client_progress_timeout,server_progress_timeout>] # use \"-t "
         "0,0\" to busy spin\n"
         "\t[-m <filename>] - use memory-mapped file as buffers instead of "

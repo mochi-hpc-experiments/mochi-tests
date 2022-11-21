@@ -25,7 +25,6 @@ struct options {
     int          iterations;
     unsigned int mercury_timeout_client;
     unsigned int mercury_timeout_server;
-    char*        diag_file_name;
     char*        na_transport;
     int          warmup_iterations;
     int          margo_forward_timed_flag;
@@ -110,8 +109,6 @@ int main(int argc, char** argv)
     /* actually start margo */
     mid = margo_init_ext(g_opts.na_transport, MARGO_SERVER_MODE, &mii);
     assert(mid);
-
-    if (g_opts.diag_file_name) margo_diag_start(mid);
 
     /* adjust mercury timeout in Margo if requested */
     if (my_mpi_rank == 0 && g_opts.mercury_timeout_server != UINT_MAX) {
@@ -202,8 +199,6 @@ int main(int argc, char** argv)
 
     ssg_finalize();
 
-    if (g_opts.diag_file_name) margo_diag_dump(mid, g_opts.diag_file_name, 1);
-
     free(gid_buffer);
 
     margo_finalize(mid);
@@ -226,17 +221,10 @@ static int parse_args(int argc, char** argv, struct options* opts)
     /* unless otherwise specified, do 100 iterations before timing */
     opts->warmup_iterations = 100;
 
-    while ((opt = getopt(argc, argv, "n:i:d:t:w:Tx:")) != -1) {
+    while ((opt = getopt(argc, argv, "n:i:t:w:Tx:")) != -1) {
         switch (opt) {
         case 'T':
             opts->margo_forward_timed_flag = 1;
-            break;
-        case 'd':
-            opts->diag_file_name = strdup(optarg);
-            if (!opts->diag_file_name) {
-                perror("strdup");
-                return (-1);
-            }
             break;
         case 'i':
             ret = sscanf(optarg, "%d", &opts->iterations);
@@ -284,7 +272,6 @@ static void usage(void)
         "\t-n <na> - na transport\n"
         "\t[-x <xfer_size>] - size of req/resp payload in bytes (defaults to "
         "0)\n"
-        "\t[-d filename] - enable diagnostics output\n"
         "\t[-t client_progress_timeout,server_progress_timeout] # use \"-t "
         "0,0\" to busy spin\n"
         "\t[-w <warmup_iterations>] - number of warmup iterations before "
