@@ -31,7 +31,7 @@ echo "=== CREATE DIRECTORIES AND DOWNLOAD CODE ==="
 # where you want to run the tests.
 ORIGIN=$PWD
 # Scratch area for builds
-SANDBOX=$PWD/sb-gpu
+SANDBOX=$PWD/sb-gpu-$$
 PREFIX=$SANDBOX/install
 
 # modify HOME env variable so that we don't perturb ~/.spack/ files for the
@@ -51,9 +51,8 @@ echo "=== SET UP SPACK ENVIRONMENT ==="
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack env create gpu-mochi-regression $SANDBOX/platform-configurations/ANL/ThetaGPU/spack.yaml
 spack env activate gpu-mochi-regression
-
+spack repo rm /path/to/mochi-spack-packages
 spack repo add $SANDBOX/mochi-spack-packages
-spack install mochi-margo@develop
 spack add mochi-ssg@develop ^openmpi
 spack install
 spack find
