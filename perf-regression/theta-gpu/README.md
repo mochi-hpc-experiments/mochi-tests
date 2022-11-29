@@ -1,4 +1,8 @@
-This is an example script for executing an automated regression test on the
+To run the margo gpu test: gpu-margo-p2p-bw.cu with the current libfabric release, 
+libfabric needs to be configured with cuda support.  
+See the local variant added to mochi-spack-packages/packages/libfabric/package.py.
+
+There is an example script for executing an automated regression test on the
 Thetagpu system at the ALCF.  The entire process is handled by the
 "./gpu-qsub" script.  The script can be copied to a desired location where
 the test may be run and submitted via "qsub ./gpu-qsub" on a
