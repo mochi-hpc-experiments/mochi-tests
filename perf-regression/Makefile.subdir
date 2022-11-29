@@ -12,6 +12,7 @@ bin_PROGRAMS += perf-regression/gpu-margo-p2p-bw
 CUDA_CFLAGS := $(subst -pthread,,$(CFLAGS))
 
 #Set up mpi path for include/lib
+MPICC := $(shell which $(CC))
 STRIP_LAST = $(patsubst %/,%,$(dir $(MPICC)))
 MPICC_PATH = $(patsubst %/,%,$(dir $(STRIP_LAST)))
 

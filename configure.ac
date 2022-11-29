@@ -29,16 +29,6 @@ AC_REQUIRE_CPP
 
 AC_CHECK_SIZEOF([long int])
 
-AC_MSG_CHECKING([if mpicc is available])
-AC_PATH_PROG([MPICC],[mpicc])
-if test -z "$MPICC" ; then
-    have_mpicc=0
-    AC_MSG_RESULT(['mpicc' is not found])
-else
-    have_mpicc=1
-    AC_MSG_RESULT(['mpicc' is found])
-fi
-
 AC_MSG_CHECKING([if nvcc is available])
 AC_PATH_PROG([NVCC],[nvcc])
 if test -z "$NVCC" ; then
@@ -48,7 +38,6 @@ else
         have_nvcc=1
         AC_MSG_RESULT(['nvcc' is found])
 fi
-AM_CONDITIONAL([HAVE_GPU_TESTING], [test "x${have_nvcc}" = x1 && test "x${have_mpicc}" = x1])
 
 dnl
 dnl Verify pkg-config
@@ -140,6 +129,9 @@ AM_CONDITIONAL([HAVE_BAKE], [test "x${have_mpi}" = x1 && test "x${have_bake_clie
 AM_CONDITIONAL([HAVE_PMDK], [test "x${have_libpmemobj}" = x1 && test "x${have_argobots}" = x1])
 AM_CONDITIONAL([HAVE_SSG], [test "x${have_ssg}" = x1 && test "x${have_ssg_mpi}" = x1])
 AM_CONDITIONAL([HAVE_MPI], [test "x${have_mpi}" = x1])
+AM_CONDITIONAL([HAVE_GPU_TESTING], [test "x${have_nvcc}" = x1 && test "x${have_mpi}" = x1])
+
+
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
