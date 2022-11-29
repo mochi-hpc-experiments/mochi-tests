@@ -37,7 +37,7 @@ environment is used (or if a spack environment isn't used).
 
 This script also assumes that the HDF5 RADOS VOL connector has been
 installed according to the spack spec `hdf5-rados` and that IOR has
-been installed with spack according to the spec `ior@hdf5-rados`.
+been installed with Spack according to the spec `ior@develop` or `ior+mobject@develop`.
 Instructions for setting up a spack environment called "mochi-env"
 and installed the VOL connector in conjunction with IOR can be found
 at [https://github.com/mochi-hpc/mobject/blob/main/doc/FAQ.md](https://github.com/mochi-hpc/mobject/blob/main/doc/FAQ.md).
