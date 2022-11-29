@@ -2,7 +2,7 @@
 #PBS -l select=1:system=polaris
 #PBS -l place=scatter
 #PBS -l walltime=0:10:00
-#PBS -l filesystems=home:grand
+#PBS -l filesystems=home
 #PBS -q debug
 #PBS -A radix-io
 
@@ -27,6 +27,9 @@ source $HOME/spack/share/spack/setup-env.sh
 echo "Activating env"
 spack env activate mochi-env
 spack find -fN
+
+# Just in case...
+spack load ior+mobject
 
 NNODES=`wc -l < $PBS_NODEFILE`
 NRANKS_PER_NODE=32
