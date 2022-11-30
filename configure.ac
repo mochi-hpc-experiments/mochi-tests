@@ -130,7 +130,7 @@ AM_CONDITIONAL([HAVE_PMDK], [test "x${have_libpmemobj}" = x1 && test "x${have_ar
 AM_CONDITIONAL([HAVE_SSG], [test "x${have_ssg}" = x1 && test "x${have_ssg_mpi}" = x1])
 AM_CONDITIONAL([HAVE_MPI], [test "x${have_mpi}" = x1])
 AM_CONDITIONAL([HAVE_GPU_TESTING], [test "x${have_nvcc}" = x1 && test "x${have_mpi}" = x1])
-
+AM_CONDITIONAL([HAVE_MPICH_DIR], [test "$MPICH_DIR" != "0"])
 
 
 AC_CONFIG_FILES([Makefile])
