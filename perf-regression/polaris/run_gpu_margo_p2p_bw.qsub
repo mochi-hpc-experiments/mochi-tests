@@ -34,10 +34,10 @@ spack load mochi-margo@develop ^libfabric+cuda
 echo "Running Margo P2P BW GPU Test"
 
 echo "=== Testing transfer from GPU memory of Host A to GPU memory of Host B ==="
-mpiexec -n 2 -ppn 1 $MOCHI_TESTS_INSTALL/bin/gpu-margo-p2p-bw -x 4096 -n "ofi+verbs://" -c 1 -D 10
+mpiexec -n 2 -ppn 1 $MOCHI_TESTS_INSTALL/bin/gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "ofi+verbs://" -c 1 -D 10
 
 echo "=== Testing transfer from GPU memory of Host A to main memory of Host B ==="
-mpiexec -n 2 -ppn 1 $MOCHI_TESTS_INSTALL/bin/gpu-margo-p2p-bw -x 4096 -n "ofi+verbs://" -c 1 -D 10 -j
+mpiexec -n 2 -ppn 1 $MOCHI_TESTS_INSTALL/bin/gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "ofi+verbs://" -c 1 -D 10 -j
 
 echo "=== Testing transfer from main memory of Host A to GPU memory of Host B ==="
-mpiexec -n 2 -ppn 1 $MOCHI_TESTS_INSTALL/bin/gpu-margo-p2p-bw -x 4096 -n "ofi+verbs://" -c 1 -D 10 -k
+mpiexec -n 2 -ppn 1 $MOCHI_TESTS_INSTALL/bin/gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "ofi+verbs://" -c 1 -D 10 -k
