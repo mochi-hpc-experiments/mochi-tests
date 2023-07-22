@@ -9,7 +9,7 @@
 # Set to location of installed mochi tests directory
 # where the gpu-margo-p2p-bw program should be available
 # in the 'bin' directory
-MOCHI_TESTS_INSTALL=/home/jhendersonhdf/mochi-tests-build
+MOCHI_TESTS_INSTALL=/path/to/mochi-tests-build
 
 set -eu
 
