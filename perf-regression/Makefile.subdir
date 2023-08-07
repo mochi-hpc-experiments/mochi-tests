@@ -14,7 +14,12 @@ CUDA_CFLAGS := $(subst -pthread,,$(CFLAGS))
 #Set up mpi path for include/lib
 MPICC := $(shell which $(CC))
 STRIP_LAST = $(patsubst %/,%,$(dir $(MPICC)))
+
+if HAVE_MPICH_DIR
+MPICC_PATH = $(MPICH_DIR)
+else
 MPICC_PATH = $(patsubst %/,%,$(dir $(STRIP_LAST)))
+endif
 
 perf-regression/gpu-margo-p2p-bw: perf-regression/gpu-margo-p2p-bw.cu
 	$(NVCC) -I. $(CUDA_CFLAGS) $(LIBS) -I$(MPICC_PATH)/include -L$(MPICC_PATH)/lib -lmpi $< -o $@
