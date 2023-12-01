@@ -38,7 +38,6 @@ echo "=== SET UP SPACK ENVIRONMENT ==="
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack env create mochi-regression $SANDBOX/platform-configurations/ANL/Cooley/spack.yaml
 spack env activate mochi-regression
-spack repo rm /path/to/mochi-spack-packages
 spack repo add $SANDBOX/mochi-spack-packages
 # modify variants to allow for testing of bmi+tcp, ofi+tcp, and ofi+sockets
 spack add libfabric fabrics=rxm,verbs,tcp,sockets
