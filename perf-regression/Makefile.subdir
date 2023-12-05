@@ -9,7 +9,7 @@ if HAVE_GPU_TESTING
 bin_PROGRAMS += perf-regression/gpu-margo-p2p-bw
 
 #Remove -pthread doesn't work for nvcc
-CUDA_CFLAGS := $(subst -pthread,,$(CFLAGS))
+CUDA_CFLAGS := $(subst -pthread,,$(CFLAGS)) -allow-unsupported-compiler
 
 #Set up mpi path for include/lib
 MPICC := $(shell which $(CC))
