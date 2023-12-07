@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -l select=2:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=0:10:00
+#PBS -l filesystems=home
+#PBS -q debug
+#PBS -A radix-io
+
+# Change to working directory
+cd ${PBS_O_WORKDIR}
+
+export HOME=$SANDBOX
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack env activate mochi-regression
+spack find -vN
+
+echo "## Margo CXI (vector benchmark with len 1, 512KiB xfers):"
+mpiexec -n 2 ./margo-p2p-vector -x 524288 -n cxi:// -c 1 -D 20
+
+sleep 1
+
+echo "## Margo CXI (vector benchmark with len 256, 512KiB xfers):"
+mpiexec -n 2 ./margo-p2p-vector -x 524288 -n cxi:// -c 1 -D 20 -v 256
