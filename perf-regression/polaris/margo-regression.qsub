@@ -1,0 +1,53 @@
+#!/bin/bash
+#PBS -l select=2:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=0:15:00
+#PBS -l filesystems=home
+#PBS -q debug
+#PBS -A radix-io
+
+# Change to working directory
+cd ${PBS_O_WORKDIR}
+
+export HOME=$SANDBOX
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack env activate mochi-regression
+spack find -vN
+
+# echo "## MPI (one way, double the latency for round trip):"
+# mpiexec -f $COBALT_NODEFILE -n 2 ./osu_latency
+
+sleep 1
+
+echo "## Margo CXI (round trip):"
+mpiexec -n 2 ./margo-p2p-latency -i 100000 -n cxi://
+echo "## Margo CXI (bw, 1MiB):"
+mpiexec -n 2 ./margo-p2p-bw -x 1048576 -n cxi:// -c 1 -D 20
+echo "## Margo CXI (bw, 1MiB, 8x concurrency):"
+mpiexec -n 2 ./margo-p2p-bw -x 1048576 -n cxi:// -c 8 -D 20
+echo "## Margo CXI (bw, 8MiB):"
+mpiexec -n 2 ./margo-p2p-bw -x 8388608 -n cxi:// -c 1 -D 20
+echo "## Margo CXI (bw, 8MiB, 8x concurrency):"
+mpiexec -n 2 ./margo-p2p-bw -x 8388608 -n cxi:// -c 8 -D 20
+echo "## Margo CXI (bw, 1MB unaligned):"
+mpiexec -n 2 ./margo-p2p-bw -x 1000000 -n cxi:// -c 1 -D 20
+echo "## Margo CXI (bw, 1MB unaligned, 8x concurrency):"
+mpiexec -n 2 ./margo-p2p-bw -x 1000000 -n cxi:// -c 8 -D 20
+
+sleep 1
+
+echo "## Margo CXI (round trip, Hg busy spin):"
+mpiexec -n 2 ./margo-p2p-latency -i 10000 -n cxi:// -t 0,0
+echo "## Margo CXI (bw, 1MiB, Hg busy spin):"
+mpiexec -n 2 ./margo-p2p-bw -x 1048576 -n cxi:// -c 1 -D 20 -t 0,0
+echo "## Margo CXI (bw, 1MiB, 8x concurrency, Hg busy spin):"
+mpiexec -n 2 ./margo-p2p-bw -x 1048576 -n cxi:// -c 8 -D 20 -t 0,0
+echo "## Margo CXI (bw, 8MiB, Hg busy spin):"
+mpiexec -n 2 ./margo-p2p-bw -x 8388608 -n cxi:// -c 1 -D 20 -t 0,0
+echo "## Margo CXI (bw, 8MiB, 8x concurrency, Hg busy spin):"
+mpiexec -n 2 ./margo-p2p-bw -x 8388608 -n cxi:// -c 8 -D 20 -t 0,0
+echo "## Margo CXI (bw, 1MB unaligned, Hg busy spin):"
+mpiexec -n 2 ./margo-p2p-bw -x 1000000 -n cxi:// -c 1 -D 20 -t 0,0
+echo "## Margo CXI (bw, 1MB unaligned, 8x concurrency, Hg busy spin):"
+mpiexec -n 2 ./margo-p2p-bw -x 1000000 -n cxi:// -c 8 -D 20 -t 0,0
+
