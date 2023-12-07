@@ -6,29 +6,24 @@
 #PBS -q debug
 #PBS -A radix-io
 
-# Set to location of installed mochi tests directory
-# where the gpu-margo-p2p-bw program should be available
-# in the 'bin' directory
-MOCHI_TESTS_INSTALL=/home/carns/working/install-polaris/
-
 set -eu
 
 # Change to working directory
 cd ${PBS_O_WORKDIR}
 
-echo "Setting up Spack"
-source $HOME/working/src/spack/share/spack/setup-env.sh
-echo "Activating env"
-spack env activate polaris-demo
-spack find -fN
+export HOME=$SANDBOX
+. $SANDBOX/spack/share/spack/setup-env.sh
+spack env activate mochi-regression
+spack find -vN
+
 
 echo "Running Margo P2P BW GPU Test"
 
 echo "=== Testing transfer from GPU memory of Host A to GPU memory of Host B ==="
-mpiexec -n 2 -ppn 1 $MOCHI_TESTS_INSTALL/bin/gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10
+mpiexec -n 2 -ppn 1 ./gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10
 
 echo "=== Testing transfer from GPU memory of Host A to main memory of Host B ==="
-mpiexec -n 2 -ppn 1 $MOCHI_TESTS_INSTALL/bin/gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 -j
+mpiexec -n 2 -ppn 1 ./gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 -j
 
 echo "=== Testing transfer from main memory of Host A to GPU memory of Host B ==="
-mpiexec -n 2 -ppn 1 $MOCHI_TESTS_INSTALL/bin/gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 -k
+mpiexec -n 2 -ppn 1 ./gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 -k
