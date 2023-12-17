@@ -7,54 +7,15 @@
 # exit on any error
 set -e
 
-# ignore return code on these in case the right modules are already loaded
-module swap PrgEnv-nvhpc PrgEnv-gnu || true
-module load cudatoolkit-standalone || true
-
-echo "=== CREATE DIRECTORIES AND DOWNLOAD CODE ==="
-
 # location of this script
-ORIGIN=$PWD
-# scratch area
-SANDBOX=$PWD/sandbox-$$
-# install destination
-PREFIX=$SANDBOX/install
-# modify HOME env variable so that we don't perturb ~/.spack/ files for the
-# users calling this script
-export HOME=$SANDBOX
-mkdir $SANDBOX
-mkdir $PREFIX
-mkdir $PREFIX/bin
-cp $ORIGIN/*.qsub $PREFIX/bin
+ORIGIN=$(realpath $(dirname "$0"))
+# install area; based on pid if this script is executed by hand
+SANDBOX=$ORIGIN/sandbox-$$
 
-cd $SANDBOX
-git clone -q https://github.com/spack/spack.git
-git clone -q https://github.com/mochi-hpc/mochi-spack-packages.git
-git clone -q https://github.com/mochi-hpc-experiments/mochi-tests.git
-git clone -q https://github.com/mochi-hpc-experiments/platform-configurations.git
-
-echo "=== SET UP SPACK ENVIRONMENT ==="
-. $SANDBOX/spack/share/spack/setup-env.sh
-spack env create mochi-regression $SANDBOX/platform-configurations/ANL/Polaris/spack.yaml
-spack env activate mochi-regression
-spack repo add $SANDBOX/mochi-spack-packages
-spack add mochi-ssg+mpi
-# install initial packages
-spack install
-
-# mochi-tests
-echo "=== BUILD TEST PROGRAMS ==="
-cd $SANDBOX/mochi-tests
-./prepare.sh
-mkdir build
-cd build
-echo ../configure --prefix=$PREFIX CC=cc
-../configure --prefix=$PREFIX CC=cc
-make -j 3
-make install
+./run-regression-build-stage.sh $SANDBOX
 
 echo "=== SUBMIT AND WAIT FOR JOBS ==="
-cd $PREFIX/bin
+cd $SANDBOX/install/bin
 export SANDBOX
 
 # continue on these even if a job fails so that we get emails with partial
@@ -65,7 +26,7 @@ qsub -W block=true -v SANDBOX -o vector.out -e vector.err ./margo-vector-regress
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
 # gather output, strip out funny characters, mail
-cat margo.err margo.out vector.err vector.out gpu.err gpu.out > combined.$JOBID.txt
+cat margo.err margo.out margo-regression.output vector.err vector.out gpu.err gpu.out > combined.$JOBID.txt
 dos2unix combined.$JOBID.txt
 mailx -s "mochi-regression (polaris)" sds-commits@lists.mcs.anl.gov < combined.$JOBID.txt
 cat combined.$JOBID.txt
