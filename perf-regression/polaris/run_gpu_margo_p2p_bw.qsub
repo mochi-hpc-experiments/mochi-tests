@@ -11,7 +11,6 @@ set -eu
 # Change to working directory
 cd ${PBS_O_WORKDIR}
 
-export HOME=$SANDBOX
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack env activate mochi-regression
 spack find -vN
