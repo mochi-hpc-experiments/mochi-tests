@@ -7,7 +7,9 @@
 #PBS -A radix-io
 
 export OUTPUT_FILE=margo-regression.output
-echo "## JOB RESULTS:" > $OUTPUT_FILE
+echo "" > $OUTPUT_FILE
+echo "################################" >> $OUTPUT_FILE
+echo "## MARGO-REGRESSION JOB RESULTS:" >> $OUTPUT_FILE
 echo "" >> $OUTPUT_FILE
 
 if [ -n "$CI_PROJECT_DIR" ]; then
