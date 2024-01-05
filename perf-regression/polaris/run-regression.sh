@@ -25,7 +25,7 @@ qsub -W block=true -v SANDBOX -o gpu.out -e gpu.err ./margo-gpu-regression.qsub 
 qsub -W block=true -v SANDBOX -o vector.out -e vector.err ./margo-vector-regression.qsub || true
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
-cat margo-regression.output margo-gpu-regression.output vector.output > all.output
+cat margo-regression.output margo-gpu-regression.output margo-vector-regression.output > all.output
 cat all.output
 mailx -s "mochi-regression (Polaris, interactive run)" sds-commits@lists.mcs.anl.gov < all.output
 
