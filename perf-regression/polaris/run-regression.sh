@@ -20,8 +20,8 @@ export SANDBOX
 
 # continue on these even if a job fails so that we get emails with partial
 # results
-qsub -W block=true -v SANDBOX -o gpu.out -e gpu.err ./run_gpu_margo_p2p_bw.qsub || true
 qsub -W block=true -v SANDBOX -o margo.out -e margo.err ./margo-regression.qsub || true
+qsub -W block=true -v SANDBOX -o gpu.out -e gpu.err ./margo-gpu-regression.qsub || true
 qsub -W block=true -v SANDBOX -o vector.out -e vector.err ./margo-vector-regression.qsub || true
 
 echo "=== JOB DONE, COLLECTING AND SENDING RESULTS ==="
