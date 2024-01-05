@@ -1,5 +1,18 @@
+# Overview
+
 This directory contains scripts and files for running various Mochi
 tests on Argonne's Polaris system.
+
+A basic collection of Margo performance regression tests can be compiled and
+executed via the run-regression.sh script from a Polaris login node.
+
+The same collection of Margo performance regression tests is also executed
+nightly using a scheduled pipeline on gitlab-ci.alcf.anl.gov.
+
+# Additional manual test cases
+
+Additional information about additional individual test cases can be found
+below:
 
 `mobject_bedrock.json` is a simple bedrock configuration file used
 for configuring the various components of Mobject.
