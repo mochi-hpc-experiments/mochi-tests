@@ -7,6 +7,8 @@
 #PBS -A radix-io
 
 export OUTPUT_FILE=margo-regression.output
+echo "## JOB RESULTS:" > $OUTPUT_FILE
+echo "" >> $OUTPUT_FILE
 
 if [ -n "$CI_PROJECT_DIR" ]; then
     # we appear to be running a gitlab-ci action
@@ -25,15 +27,13 @@ else
     exit 1
 fi
 
-spack env activate mochi-regression
-spack find -vN
+spack env activate mochi-regression >> $OUTPUT_FILE
+spack find -vN >> $OUTPUT_FILE
 
 # echo "## MPI (one way, double the latency for round trip):"
 # mpiexec -f $COBALT_NODEFILE -n 2 ./osu_latency
 
 sleep 1
-
-echo "## JOB RESULTS:" > $OUTPUT_FILE
 
 echo "## Margo CXI (round trip):" >> $OUTPUT_FILE
 mpiexec -n 2 $EXE_PATH/margo-p2p-latency -i 100000 -n cxi:// >> $OUTPUT_FILE
