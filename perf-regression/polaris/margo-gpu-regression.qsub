@@ -33,10 +33,10 @@ spack env activate mochi-regression >> $OUTPUT_FILE
 spack find -vN >> $OUTPUT_FILE
 
 echo "=== Testing transfer from GPU memory of Host A to GPU memory of Host B ===" >> $OUTPUT_FILE
-mpiexec -n 2 -ppn 1 ./gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 >> $OUTPUT_FILE
+mpiexec -n 2 -ppn 1 $EXE_PATH/gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 >> $OUTPUT_FILE
 
 echo "=== Testing transfer from GPU memory of Host A to main memory of Host B ===" >> $OUTPUT_FILE
-mpiexec -n 2 -ppn 1 ./gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 -j >> $OUTPUT_FILE
+mpiexec -n 2 -ppn 1 $EXE_PATH/gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 -j >> $OUTPUT_FILE
 
 echo "=== Testing transfer from main memory of Host A to GPU memory of Host B ===" >> $OUTPUT_FILE
-mpiexec -n 2 -ppn 1 ./gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 -k >> $OUTPUT_FILE
+mpiexec -n 2 -ppn 1 $EXE_PATH/gpu-margo-p2p-bw -X 524288000 -x 1048576 -n "cxi://" -c 1 -D 10 -k >> $OUTPUT_FILE
