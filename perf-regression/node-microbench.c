@@ -443,7 +443,7 @@ static void test_pthread_self(long unsigned iters)
     return;
 }
 
-/* how expensive is the gettid syscall? */
+/* how expensive is gettid()? */
 static void test_gettid(long unsigned iters)
 {
     long unsigned  i;
