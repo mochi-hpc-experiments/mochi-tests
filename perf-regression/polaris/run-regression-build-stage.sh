@@ -18,7 +18,7 @@ ORIGIN=$(dirname "$0")
 # choose preferred modules
 # ignore return code on these in case the right modules are already loaded
 module swap PrgEnv-nvhpc PrgEnv-gnu || true
-module load cudatoolkit-standalone || true
+module load nvhpc-mixed || true
 
 echo "=== CREATE DIRECTORIES AND DOWNLOAD CODE ==="
 
