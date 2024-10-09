@@ -43,11 +43,14 @@ echo "=== SET UP SPACK ENVIRONMENT ==="
 . $SANDBOX/spack/share/spack/setup-env.sh
 spack env create mochi-regression $SANDBOX/platform-configurations/ANL/Polaris/spack.yaml
 spack env activate mochi-regression
-spack mirror remove mochi-buildcache
+#spack mirror remove mochi-buildcache
 spack repo add $SANDBOX/mochi-spack-packages
 spack add mochi-ssg+mpi
 # install initial packages
-spack install
+# spack install
+spack concretize -f --fresh
+spack env depfile -o $SANDBOX/Makefile.env
+make -j 16 -f $SANDBOX/Makefile.env
 
 # mochi-tests
 echo "=== BUILD TEST PROGRAMS ==="
