@@ -67,6 +67,7 @@ static void test_abt_eventual_static_allocation(long unsigned iters);
 #endif
 static void test_pthread_self(long unsigned iters);
 static void test_gettid(long unsigned iters);
+static void test_getenv(long unsigned iters);
 
 static struct options   g_opts;
 static struct test_case g_test_cases[] = {
@@ -94,6 +95,7 @@ static struct test_case g_test_cases[] = {
 #endif
     {"pthread_self", test_pthread_self},
     {"gettid", test_gettid},
+    {"getenv", test_getenv},
     {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -449,6 +451,16 @@ static void test_gettid(long unsigned iters)
     long unsigned  i;
 
     for (i = 0; i < iters; i++) { gettid(); }
+
+    return;
+}
+
+/* how expensive is getenv()? */
+static void test_getenv(long unsigned iters)
+{
+    long unsigned  i;
+
+    for (i = 0; i < iters; i++) { getenv("LOGNAME"); }
 
     return;
 }
