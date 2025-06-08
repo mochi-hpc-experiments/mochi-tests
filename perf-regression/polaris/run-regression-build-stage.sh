@@ -33,7 +33,7 @@ mkdir -p $PREFIX/bin
 cp $ORIGIN/*.qsub $PREFIX/bin
 
 cd $SANDBOX
-git clone -q https://github.com/spack/spack.git
+git clone -c feature.manyFiles=true --branch v0.23.1 -q https://github.com/spack/spack.git
 rm -rf spack/.git*
 git clone -q https://github.com/mochi-hpc/mochi-spack-packages.git
 git clone -q https://github.com/mochi-hpc-experiments/mochi-tests.git
