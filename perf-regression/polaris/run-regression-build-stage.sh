@@ -18,7 +18,6 @@ ORIGIN=$(dirname "$0")
 # choose preferred modules
 # ignore return code on these in case the right modules are already loaded
 module swap PrgEnv-nvidia PrgEnv-gnu || true
-# module load nvhpc-mixed || true
 
 echo "=== CREATE DIRECTORIES AND DOWNLOAD CODE ==="
 
@@ -53,6 +52,8 @@ spack install
 
 # mochi-tests
 echo "=== BUILD TEST PROGRAMS ==="
+# swap back to NVIDIA compilers so that we can build GPU-enabled tests
+module swap PrgEnv-gnu PrgEnv-nvidia || true
 cd $SANDBOX/mochi-tests
 ./prepare.sh
 mkdir build
