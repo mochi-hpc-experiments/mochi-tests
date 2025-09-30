@@ -70,6 +70,9 @@ to perform of each operation to be measured:
 ...
 ```
 
+If you redirect the output to a file, you can create a simple bar plot of
+the results by running `node-microbench-plotter.py <filename>`
+
 ## abt-eventual-bench
 
 abt-eventual-bench measures how well we can create/wait/set/destroy concurrent
