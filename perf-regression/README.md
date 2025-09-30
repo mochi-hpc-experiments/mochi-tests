@@ -49,6 +49,26 @@ mpiexec -n 2 ./margo-p2p-bw -x 4096 -n sm:// -c 1 -D 10
 -c is the concurrency level
 -D is the duration of the test (for each direction)
 
+node-micro-bench
+----------------------
+node-microbench is a basic benchmark that measures the cost of performing
+particular local operations.  It is an MPI program but is only meant to
+execute on a single process.  It may optionally be compiled with Argobots
+support to measure the cost of a few key Argobots primitives as well.
+
+It takes a single argument to specify the number (in millions) of iterations
+to perform of each operation to be measured:
+
+```
+> perf-regression/node-microbench -m 1
+#<test case>	<m_ops>	<total s>	<m_ops/s>	<ns/op>
+"fn_call_normal"	1	0.004363	229.197413	4.363051
+"fn_call_inline"	1	0.003397	294.400011	3.396739
+"fn_call_cross_object"	1	0.003826	261.393284	3.825653
+"mpi_wtime"	1	0.055161	18.128607	55.161436
+"gettimeofday"	1	0.033851	29.541277	33.850940
+...
+```
 
 ## abt-eventual-bench
 
