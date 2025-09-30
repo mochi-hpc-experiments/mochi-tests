@@ -68,6 +68,7 @@ static void test_abt_eventual_static_allocation(long unsigned iters);
 static void test_pthread_self(long unsigned iters);
 static void test_gettid(long unsigned iters);
 static void test_getenv(long unsigned iters);
+static void test_getenv_unset_var(long unsigned iters);
 
 static struct options   g_opts;
 static struct test_case g_test_cases[] = {
@@ -95,7 +96,8 @@ static struct test_case g_test_cases[] = {
 #endif
     {"pthread_self", test_pthread_self},
     {"gettid", test_gettid},
-    {"getenv", test_getenv},
+    {"getenv of set variable", test_getenv},
+    {"getenv of unset variable", test_getenv_unset_var},
     {NULL, NULL}};
 
 int main(int argc, char** argv)
@@ -134,7 +136,7 @@ int main(int argc, char** argv)
     printf("#<test case>\t<m_ops>\t<total s>\t<m_ops/s>\t<ns/op>\n");
     while (g_test_cases[test_idx].fn) {
         sleep(1);
-        printf("%s\t", g_test_cases[test_idx].name);
+        printf("\"%s\"\t", g_test_cases[test_idx].name);
 
         tm1 = MPI_Wtime();
         g_test_cases[test_idx].fn(g_opts.million_iterations * 1000000);
@@ -349,8 +351,7 @@ static void test_stdatomic_lock(long unsigned iters)
     long unsigned i;
 
     for (i = 0; i < iters; i++) {
-        while (atomic_flag_test_and_set(&m))
-            ;
+        while (atomic_flag_test_and_set(&m));
         atomic_flag_clear(&m);
     }
 
@@ -438,29 +439,41 @@ static void test_abt_eventual_static_allocation(long unsigned iters)
 /* how expensive is pthread_self()? */
 static void test_pthread_self(long unsigned iters)
 {
-    long unsigned  i;
+    long unsigned i;
+    pthread_t     tid;
 
-    for (i = 0; i < iters; i++) { pthread_self(); }
+    for (i = 0; i < iters; i++) { tid = pthread_self(); }
 
+    (void)tid;
     return;
 }
 
 /* how expensive is gettid()? */
 static void test_gettid(long unsigned iters)
 {
-    long unsigned  i;
+    long unsigned i;
 
     for (i = 0; i < iters; i++) { gettid(); }
 
     return;
 }
 
-/* how expensive is getenv()? */
+/* how expensive is getenv() for a variable that is set? */
 static void test_getenv(long unsigned iters)
 {
-    long unsigned  i;
+    long unsigned i;
 
     for (i = 0; i < iters; i++) { getenv("LOGNAME"); }
+
+    return;
+}
+
+/* how expensive is getenv() for a variable that is not set? */
+static void test_getenv_unset_var(long unsigned iters)
+{
+    long unsigned i;
+
+    for (i = 0; i < iters; i++) { getenv("NONEXISTENT"); }
 
     return;
 }
