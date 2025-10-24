@@ -29,6 +29,11 @@ else
     exit 1
 fi
 
+# NOTE: this is needed to make sure that libfabric can dlopen() the cudart
+# library.  Otherwise it will not activate FI_HMEM_CUDA, a problem that can
+# only be seen if you set FI_LOG_LEVEL=debug
+module load cuda
+
 spack env activate mochi-regression >> $OUTPUT_FILE
 spack find -vN >> $OUTPUT_FILE
 
