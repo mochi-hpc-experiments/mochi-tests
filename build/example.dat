@@ -1,0 +1,19 @@
+#<test case>	<m_ops>	<total s>	<m_ops/s>	<ns/op>
+"fn_call_normal"	1	0.004348	229.969274	4.348407
+"fn_call_inline"	1	0.004221	236.909113	4.221028
+"fn_call_cross_object"	1	0.003835	260.758777	3.834962
+"mpi_wtime"	1	0.055297	18.084320	55.296523
+"gettimeofday"	1	0.035199	28.410243	35.198572
+"clock_gettime(REALTIME)"	1	0.032482	30.786315	32.481965
+"clock_gettime(REALTIME_COARSE)"	1	0.012191	82.026447	12.191190
+"clock_gettime(MONOTONIC)"	1	0.032265	30.993636	32.264688
+"clock_gettime(MONOTONIC_COARSE)"	1	0.011015	90.781930	11.015408
+"pthread_mutex_lock/unlock"	1	0.036297	27.550141	36.297455
+"pthread_mutex_recursive_lock/unlock"	1	0.035908	27.849117	35.907781
+"pthread_spin_lock/unlock"	1	0.018906	52.893606	18.905877
+"stdatomic lock/unlock"	1	0.031674	31.571700	31.673936
+"rdtscp"	1	0.035997	27.780017	35.997098
+"pthread_self"	1	0.002922	342.252315	2.921821
+"gettid"	1	0.172137	5.809336	172.136713
+"getenv of set variable"	1	0.032724	30.558557	32.724058
+"getenv of unset variable"	1	0.077860	12.843636	77.859570
