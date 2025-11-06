@@ -77,7 +77,7 @@ pushd mochi-hpc-experiments.github.io
 echo "==> Creating commit"
 git commit -m "[ALCF GitLab CI] Results for ${today}"
 echo "==> Changing repository URL"
-# See note bellow for token generation
+# See note below for token generation
 git remote set-url origin \
     "https://$MOCHI_CI_GH_POLARIS@github.com/mochi-hpc-experiments/mochi-hpc-experiments.github.io.git"
 echo "==> Pushing updates"
@@ -96,7 +96,7 @@ popd
 # - Past the copied token and click "Save changes"
 #
 # If the person managing this CI is no longer Matthieu Dorier, you may need a combination
-# of the above and the bellow instructions (which is how the token was created in the first place).
+# of the above and the below instructions (which is how the token was created in the first place).
 #
 # - Navigate to https://github.com/settings/personal-access-tokens
 # - Click "Generate New Token"
