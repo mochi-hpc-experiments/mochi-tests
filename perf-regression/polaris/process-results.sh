@@ -53,12 +53,12 @@ else
     echo "==> Processing margo-gpu-regression.output"
     test_num=0
     while read -r line; do
-        if [[ "$line" = "=== Testing" ]]; then
+        if [[ "$line" = "=== Testing"* ]]; then
             case "$test_num" in
                 0) hostA_mem=GPU; hostB_mem=GPU ;;
                 1) hostA_mem=GPU; hostB_mem=CPU ;;
                 2) hostA_mem=CPU; hostB_mem=GPU ;;
-                2) hostA_mem=CPU; hostB_mem=CPU ;;
+                3) hostA_mem=CPU; hostB_mem=CPU ;;
             esac
             (( test_num++ ))
         fi
