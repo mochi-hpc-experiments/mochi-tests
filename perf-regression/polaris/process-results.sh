@@ -11,7 +11,7 @@ git clone https://github.com/mochi-hpc-experiments/mochi-hpc-experiments.github.
 POLARIS_RESULT_PATH=mochi-hpc-experiments.github.io/src/supercomputers/polaris
 
 echo "==> Validating results in margo-regression.output"
-if (( $(grep -c "## Margo CXI" margo-regression.output)!== 14 )); then
+if (( $(grep -c "## Margo CXI" margo-regression.output) != 14 )); then
     echo "margo-regression.output does not seem to be valid, skipping."
 else
     if [[ ! -f $POLARIS_RESULT_PATH/latency.csv ]]; then
@@ -40,8 +40,10 @@ else
         fi
     done < margo-regression.output
     echo "==> Adding files to next commit"
-    git add $POLARIS_RESULT_PATH/latency.csv
-    git add $POLARIS_RESULT_PATH/bandwidth.csv
+    pushd $POLARIS_RESULT_PATH
+    git add latency.csv
+    git add bandwidth.csv
+    popd
 fi
 
 echo "==> Validating results in margo-gpu-regression.output"
@@ -70,7 +72,9 @@ else
         fi
     done < margo-gpu-regression.output
     echo "==> Adding files to next commit"
-    git add $POLARIS_RESULT_PATH/gpu-bandwidth.csv
+    pushd $POLARIS_RESULT_PATH
+    git add gpu-bandwidth.csv
+    popd
 fi
 
 pushd mochi-hpc-experiments.github.io
@@ -81,7 +85,7 @@ echo "==> Changing repository URL"
 git remote set-url origin \
     "https://$MOCHI_CI_GH_POLARIS@github.com/mochi-hpc-experiments/mochi-hpc-experiments.github.io.git"
 echo "==> Pushing updates"
-git pushd
+git push -u origin main
 popd
 
 # MOCHI_CI_GH_POLARIS is a token generated on Github that is allowed to read/write
