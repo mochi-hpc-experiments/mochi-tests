@@ -30,6 +30,7 @@ mkdir -p $SANDBOX
 mkdir -p $PREFIX
 mkdir -p $PREFIX/bin
 cp $ORIGIN/*.qsub $PREFIX/bin
+cp $ORIGIN/process-results.sh $PREFIX/bin
 
 cd $SANDBOX
 git clone -c feature.manyFiles=true --branch v1.0.1 -q https://github.com/spack/spack.git
