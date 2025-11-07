@@ -2,10 +2,6 @@
 
 today=$(date +%Y-%m-%d)
 
-git() {
-    echo "git $@"
-}
-
 echo "==> Cloning mochi-hpc-experiments.github.io repository"
 git clone https://github.com/mochi-hpc-experiments/mochi-hpc-experiments.github.io.git
 POLARIS_RESULT_PATH=mochi-hpc-experiments.github.io/src/supercomputers/polaris
