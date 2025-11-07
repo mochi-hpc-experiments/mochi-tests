@@ -73,6 +73,12 @@ else
     popd
 fi
 
+echo "==> Copying spack files"
+cp spack.* $POLARIS_RESULT_PATH
+pushd mochi-hpc-experiments.github.io
+git add src/supercomputers/polaris/spack.*
+popd
+
 pushd mochi-hpc-experiments.github.io
 echo "==> Creating commit"
 git commit -m "[ALCF GitLab CI] Results for ${today}"

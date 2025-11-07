@@ -51,6 +51,8 @@ spack add mochi-ssg+mpi
 spack concretize -f --fresh
 spack install
 
+cp $SPACK_ENV/spack.* .
+
 # mochi-tests
 echo "=== BUILD TEST PROGRAMS ==="
 # swap back to NVIDIA compilers so that we can build GPU-enabled tests
