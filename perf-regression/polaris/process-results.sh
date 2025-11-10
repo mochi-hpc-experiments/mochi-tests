@@ -61,8 +61,7 @@ else
                 3) hostA_mem=CPU; hostB_mem=CPU ;;
             esac
             (( test_num++ ))
-        fi
-        if [[ "$line" = PULL* ]]; then
+        elif [[ "$line" = PULL* ]] || [[ "$line" = PUSH* ]]; then
             # Convert to comma-separated values
             echo "${today},${line//$'\t'/,},${hostA_mem},${hostB_mem}" >> $POLARIS_RESULT_PATH/gpu-bandwidth.csv
         fi
