@@ -57,7 +57,7 @@ sleep 1
 echo "" >> $OUTPUT_FILE
 
 echo "## Margo CXI (round trip, Hg busy spin):" >> $OUTPUT_FILE
-mpiexec -n 2 $EXE_PATH/margo-p2p-latency -i 10000 -n cxi:// -t 0,0 >> $OUTPUT_FILE
+mpiexec -n 2 $EXE_PATH/margo-p2p-latency -i 100000 -n cxi:// -t 0,0 >> $OUTPUT_FILE
 echo "## Margo CXI (bw, 1MiB, Hg busy spin):" >> $OUTPUT_FILE
 mpiexec -n 2 $EXE_PATH/margo-p2p-bw -x 1048576 -n cxi:// -c 1 -D 20 -t 0,0 >> $OUTPUT_FILE
 echo "## Margo CXI (bw, 1MiB, 8x concurrency, Hg busy spin):" >> $OUTPUT_FILE
