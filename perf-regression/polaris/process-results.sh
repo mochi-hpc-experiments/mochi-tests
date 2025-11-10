@@ -73,7 +73,7 @@ else
 fi
 
 echo "==> Copying spack files"
-cp spack.* $POLARIS_RESULT_PATH
+cp sandbox/spack.* $POLARIS_RESULT_PATH
 pushd mochi-hpc-experiments.github.io
 git add src/supercomputers/polaris/spack.*
 popd
