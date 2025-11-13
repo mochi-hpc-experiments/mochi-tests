@@ -41,7 +41,7 @@ git clone -q https://github.com/mochi-hpc-experiments/platform-configurations.gi
 
 echo "=== SET UP SPACK ENVIRONMENT ==="
 . $SANDBOX/spack/share/spack/setup-env.sh
-spack env create mochi-regression /home/carns/working/src/mochi/platform-configurations/ANL/Polaris/spack.yaml
+spack env create mochi-regression platform-configurations/ANL/Polaris/spack.yaml
 spack env activate mochi-regression
 #spack mirror remove mochi-buildcache
 spack repo add $SANDBOX/mochi-spack-packages
