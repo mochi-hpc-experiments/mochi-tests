@@ -59,6 +59,7 @@ echo "=== BUILD TEST PROGRAMS ==="
 # TODO: workaround. I'm not sure why this is necessary here
 module load libfabric
 module swap PrgEnv-gnu PrgEnv-nvidia || true
+module unload darshan
 cd $SANDBOX/mochi-tests
 ./prepare.sh
 mkdir build
