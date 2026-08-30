@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -l select=2
+#PBS -l daos=default
+#PBS -A radix-io
+#PBS -l walltime=00:15:00
+#PBS -N libfabric-coll
+#PBS -k doe
+#PBS -j oe
+#PBS -l filesystems=flare:daos_user
+#PBS -V
+
+cd $PBS_O_WORKDIR
+
+mpiexec -l -np 2 ./benchmark
